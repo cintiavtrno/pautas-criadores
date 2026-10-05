@@ -83,6 +83,13 @@
     </fieldset>
 
     <fieldset>
+      <legend>Sua pauta</legend>
+      <p class="kicker" style="margin:8px 0 0;text-transform:none;letter-spacing:0;font-size:13.5px;font-family:var(--sans);color:var(--ink-2)">Já tem uma ideia de vídeo para essa ação? Conta aqui. Se não tiver, tudo bem: a gente te manda opções.</p>
+      <label class="f">Título da sua ideia <i>(opcional)</i><input type="text" name="pautaTitulo" maxlength="140" placeholder="Ex.: o que o meu bairro perde quando ninguém vota" /></label>
+      <label class="f">Como você faria? <i>(opcional)</i><textarea name="pautaDescricao" maxlength="1500" placeholder="Formato, tom, o que quer mostrar…"></textarea></label>
+    </fieldset>
+
+    <fieldset>
       <legend>Como falamos com você</legend>
       <div class="row2">
         <label class="f">WhatsApp<input type="tel" name="whats" maxlength="40" placeholder="(71) 9…" autocomplete="tel" /></label>
@@ -96,6 +103,7 @@
     <label class="consent"><input type="checkbox" name="consentimento" />
       <span>Autorizo a equipe a usar esses dados só para entrar em contato comigo sobre esta ação.</span></label>
 
+    <div id="captcha" style="margin-top:22px"></div>
     <button type="submit">Enviar inscrição</button>
     <div class="msg" id="msg" role="status" aria-live="polite"></div>
   </form>
@@ -104,6 +112,17 @@
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const f = document.getElementById('f');
 const msg = document.getElementById('msg');
+const abertoEm = Date.now();
+let turnstileToken = '';
+
+// verificação anti-robô da Cloudflare, se estiver configurada no servidor
+fetch('/public/config').then((r) => r.json()).then((c) => {
+  if (!c.turnstile) return;
+  window.onTurnstileLoad = () => window.turnstile.render('#captcha', { sitekey: c.turnstile, callback: (t) => { turnstileToken = t; } });
+  const s = document.createElement('script');
+  s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad'; s.async = true;
+  document.head.appendChild(s);
+}).catch(() => {});
 
 fetch('/public/nichos').then((r) => r.json()).then((list) => {
   document.getElementById('nichos').innerHTML = list.map((n) => `<label><input type="checkbox" name="nichos" value="${esc(n)}" /><span>${esc(n)}</span></label>`).join('');
@@ -120,6 +139,8 @@ f.addEventListener('submit', async (e) => {
   const d = Object.fromEntries(new FormData(f));
   d.nichos = [...f.querySelectorAll('input[name=nichos]:checked')].map((x) => x.value);
   d.consentimento = f.consentimento.checked;
+  d.t = Date.now() - abertoEm;
+  d.turnstile = turnstileToken;
   msg.className = 'msg err';
   if (!d.nome.trim() || !d.handle.trim()) { msg.textContent = 'Preencha seu nome e seu @ do Instagram.'; return; }
   if (!d.whats.trim() && !d.email.trim()) { msg.textContent = 'Deixe um WhatsApp ou um e-mail.'; return; }

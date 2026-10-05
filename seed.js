@@ -105,4 +105,22 @@ const correcoes = [
   { id: '2026-10-05-dinho', handle: 'dinhojunior', set: { nichos: ['Humor', 'Lifestyle'], nichoConfirmado: true, resumo: 'Apresentador. Conteúdo de humor e lifestyle.' } },
 ];
 
-module.exports = { nichos, criadores, correcoes };
+// Equipe de produção
+const equipe = [
+  { nome: 'Maria Maia', funcoes: ['Marketing'] },
+  { nome: 'Gabriel Caldas', funcoes: ['Design'] },
+  { nome: 'Ana Carolana', funcoes: ['Edição dos vídeos'] },
+  { nome: 'Kleyton William', funcoes: ['Edição dos vídeos'] },
+  { nome: 'Jefferson Farias', funcoes: ['Edição dos vídeos'] },
+  { nome: 'Diego Welerson', funcoes: ['Escrita e pesquisa'] },
+  { nome: 'Ramires Montenegro', funcoes: ['Edição dos vídeos'] },
+  { nome: 'João Bigon', funcoes: ['Escrita e pesquisa'] },
+  { nome: 'Matheus Pestana', funcoes: ['Escrita e pesquisa'] },
+  { nome: 'Camilla', funcoes: ['Apresentação', 'Escrita e pesquisa'] },
+  { nome: 'Cíntia Vitorino', funcoes: ['Site', 'Escrita e pesquisa'] },
+  { nome: 'Yara Damasceno', funcoes: ['Escrita e pesquisa'] },
+  { nome: 'Klismann Schramm', funcoes: ['Edição dos vídeos'] },
+  { nome: 'Rahuany Velleda', funcoes: ['Design'] },
+];
+
+module.exports = { nichos, criadores, correcoes, equipe };

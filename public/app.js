@@ -2,9 +2,16 @@
    Tudo salva sozinho: cada mudança vai direto para a API. */
 
 const STATUS = ['Mapeado', 'Contatado', 'Topou', 'Em roteiro', 'Em edição', 'Publicado', 'Recusou'];
-const PAUTA_STATUS = ['Livre', 'Reservada', 'Em produção', 'Publicada', 'Descartada'];
+const PAUTA_STATUS = ['Sugerida', 'Livre', 'Reservada', 'Em produção', 'Publicada', 'Descartada'];
 const RESP = ['Camilla', 'Yara'];
-const FUNCOES = ['Roteiro', 'Edição', 'Roteiro e edição'];
+const FUNCOES = ['Escrita e pesquisa', 'Edição dos vídeos', 'Design', 'Marketing', 'Apresentação', 'Site'];
+const funcoesDe = (t) => (t.funcoes && t.funcoes.length ? t.funcoes : t.funcao ? [t.funcao] : []);
+// lista da equipe para os seletores, com quem tem a função certa primeiro
+const equipePor = (fn) => () => {
+  const com = S.team.filter((t) => funcoesDe(t).includes(fn));
+  const sem = S.team.filter((t) => !funcoesDe(t).includes(fn));
+  return [...com, ...sem].map((t) => [t.id, `${t.nome}${funcoesDe(t).length ? ' · ' + funcoesDe(t).join(', ') : ''}`]);
+};
 const ANDAMENTO = ['Topou', 'Em roteiro', 'Em edição', 'Publicado'];
 
 const S = {
@@ -176,7 +183,6 @@ VIEWS.criadores = {
   },
   detail(c) {
     const pautas = () => S.pautas.map((p) => [p.id, p.titulo + (p.nicho ? ` (${p.nicho})` : '')]);
-    const equipe = () => S.team.map((t) => [t.id, `${t.nome}${t.funcao ? ' · ' + t.funcao : ''}`]);
     const escolha = c.modoPauta === 'escolha';
     return `
       <div class="dhead">
@@ -193,8 +199,8 @@ VIEWS.criadores = {
         <section class="fs"><h3>Andamento</h3><div class="grid2">
           ${field({ k: 'status', type: 'select', label: 'Status', opts: () => STATUS }, { ...c, status: c.status || 'Mapeado' })}
           ${field({ k: 'responsavel', type: 'seg', label: 'Quem faz o contato', opts: () => RESP, clear: true }, c)}
-          ${field({ k: 'roteiristaId', type: 'select', label: 'Roteiro', opts: equipe, empty: S.team.length ? 'Ninguém ainda' : 'Cadastre a equipe na aba Equipe' }, c)}
-          ${field({ k: 'editorId', type: 'select', label: 'Edição', opts: equipe, empty: S.team.length ? 'Ninguém ainda' : 'Cadastre a equipe na aba Equipe' }, c)}
+          ${field({ k: 'roteiristaId', type: 'select', label: 'Escrita e pesquisa', opts: equipePor('Escrita e pesquisa'), empty: S.team.length ? 'Ninguém ainda' : 'Cadastre a equipe na aba Equipe' }, c)}
+          ${field({ k: 'editorId', type: 'select', label: 'Edição do vídeo', opts: equipePor('Edição dos vídeos'), empty: S.team.length ? 'Ninguém ainda' : 'Cadastre a equipe na aba Equipe' }, c)}
         </div></section>
 
         <section class="fs"><h3>Pauta</h3><div class="grid2">
@@ -273,7 +279,7 @@ VIEWS.pautas = {
   row(p) {
     const c = find('creators', p.creatorId);
     const ofertas = S.creators.filter((x) => (x.pautasOpcoes || []).includes(p.id)).length;
-    return `<span class="who"><span class="name">${esc(p.titulo)}</span><span class="muted">${esc(p.tema || 'sem tema')}${p.prazo ? ' · até ' + fmtData(p.prazo) : ''}</span></span>
+    return `<span class="who"><span class="name">${esc(p.titulo)}${p.sugeridaPor ? '<span class="flag" style="color:var(--green)">do formulário</span>' : ''}</span><span class="muted">${p.sugeridaPor ? 'sugerida por ' + esc(p.sugeridaPor) + ' · ' : ''}${esc(p.tema || 'sem tema')}${p.prazo ? ' · até ' + fmtData(p.prazo) : ''}</span></span>
       ${statusTag(p.status || 'Livre')}
       <span class="line ok">${c ? esc(c.nome.split(' ')[0]) : ofertas ? `${ofertas} oferta${ofertas > 1 ? 's' : ''}` : 'sem criador'}</span><span></span>`;
   },
@@ -283,7 +289,7 @@ VIEWS.pautas = {
     return `
       <div class="dhead">
         <button class="btn ghost back" data-back>← Voltar à lista</button>
-        <div class="kicker">${statusTag(p.status || 'Livre')}<span>${esc(p.nicho || 'qualquer nicho')}</span><span class="sp"></span><span class="saved">salvo</span></div>
+        <div class="kicker">${statusTag(p.status || 'Livre')}<span>${esc(p.nicho || 'qualquer nicho')}</span>${p.sugeridaPor ? `<span style="color:var(--green)">sugerida por ${esc(p.sugeridaPor)} no formulário</span>` : ''}<span class="sp"></span><span class="saved">salvo</span></div>
         <h2 data-h="titulo">${esc(p.titulo)}</h2>
       </div>
       <div class="dbody">
@@ -317,15 +323,21 @@ VIEWS.pautas = {
 /* Equipe */
 VIEWS.equipe = {
   col: 'team',
-  bar: () => `<span style="color:var(--ink-2);font-size:14px">Quem ajuda com roteiro e edição.</span><span class="sp"></span><button class="btn solid" data-new>Nova pessoa</button>`,
+  bar: () => `<span style="color:var(--ink-2);font-size:14px">Quem faz o trabalho, separado por função.</span><span class="sp"></span><button class="btn solid" data-new>Nova pessoa</button>`,
   filtered: () => S.team,
+  groups(list) {
+    const out = FUNCOES.map((fn) => ({ title: fn, items: list.filter((t) => funcoesDe(t)[0] === fn) }));
+    out.push({ title: 'Outras funções', items: list.filter((t) => !FUNCOES.includes(funcoesDe(t)[0])) });
+    return out;
+  },
+  groupNote: 'Cada pessoa aparece no grupo da sua primeira função.',
   empty: 'Ninguém cadastrado ainda. Cadastre aqui quem faz roteiro e edição; depois é só escolher no painel de cada criador.',
   row(t) {
     const n = S.creators.filter((c) => c.roteiristaId === t.id || c.editorId === t.id).length;
     return `<span class="who"><span class="name">${esc(t.nome)}</span><span class="muted">${esc(t.contato || 'sem contato')}</span></span>
-      <span class="tag">${esc(t.funcao || 'sem função')}</span><span class="line ok">${n} criador${n === 1 ? '' : 'es'}</span><span></span>`;
+      <span class="tag">${esc(funcoesDe(t).join(', ') || 'sem função')}</span><span class="line ok">${n} criador${n === 1 ? '' : 'es'}</span><span></span>`;
   },
-  async create() { return api.save('team', { nome: 'Nova pessoa', funcao: '', contato: '', obs: '' }); },
+  async create() { return api.save('team', { nome: 'Nova pessoa', funcoes: [], contato: '', obs: '' }); },
   detail(t) {
     const com = S.creators.filter((c) => c.roteiristaId === t.id || c.editorId === t.id);
     return `
@@ -336,16 +348,19 @@ VIEWS.equipe = {
         <section class="fs"><h3>Dados</h3><div class="grid2">
           ${field({ k: 'nome', label: 'Nome' }, t)}
           ${field({ k: 'contato', label: 'Contato', ph: 'WhatsApp, @ ou e-mail' }, t)}
-          ${field({ k: 'funcao', type: 'seg', label: 'Função', full: true, opts: () => FUNCOES, clear: true }, t)}
+          ${field({ k: 'funcoes', type: 'chips', label: 'Funções (a primeira define o grupo)', full: true, opts: () => {
+            const sel = funcoesDe(t);
+            return [...sel, ...FUNCOES.filter((f) => !sel.includes(f))].map((f) => ({ v: f, l: f }));
+          } }, { ...t, funcoes: funcoesDe(t) })}
           ${field({ k: 'obs', type: 'textarea', label: 'Observações', full: true }, t)}
         </div></section>
         <section class="fs"><h3>Com quem está trabalhando</h3>
-          <div style="font-size:15px">${com.map((c) => `${esc(c.nome)} <span style="font:400 12px var(--mono);color:var(--ink-3)">${c.roteiristaId === t.id && c.editorId === t.id ? 'roteiro e edição' : c.roteiristaId === t.id ? 'roteiro' : 'edição'}</span>`).join('<br>') || '<span style="color:var(--ink-3)">ninguém ainda</span>'}</div>
+          <div style="font-size:15px">${com.map((c) => `${esc(c.nome)} <span style="font:400 12px var(--mono);color:var(--ink-3)">${c.roteiristaId === t.id && c.editorId === t.id ? 'escrita e edição' : c.roteiristaId === t.id ? 'escrita e pesquisa' : 'edição do vídeo'}</span>`).join('<br>') || '<span style="color:var(--ink-3)">ninguém ainda</span>'}</div>
         </section>
         <div class="dfoot"><span>atualizado ${fmtData(t.updatedAt)}</span><button class="btn danger" data-del>Excluir pessoa</button></div>
       </div>`;
   },
-  onSaved(k, t) { if (k === 'nome') $('[data-h=nome]').textContent = t.nome; },
+  onSaved(k, t) { if (k === 'nome') $('[data-h=nome]').textContent = t.nome; if (k === 'funcoes') renderDetail(); },
 };
 
 /* Nichos */
@@ -466,7 +481,7 @@ function renderQuadro() {
       return `<article class="card" draggable="true" data-id="${c.id}" style="border-left-color:${esc(corNicho((c.nichos || [])[0]))}">
         <strong>${esc(c.nome)}</strong><small>${esc((c.nichos || []).join(', ') || 'sem nicho')}${c.responsavel ? ' · ' + esc(c.responsavel) : ''}</small>
         ${p ? `<div class="pt">${esc(p.titulo)}</div>` : ''}
-        ${r || e ? `<small>${r ? 'roteiro ' + esc(r.nome) : ''}${r && e ? ' · ' : ''}${e ? 'edição ' + esc(e.nome) : ''}</small>` : ''}
+        ${r || e ? `<small>${r ? 'escrita ' + esc(r.nome) : ''}${r && e ? ' · ' : ''}${e ? 'edição ' + esc(e.nome) : ''}</small>` : ''}
       </article>`;
     }).join('')}</div></section>`;
   }).join('')}</div>`;
@@ -492,7 +507,7 @@ function renderStats() {
   const conferir = c.filter((x) => !x.nichoConfirmado).length;
   const andando = c.filter((x) => ANDAMENTO.includes(x.status)).length;
   $('#stats').innerHTML = [
-    ['criadores', c.length], ['sem linha', semLinha, semLinha > 0], ['conferir nicho', conferir], ['inscrições', c.filter((x) => x.inscreveuSe).length], ['em andamento', andando], ['pautas', S.pautas.length],
+    ['criadores', c.length], ['sem linha', semLinha, semLinha > 0], ['conferir nicho', conferir], ['inscrições', c.filter((x) => x.inscreveuSe).length], ['em andamento', andando], ['pautas', S.pautas.length], ['sugeridas', S.pautas.filter((p) => p.status === 'Sugerida').length, S.pautas.some((p) => p.status === 'Sugerida')],
   ].map(([l, n, w]) => `<div class="${w ? 'warn' : ''}"><dt>${l}</dt><dd>${n}</dd></div>`).join('');
 }
 

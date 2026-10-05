@@ -125,6 +125,8 @@ main { height: calc(100vh - 78px); }
 .tag { font: 500 11px/1.2 var(--mono); text-transform: uppercase; letter-spacing: .03em; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
 .tag::before { content: ""; width: 7px; height: 7px; background: currentColor; flex: none; }
 .st-mapeado { color: var(--ink-3); }
+.st-sugerida { color: var(--green); }
+.st-livre { color: var(--ink-2); }
 .st-contatado { color: var(--blue); }
 .st-topou { color: var(--green); }
 .st-em-roteiro, .st-em-edicao { color: var(--amber); }

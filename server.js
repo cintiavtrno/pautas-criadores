@@ -8,21 +8,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const COLLECTIONS = ['creators', 'pautas', 'team', 'nichos'];
 
-app.use(express.json({ limit: '1mb' }));
+const seg = require('./security');
 
-// Senha opcional: defina APP_PASSWORD no Render para proteger o sistema.
-// Usuário pode ser qualquer um; só a senha é conferida.
-if (process.env.APP_PASSWORD) {
-  app.use((req, res, next) => {
-    // a página onde o criador escolhe a pauta é aberta sem senha (o link já é secreto)
-    if (req.path === '/health' || req.path.startsWith('/escolha/') || req.path.startsWith('/public/') || req.path === '/participar') return next();
-    const h = req.headers.authorization || '';
-    const [, b64] = h.split(' ');
-    const pass = b64 ? Buffer.from(b64, 'base64').toString().split(':').slice(1).join(':') : '';
-    if (pass === process.env.APP_PASSWORD) return next();
-    res.set('WWW-Authenticate', 'Basic realm="Pautas"').status(401).send('Acesso restrito');
-  });
-}
+app.disable('x-powered-by');
+app.set('trust proxy', 1); // o Render fica na frente: assim o IP real de quem acessa é o que conta
+app.use(seg.headers);
+app.use(seg.geral);
+app.use(express.json({ limit: '200kb' }));
+
+// Senha do painel: defina APP_PASSWORD no Render. Usuário pode ser qualquer um; só a senha é conferida.
+// Formulário (/participar) e links de escolha (/escolha/...) ficam abertos.
+if (process.env.APP_PASSWORD) app.use(seg.senha(process.env.APP_PASSWORD));
+else console.warn('ATENÇÃO: APP_PASSWORD não definida. O painel está aberto para qualquer pessoa.');
 
 app.get('/health', (_req, res) => res.json({ ok: true, storage: db.kind }));
 
@@ -31,7 +28,7 @@ const checkCol = (req, res, next) =>
 
 const wrap = (fn) => (req, res) => fn(req, res).catch((e) => {
   console.error(e);
-  res.status(500).json({ error: e.message });
+  res.status(500).json({ error: 'Erro no servidor. Tente de novo.' });
 });
 
 app.get('/api/:col', checkCol, wrap(async (req, res) => res.json(await db.list(req.params.col))));
@@ -64,6 +61,7 @@ app.get('/public/escolha/:token', wrap(async (req, res) => {
 }));
 
 app.post('/public/escolha/:token', wrap(async (req, res) => {
+  if (!seg.limits.escolha.hit(seg.ipOf(req))) return seg.demais(res);
   const c = await creatorByToken(req.params.token);
   if (!c) return res.status(404).json({ error: 'Link inválido.' });
   const { pautaId, comentario } = req.body || {};
@@ -82,20 +80,24 @@ app.get('/escolha/:token', (_req, res) => res.sendFile(path.join(__dirname, 'pub
 // O criador se inscreve sozinho e entra direto na lista, marcado como "inscrição".
 app.get('/participar', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'participar.html')));
 app.get('/public/nichos', wrap(async (_req, res) => res.json((await db.list('nichos')).map((n) => n.nome))));
+app.get('/public/config', (_req, res) => res.json({ turnstile: seg.turnstileAtivo() ? process.env.TURNSTILE_SITE_KEY : '' }));
 
-const tentativas = new Map(); // limite simples contra robô: 10 envios por IP a cada 10 min
 const limpaHandle = (h) => String(h || '').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[/?#\s]/)[0].toLowerCase();
 const txt = (v, max = 300) => String(v || '').trim().slice(0, max);
 
 app.post('/public/inscricao', wrap(async (req, res) => {
-  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
-  const agora = Date.now();
-  const t = (tentativas.get(ip) || []).filter((x) => agora - x < 10 * 60 * 1000);
-  if (t.length >= 10) return res.status(429).json({ error: 'Muitos envios seguidos. Tente de novo daqui a pouco.' });
-  tentativas.set(ip, [...t, agora]);
+  const ip = seg.ipOf(req);
+  if (!seg.limits.inscricao.hit(ip)) return seg.demais(res, 'Muitos envios seguidos deste aparelho. Tente de novo daqui a pouco.');
+  if (seg.limits.inscricaoTotal.count('site') >= seg.limits.inscricaoTotal.max) {
+    return res.status(503).json({ error: 'Muitas inscrições chegando agora. Tente de novo em alguns minutos.' });
+  }
 
   const b = req.body || {};
-  if (b.site) return res.json({ ok: true }); // campo invisível: se veio preenchido, é robô
+  // armadilhas para robô: campo invisível preenchido ou formulário enviado rápido demais.
+  // Respondemos "ok" para o robô não perceber que foi barrado.
+  if (b.site || Number(b.t) < 2500) return res.json({ ok: true });
+  if (!(await seg.turnstileOk(b.turnstile, ip))) return res.status(400).json({ error: 'Não conseguimos confirmar que você não é um robô. Recarregue a página e tente de novo.' });
+  seg.limits.inscricaoTotal.hit('site');
   const nome = txt(b.nome, 120);
   const handle = limpaHandle(b.handle);
   const whats = txt(b.whats, 40);
@@ -112,18 +114,29 @@ app.post('/public/inscricao', wrap(async (req, res) => {
     inscritoEm: new Date().toISOString(),
   };
 
-  const existente = (await db.list('creators')).find((c) => (c.handle || '').toLowerCase() === handle);
-  if (existente) {
+  let criador = (await db.list('creators')).find((c) => (c.handle || '').toLowerCase() === handle);
+  if (criador) {
     // já estava na lista: só completa o contato, sem apagar o que a equipe escreveu
-    const patch = { ...dados, inscreveuSe: true };
-    if (!(existente.nichos || []).length && nichos.length) patch.nichos = nichos;
-    await db.update('creators', existente.id, patch);
+    // só preenche o que estiver vazio: ninguém consegue trocar o contato de quem já está na lista
+    const patch = { inscreveuSe: true, inscritoEm: dados.inscritoEm };
+    for (const [k, v] of Object.entries(dados)) if (v && !criador[k]) patch[k] = v;
+    if (!(criador.nichos || []).length && nichos.length) patch.nichos = nichos;
+    await db.update('creators', criador.id, patch);
   } else {
-    await db.insert('creators', {
+    criador = await db.insert('creators', {
       nome, handle, url: `https://www.instagram.com/${handle}/`, nichos, nichoConfirmado: false,
       resumo: dados.mensagemInscricao, sugestaoLinha: '', observacoes: '', responsavel: '', status: 'Mapeado',
       modoPauta: 'atribuida', pautaId: '', pautasOpcoes: [], roteiristaId: '', editorId: '',
       origem: 'inscricao', inscreveuSe: true, token: newToken(), ...dados,
+    });
+  }
+
+  // a pessoa pode já mandar a própria ideia de pauta: entra na aba Pautas como "Sugerida"
+  const pautaTitulo = txt(b.pautaTitulo, 140);
+  if (pautaTitulo) {
+    await db.insert('pautas', {
+      titulo: pautaTitulo, tema: '', nicho: nichos[0] || '', descricao: txt(b.pautaDescricao, 1500), linhaSugerida: '',
+      status: 'Sugerida', creatorId: criador.id, prazo: '', origem: 'inscricao', sugeridaPor: nome,
     });
   }
   res.json({ ok: true });
@@ -166,7 +179,8 @@ app.get('/export/:col.csv', checkCol, wrap(async (req, res) => {
   const rows = await db.list(req.params.col);
   const keys = [...new Set(rows.flatMap((r) => Object.keys(r)))];
   const esc = (v) => {
-    const s = Array.isArray(v) ? v.join('; ') : v == null ? '' : String(v);
+    let s = Array.isArray(v) ? v.join('; ') : v == null ? '' : String(v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // impede fórmula maliciosa ao abrir no Excel
     return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const csv = [keys.join(','), ...rows.map((r) => keys.map((k) => esc(r[k])).join(','))].join('\n');
@@ -191,6 +205,16 @@ app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.h
     nichosSeeded.add(n.nome);
   }
   await db.update('meta', meta.id, { seededNichos: [...nichosSeeded] });
+
+  // equipe inicial (por nome; quem vocês apagarem não volta)
+  const equipeExist = new Set((await db.list('team')).map((t) => t.nome.toLowerCase()));
+  const equipeSeeded = new Set(meta.seededEquipe || []);
+  for (const t of seed.equipe || []) {
+    if (equipeSeeded.has(t.nome)) continue;
+    if (!equipeExist.has(t.nome.toLowerCase())) await db.insert('team', { contato: '', obs: '', ...t });
+    equipeSeeded.add(t.nome);
+  }
+  await db.update('meta', meta.id, { seededEquipe: [...equipeSeeded] });
   const existing = new Set((await db.list('creators')).map((c) => c.handle));
   const seeded = new Set(meta.seeded || []);
   for (const c of seed.criadores) {
