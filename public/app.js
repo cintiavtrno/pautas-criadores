@@ -854,10 +854,11 @@ function telaSenha(obrigatoria) {
     <label class="f"><span>Senha atual</span><input name="atual" type="password" autocomplete="current-password" required /></label>
     <label class="f"><span>Nova senha</span><input name="nova" type="password" autocomplete="new-password" minlength="8" required /></label>
     <label class="f"><span>Repita a nova senha</span><input name="nova2" type="password" autocomplete="new-password" minlength="8" required /></label>
-    <div style="display:flex;gap:8px"><button class="btn solid" type="submit">Salvar senha</button>${obrigatoria ? '' : '<button class="btn ghost" type="button" id="vt">Voltar</button>'}</div>
+    <div style="display:flex;gap:8px"><button class="btn solid" type="submit">Salvar senha</button>${obrigatoria ? '<button class="btn ghost" type="button" id="outra">Sair e entrar com outra conta</button>' : '<button class="btn ghost" type="button" id="vt">Voltar</button>'}</div>
     <p class="msg" id="smsg"></p>
   </form>`;
   if (!obrigatoria) $('#vt').onclick = () => render();
+  else $('#outra').onclick = async () => { await api.post('/auth/logout').catch(() => {}); S.me = null; telaLogin(); };
   $('#fs').onsubmit = async (e) => {
     e.preventDefault();
     const f = e.target;
