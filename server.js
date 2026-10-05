@@ -284,7 +284,7 @@ app.post('/public/inscricao', wrap(async (req, res) => {
   const pautasPublicas = (await db.list('pautas')).filter((p) => (tipo === 'criador' ? PARA_CRIADOR : PARA_PESSOA).includes(p.paraQuem) && !['Sugerida', 'Descartada'].includes(p.status));
   const pautaIds = (Array.isArray(b.pautaIds) ? b.pautaIds : []).filter((id) => pautasPublicas.some((p) => p.id === id)).slice(0, 10);
   const escolha = pautaIds.length ? { pautaIds, pautaId: pautaIds[0], escolhidaEm: agora() } : { pautaIds: [] };
-  const base = { contatoWhats: whats, contatoEmail: email, cidade: txt(b.cidade, 120), inscritoEm: agora() };
+  const base = { contatoWhats: whats, contatoEmail: email, cidade: txt(b.cidade, 120), inscritoEm: agora(), mostrarNaComunidade: !!b.mostrar };
   const pautaTitulo = txt(b.pautaTitulo, 140);
   const ideia = (extra) => pautaTitulo && db.insert('pautas', {
     titulo: pautaTitulo, descricao: txt(b.pautaDescricao, 1500), tema: '', linhaSugerida: '', roteiro: '', prazo: '',
@@ -377,7 +377,7 @@ app.get('/public/painel/:token', wrap(async (req, res) => {
   const c = await config();
   res.json({
     grupoWhatsapp: urlOk(c.grupoWhatsapp) ? c.grupoWhatsapp : '', materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
-    tipo, nome: r.nome, sugestaoLinha: tipo === 'criador' ? r.sugestaoLinha || '' : '',
+    tipo, nome: r.nome, mostrar: !!r.mostrarNaComunidade, sugestaoLinha: tipo === 'criador' ? r.sugestaoLinha || '' : '',
     pautas: (await pautasVisiveis(q)).map(pautaPublica),
     escolhidas: (r.pautaIds && r.pautaIds.length ? r.pautaIds : r.pautaId ? [r.pautaId] : []), comentario: (tipo === 'criador' ? r.comentarioCriador : r.comentario) || '', escolhidaEm: r.escolhidaEm || '',
     publicacoes: (r.publicacoes || []).map(({ em, link, comentario }) => ({ em, link, comentario })),
@@ -419,7 +419,7 @@ app.post('/public/painel/:token/postei', painelLimite, wrap(async (req, res) => 
   const pubs = (r.publicacoes || []).slice(-19);
   pubs.push({ em: agora(), link, comentario: txt(req.body?.comentario, 1000), pautaId: r.pautaId || '' });
   await db.update(col, r.id, { publicacoes: pubs, status: tipo === 'criador' ? 'Publicado' : 'Postou' });
-  if (link) await db.insert('videos', { nome: r.nome, contato: r.contatoWhats || r.contatoEmail || (r.handle ? '@' + r.handle : ''), link, comentario: txt(req.body?.comentario, 1000), pautaIds: r.pautaIds || (r.pautaId ? [r.pautaId] : []), origem: 'painel', tipo, [tipo === 'criador' ? 'creatorId' : 'pessoaId']: r.id, em: agora(), conferido: false });
+  if (link) await db.insert('videos', { nome: r.nome, contato: r.contatoWhats || r.contatoEmail || (r.handle ? '@' + r.handle : ''), link, comentario: txt(req.body?.comentario, 1000), pautaIds: r.pautaIds || (r.pautaId ? [r.pautaId] : []), origem: 'painel', tipo, [tipo === 'criador' ? 'creatorId' : 'pessoaId']: r.id, em: agora(), conferido: false, mostrarNome: !!r.mostrarNaComunidade });
   res.json({ ok: true });
 }));
 
@@ -439,6 +439,38 @@ app.post('/public/painel/:token/ideia', painelLimite, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
+/* ---- comunidade: quem participa e os vídeos conferidos ---- */
+// Só aparece quem autorizou. Vídeo só entra no mural depois que a equipe marca como conferido.
+async function comunidade() {
+  const [criadores, pessoas, videos, pautas] = await Promise.all(['creators', 'pessoas', 'videos', 'pautas'].map((c) => db.list(c)));
+  const conferidos = videos.filter((v) => v.conferido && urlOk(v.link));
+  const qtd = (campo, id) => conferidos.filter((v) => v[campo] === id).length;
+  const participantes = [
+    ...criadores.filter((c) => c.mostrarNaComunidade).map((c) => ({ nome: c.nome, tipo: 'criador', handle: c.handle || '', cidade: c.cidade || '', videos: qtd('creatorId', c.id), desde: c.inscritoEm || c.createdAt })),
+    ...pessoas.filter((p) => p.mostrarNaComunidade).map((p) => ({ nome: p.nome, tipo: 'pessoa', handle: '', cidade: p.cidade || '', videos: qtd('pessoaId', p.id), desde: p.inscritoEm || p.createdAt })),
+  ].sort((a, b) => String(b.desde).localeCompare(String(a.desde)));
+  const titulo = (id) => pautas.find((p) => p.id === id)?.titulo;
+  const mural = conferidos.sort((a, b) => String(b.em).localeCompare(String(a.em))).slice(0, 200).map((v) => ({
+    nome: v.mostrarNome ? v.nome : 'Participante', link: v.link, em: v.em, pautas: (v.pautaIds || []).map(titulo).filter(Boolean),
+  }));
+  const total = criadores.filter((c) => c.inscreveuSe || ANDAMENTO_CRIADOR.includes(c.status)).length + pessoas.length;
+  return { participantes, mural, totais: { participantes: total, videos: conferidos.length } };
+}
+const ANDAMENTO_CRIADOR = ['Topou', 'Em roteiro', 'Em edição', 'Publicado'];
+
+app.get('/public/painel/:token/comunidade', wrap(async (req, res) => {
+  if (!(await porToken(req.params.token))) return res.status(404).json({ error: 'Link inválido.' });
+  res.json(await comunidade());
+}));
+app.post('/public/painel/:token/preferencias', painelLimite, wrap(async (req, res) => {
+  const q = await porToken(req.params.token);
+  if (!q) return res.status(404).json({ error: 'Link inválido.' });
+  await db.update(q.col, q.r.id, { mostrarNaComunidade: !!req.body?.mostrar });
+  res.json({ ok: true });
+}));
+// números para a página inicial (só contagem, sem nomes)
+app.get('/public/numeros', wrap(async (_req, res) => res.json((await comunidade()).totais)));
+
 /* ---- formulário aberto para mandar o link do vídeo ---- */
 app.post('/public/video', painelLimite, wrap(async (req, res) => {
   const b = req.body || {};
@@ -450,7 +482,7 @@ app.post('/public/video', painelLimite, wrap(async (req, res) => {
   if (!urlOk(link)) return res.status(400).json({ error: 'Cole o link do vídeo (começando com http:// ou https://).' });
   const publicas = (await db.list('pautas')).filter((p) => [...PARA_PESSOA, ...PARA_CRIADOR].includes(p.paraQuem));
   const pautaIds = (Array.isArray(b.pautaIds) ? b.pautaIds : []).filter((id) => publicas.some((p) => p.id === id)).slice(0, 10);
-  await db.insert('videos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), pautaIds, origem: 'formulario', tipo: '', em: agora(), conferido: false });
+  await db.insert('videos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), pautaIds, origem: 'formulario', tipo: '', em: agora(), conferido: false, mostrarNome: !!b.mostrar });
   res.json({ ok: true });
 }));
 

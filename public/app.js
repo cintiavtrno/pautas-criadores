@@ -230,6 +230,7 @@ VIEWS.criadores = {
           ${field({ k: 'cidade', label: 'Cidade' }, c)}
           ${field({ k: 'seguidores', label: 'Seguidores' }, c)}
           ${field({ k: 'outrasRedes', label: 'Outras redes', full: true }, c)}
+          ${field({ k: 'mostrarNaComunidade', type: 'bool', text: 'Aparece em "Quem participa" no painel', full: true }, c)}
           ${c.nichoOutro ? `<div class="f full"><span>Outro tema que a pessoa marcou</span><div>${esc(c.nichoOutro)}</div></div>` : ''}
           ${c.mensagemInscricao ? `<div class="f full"><span>O que escreveu na inscrição</span><div style="font-size:15px;color:var(--ink-2)">${esc(c.mensagemInscricao)}</div></div>` : ''}
         </div></section>
@@ -442,6 +443,7 @@ VIEWS.pessoas = {
           ${field({ k: 'contatoWhats', label: 'WhatsApp' }, x)}
           ${field({ k: 'contatoEmail', label: 'E-mail' }, x)}
           ${field({ k: 'comQuem', type: 'chips', label: 'Com quem quer falar', full: true, opts: () => ['Família', 'Amigos', 'Colegas de trabalho ou escola', 'Stories / status', 'Grupos de WhatsApp', 'Vizinhança / bairro'].map((v) => ({ v, l: v })) }, x)}
+          ${field({ k: 'mostrarNaComunidade', type: 'bool', text: 'Aparece em "Quem participa" no painel', full: true }, x)}
           ${field({ k: 'observacoes', type: 'textarea', label: 'Observações', full: true }, x)}
         </div></section>
         <div class="dfoot"><span>atualizado ${fmtData(x.updatedAt)}</span><button class="btn danger" data-del>Excluir pessoa</button></div>
@@ -572,7 +574,8 @@ VIEWS.videos = {
         <section class="fs"><h3>Dados</h3><div class="grid2">
           <div class="f"><span>Contato</span><div>${esc(v.contato || '—')}</div></div>
           <div class="f"><span>Pautas</span><div>${esc(titulosPautas(v.pautaIds).join(' · ') || '—')}</div></div>
-          ${field({ k: 'conferido', type: 'bool', text: 'Conferido pela equipe', full: true }, v)}
+          <div class="f"><span>Nome no mural</span><div>${v.mostrarNome ? 'pode mostrar' : 'aparece como "Participante"'}</div></div>
+          ${field({ k: 'conferido', type: 'bool', text: 'Conferido: entra no mural de quem participa', full: true }, v)}
           ${field({ k: 'notas', type: 'textarea', label: 'Notas', full: true }, v)}
         </div></section>
         <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>

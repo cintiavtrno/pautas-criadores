@@ -3,27 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#c8102e" />
   <title>Quero participar</title>
   <meta name="description" content="Cadastro para participar: criadores de conteúdo e pessoas comuns." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/publico.css" />
   <script src="/icones.js"></script>
+  <script src="/site.js"></script>
 </head>
-<body>
-<main class="wrap" id="app">
+<header class="barra clara">
+  <div class="miolo">
+    <a class="marca-site" href="/"><i></i>Articulação</a>
+    <nav><a href="/#como">Como funciona</a><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav>
+  </div>
+</header>
+<div class="dupla">
+<aside class="lateral"><div class="dentro">
   <p class="kicker">cadastro</p>
   <h1>Quero participar</h1>
-
+  <p class="lead">Leva dois minutos. Depois você entra no grupo do WhatsApp e recebe as pautas com as sugestões de roteiro.</p>
+  <ol>
+    <li><b>1</b>Diga quem você é e escolha a pauta. Pode ser mais de uma.</li>
+    <li><b>2</b>Entre no grupo e pegue o material.</li>
+    <li><b>3</b>Grave do seu jeito e mande o link do vídeo.</li>
+  </ol>
+</div></aside>
+<main class="folha" id="app">
   <div class="caminhos lado" id="escolha">
     <button type="button" class="caminho" data-tipo="pessoa"><strong>Não sou criador de conteúdo</strong><span>Quero falar com quem eu conheço.</span></button>
     <button type="button" class="caminho" data-tipo="criador"><strong>Sou criador de conteúdo</strong><span>Tenho perfil com público.</span></button>
   </div>
 
   <form id="f" novalidate hidden>
-    <p class="lead" data-so="pessoa">Não precisa ter seguidores. Depois do cadastro você entra no grupo do WhatsApp e recebe as sugestões de roteiro.</p>
-    <p class="lead" data-so="criador">Depois do cadastro você entra no grupo do WhatsApp e recebe as pautas com sugestões de roteiro.</p>
+    <p class="lead" data-so="pessoa" style="margin-top:28px">Não precisa ter seguidores. Uma conversa com a família já conta.</p>
+    <p class="lead" data-so="criador" style="margin-top:28px">Seu alcance ajuda a levar a informação para quem não chega nela.</p>
 
     <fieldset>
       <legend>Quem é você</legend>
@@ -83,7 +98,9 @@
 
     <label class="hp" aria-hidden="true">Não preencha<input type="text" name="site" tabindex="-1" autocomplete="off" /></label>
 
-    <label class="consent"><input type="checkbox" name="consentimento" />
+    <label class="consent leve"><input type="checkbox" name="mostrar" />
+      <span>Pode mostrar meu nome (e meu @, se eu for criador) para quem também participa da articulação.</span></label>
+    <label class="consent" style="margin-top:8px"><input type="checkbox" name="consentimento" />
       <span>Autorizo a equipe a usar esses dados só para falar comigo sobre a articulação.</span></label>
 
     <div id="captcha" style="margin-top:22px"></div>
@@ -91,6 +108,7 @@
     <div class="msg" id="msg" role="status" aria-live="polite"></div>
   </form>
 </main>
+</div>
 <script>
 const COM_QUEM = ['Família', 'Amigos', 'Colegas de trabalho ou escola', 'Stories / status', 'Grupos de WhatsApp', 'Vizinhança / bairro'];
 const H = { 'Content-Type': 'application/json', 'X-Requested-With': 'espelho' };
@@ -148,7 +166,7 @@ function sucesso(nome, out) {
   const primeiro = esc(nome.split(' ')[0]);
   const app = document.getElementById('app');
   const grupo = cfg.grupoWhatsapp ? `<a class="grupo" href="${esc(cfg.grupoWhatsapp)}" target="_blank" rel="noopener noreferrer">${ICONE.conversa}<div><strong>Entrar no grupo do WhatsApp</strong><span>Lá chegam o material com as sugestões de roteiro e os avisos.</span></div></a>` : '';
-  const material = cfg.materialPautas ? `<a class="grupo" href="${esc(cfg.materialPautas)}" target="_blank" rel="noopener noreferrer">${ICONE.documento}<div><strong>Abrir o material das pautas</strong><span>Pautas e sugestões de roteiro.</span></div></a>` : '';
+  const material = cfg.materialPautas ? `<a class="grupo contorno" href="${esc(cfg.materialPautas)}" target="_blank" rel="noopener noreferrer">${ICONE.documento}<div><strong>Abrir o material das pautas</strong><span>Pautas e sugestões de roteiro.</span></div></a>` : '';
   if (out.token) {
     const link = `${location.origin}/p/${out.token}`;
     app.innerHTML = `
@@ -180,7 +198,7 @@ f.addEventListener('submit', async (e) => {
   const d = {
     tipo, nome: v('nome'), whats: v('whats'), email: v('email'), site: v('site'),
     pautaTitulo: v('pautaTitulo'), pautaDescricao: v('pautaDescricao'), pautaIds: marcados('pautaIds'),
-    consentimento: f.consentimento.checked, t: Date.now() - abertoEm, turnstile: turnstileToken,
+    consentimento: f.consentimento.checked, mostrar: f.mostrar.checked, t: Date.now() - abertoEm, turnstile: turnstileToken,
   };
   if (tipo === 'criador') Object.assign(d, { handle: v('handle'), cidade: v('cidadeC'), seguidores: v('seguidores'), outrasRedes: v('outrasRedes'), nichos: marcados('nichos'), nichoOutro: v('nichoOutro'), sobre: v('sobreC') });
   else Object.assign(d, { cidade: v('cidadeP'), comQuem: marcados('comQuem'), sobre: v('sobreP') });

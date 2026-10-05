@@ -3,57 +3,155 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Articulação</title>
+  <title>Articulação · Fale com quem pensa em não votar</title>
   <meta name="description" content="Comunicação popular, criadores e sociedade civil conversando com quem pensa em não votar." />
+  <meta name="theme-color" content="#c8102e" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/publico.css" />
   <script src="/icones.js"></script>
+  <script src="/site.js"></script>
 </head>
 <body>
-<main class="wrap largo">
-  <!-- Textos da página inicial. Pode trocar à vontade. -->
-  <p class="kicker">articulação</p>
-  <h1>Fale com quem pensa em não votar</h1>
-  <p class="lead">A articulação junta comunicação popular, criadores de conteúdo e sociedade civil para combater a desinformação e chegar ao maior número possível de pessoas. Você escolhe uma pauta, grava um vídeo do seu jeito e manda o link pra gente.</p>
-
-  <div class="caminhos lado">
-    <a class="caminho" href="/participar?tipo=pessoa">
-      <strong>Não sou criador de conteúdo</strong>
-      <span>Quero gravar para minha família, meus amigos, meu status.</span>
-    </a>
-    <a class="caminho" href="/participar?tipo=criador">
-      <strong>Sou criador de conteúdo</strong>
-      <span>Tenho um perfil com público e quero usar meu alcance.</span>
-    </a>
+<!-- Os textos desta página podem ser trocados à vontade. -->
+<header class="barra sobre-vermelho">
+  <div class="miolo">
+    <a class="marca-site" href="/"><i></i>Articulação</a>
+    <nav>
+      <a href="#como">Como funciona</a>
+      <a href="#equipe">Quem faz</a>
+      <a href="/enviar-video">Mandar vídeo</a>
+      <a class="cta" href="/participar">Participar</a>
+    </nav>
   </div>
-  <p class="muted" style="margin-top:12px"><a href="/enviar-video" class="com-ico" data-ico="link">Já gravou? Mande o link do seu vídeo</a></p>
+</header>
 
-  <h2>Por que</h2>
-  <div class="texto">
-    <p>Tem muita gente querendo fazer alguma coisa e sem saber o que falar. A equipe de escrita e pesquisa prepara pautas e sugestões de roteiro com informação checada, para ninguém precisar começar do zero.</p>
-    <p>E a conversa não pode ficar só entre influenciadores. Uma prima que não foi votar escuta mais quem é da família do que um perfil grande.</p>
+<section class="capa">
+  <div class="miolo">
+    <div>
+      <p class="kicker">comunicação popular · criadores · sociedade civil</p>
+      <h1>Fale com quem pensa em <em>não votar</em></h1>
+      <p class="lead">A articulação junta gente de todo canto para combater a desinformação e chegar ao maior número possível de pessoas. Você escolhe uma pauta, grava um vídeo do seu jeito e manda o link pra gente.</p>
+      <div class="numeros" id="numeros" hidden>
+        <div><b data-conta="participantes">0</b><span>pessoas participando</span></div>
+        <div><b data-conta="videos">0</b><span>vídeos no ar</span></div>
+      </div>
+    </div>
+    <div class="capa-acoes">
+      <a class="caminho" href="/participar?tipo=pessoa"><strong>Não sou criador de conteúdo</strong><span>Quero gravar para minha família, meus amigos, meu status.</span></a>
+      <a class="caminho" href="/participar?tipo=criador"><strong>Sou criador de conteúdo</strong><span>Tenho perfil com público e quero usar meu alcance.</span></a>
+      <a class="link-video" href="/enviar-video" data-ico="link">Já gravou? Mande o link</a>
+    </div>
   </div>
+</section>
 
-  <h2>Como funciona</h2>
-  <ol class="passos">
-    <li><span class="n" data-ico="lista"></span><div><strong>Cadastro</strong>Preencha o formulário e escolha a pauta que quer gravar. Pode ser mais de uma.</div></li>
-    <li><span class="n" data-ico="conversa"></span><div><strong>Grupo</strong>Entre no grupo do WhatsApp. Lá você recebe o material com as sugestões de roteiro de cada pauta.</div></li>
-    <li><span class="n" data-ico="camera"></span><div><strong>Vídeo</strong>Grave e poste do seu jeito: no feed, nos stories, no status, no grupo da família.</div></li>
-    <li><span class="n" data-ico="link"></span><div><strong>Link</strong>Mande o link do vídeo pra gente acompanhar até onde a articulação chegou.</div></li>
-  </ol>
+<section class="faixa">
+  <div class="miolo dois">
+    <div class="texto revela">
+      <p class="kicker">por que</p>
+      <p class="titulo-secao">Quem está perto escuta mais</p>
+      <p>Tem muita gente querendo fazer alguma coisa e sem saber o que falar. A equipe de escrita e pesquisa prepara pautas e sugestões de roteiro com informação checada, para ninguém começar do zero.</p>
+      <p>E a conversa não pode ficar só entre influenciadores. A prima que não foi votar escuta mais quem senta com ela no almoço de domingo do que um perfil com um milhão de seguidores.</p>
+    </div>
 
-  <h2>Quem está fazendo</h2>
-  <div class="equipe" id="equipe"><p class="muted">carregando…</p></div>
+    <div class="conversa revela" id="conversa">
+      <span class="selo">monte a sua</span>
+      <h3>Com quem você vai falar?</h3>
+      <p class="passo">1 · a pessoa</p>
+      <div class="chips" data-grupo="quem">
+        <button type="button" data-v="sua prima" data-p="ela">Prima</button>
+        <button type="button" data-v="seu tio" data-p="ele">Tio</button>
+        <button type="button" data-v="sua vizinha" data-p="ela">Vizinha</button>
+        <button type="button" data-v="seu colega de trabalho" data-p="ele">Colega de trabalho</button>
+        <button type="button" data-v="sua avó" data-p="ela">Avó</button>
+        <button type="button" data-v="seu amigo de infância" data-p="ele">Amigo de infância</button>
+      </div>
+      <p class="passo">2 · onde</p>
+      <div class="chips" data-grupo="onde">
+        <button type="button" data-v="no almoço de domingo">Almoço de domingo</button>
+        <button type="button" data-v="num áudio no WhatsApp">Áudio no WhatsApp</button>
+        <button type="button" data-v="no grupo da família">Grupo da família</button>
+        <button type="button" data-v="num vídeo no seu status">Vídeo no status</button>
+      </div>
+      <div class="fala vazia" id="fala">Escolha a pessoa e o lugar.</div>
+      <a class="btn" href="/participar?tipo=pessoa" id="fala-cta" hidden>Quero participar</a>
+    </div>
+  </div>
+</section>
 
-  <p class="rodape"><span>Já se cadastrou? Use o link pessoal que você recebeu.</span><a href="/admin">acesso da equipe</a></p>
-</main>
+<section class="faixa vermelha" id="como">
+  <div class="miolo">
+    <p class="kicker revela">como funciona</p>
+    <p class="titulo-secao revela">Quatro passos, do cadastro ao vídeo no ar</p>
+    <ol class="passos">
+      <li class="revela"><span class="n" data-ico="lista"></span><div><span class="num">01</span><strong>Cadastro</strong>Preencha o formulário e escolha a pauta que quer gravar. Pode ser mais de uma.</div></li>
+      <li class="revela"><span class="n" data-ico="conversa"></span><div><span class="num">02</span><strong>Grupo</strong>Entre no grupo do WhatsApp. Lá chega o material com as sugestões de roteiro de cada pauta.</div></li>
+      <li class="revela"><span class="n" data-ico="camera"></span><div><span class="num">03</span><strong>Vídeo</strong>Grave e poste do seu jeito: no feed, nos stories, no status, no grupo da família.</div></li>
+      <li class="revela"><span class="n" data-ico="link"></span><div><span class="num">04</span><strong>Link</strong>Mande o link do vídeo pra gente acompanhar até onde a articulação chegou.</div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="faixa" id="equipe">
+  <div class="miolo">
+    <p class="kicker revela">quem está fazendo</p>
+    <p class="titulo-secao revela">A equipe, por função</p>
+    <div class="equipe" id="lista-equipe"><p class="muted">carregando…</p></div>
+  </div>
+</section>
+
+<section class="faixa escura">
+  <div class="miolo dois" style="align-items:end">
+    <div class="revela">
+      <p class="kicker">seu lugar</p>
+      <p class="titulo-secao">Entre pelo caminho que é seu</p>
+    </div>
+    <div class="capa-acoes revela">
+      <a class="caminho" href="/participar?tipo=pessoa"><strong>Não sou criador de conteúdo</strong></a>
+      <a class="caminho" href="/participar?tipo=criador"><strong>Sou criador de conteúdo</strong></a>
+    </div>
+  </div>
+</section>
+
+<footer class="rodape-site">
+  <div class="miolo"><span>Já se cadastrou? Use o link pessoal que você recebeu.</span><a href="/admin">acesso da equipe</a></div>
+</footer>
+
 <script>
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-document.querySelectorAll('[data-ico]').forEach((el) => { el.insertAdjacentHTML('afterbegin', ICONE[el.dataset.ico] || ''); });
 
-// o que cada função faz (texto curto embaixo do nome da função)
+// números da capa
+fetch('/public/numeros').then((r) => r.json()).then((n) => {
+  if (!n.participantes) return;
+  document.getElementById('numeros').hidden = false;
+  document.querySelectorAll('[data-conta]').forEach((el) => conta(el, n[el.dataset.conta] || 0));
+}).catch(() => {});
+
+// monte a sua conversa
+const escolha = { quem: null, onde: null };
+document.querySelectorAll('#conversa [data-grupo]').forEach((g) => {
+  g.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    g.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+    escolha[g.dataset.grupo] = { v: b.dataset.v, p: b.dataset.p };
+    montaFala();
+  });
+});
+function montaFala() {
+  const el = document.getElementById('fala');
+  if (!escolha.quem || !escolha.onde) {
+    el.className = 'fala vazia';
+    el.textContent = escolha.quem ? 'Agora escolha onde.' : 'Escolha a pessoa e o lugar.';
+    return;
+  }
+  const p = escolha.quem.p;
+  el.className = 'fala';
+  el.innerHTML = `<small>sua conversa</small>Puxe o assunto com ${esc(escolha.quem.v)} ${esc(escolha.onde.v)}. Pergunte se ${p} vai votar e por quê. Escute antes de responder. Depois conte o que te faz ir, com as suas palavras.`;
+  document.getElementById('fala-cta').hidden = false;
+}
+
+// equipe por função
 const FUNCOES = [
   ['Escrita e pesquisa', 'Monta o material com as pautas e as sugestões de roteiro.'],
   ['Edição dos vídeos', 'Edita os vídeos que chamam pessoas e criadores para o movimento.'],
@@ -62,13 +160,15 @@ const FUNCOES = [
   ['Site', 'Cuida deste site e da base de dados.'],
 ];
 fetch('/public/equipe').then((r) => r.json()).then((equipe) => {
-  const blocos = FUNCOES.map(([fn, desc]) => {
+  const html = FUNCOES.map(([fn, desc]) => {
     const nomes = equipe.filter((p) => (p.funcoes || []).includes(fn)).map((p) => p.nome);
     if (!nomes.length) return '';
-    return `<section class="funcao"><header>${ICONE[ICONE_FUNCAO[fn]] || ''}<h3>${esc(fn)}</h3></header><p>${esc(desc)}</p><ul>${nomes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>`;
+    return `<section class="funcao revela"><header>${ICONE[ICONE_FUNCAO[fn]] || ''}<h3>${esc(fn)}</h3></header><p>${esc(desc)}</p><ul>${nomes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>`;
   }).join('');
-  document.getElementById('equipe').innerHTML = blocos || '<p class="muted">Em breve.</p>';
-}).catch(() => { document.getElementById('equipe').innerHTML = ''; });
+  const box = document.getElementById('lista-equipe');
+  box.innerHTML = html || '<p class="muted">Em breve.</p>';
+  observaRevela(box);
+}).catch(() => { document.getElementById('lista-equipe').innerHTML = ''; });
 </script>
 </body>
 </html>

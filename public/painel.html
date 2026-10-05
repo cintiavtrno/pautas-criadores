@@ -3,17 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#c8102e" />
   <meta name="robots" content="noindex" />
   <meta name="referrer" content="no-referrer" />
-  <title>Meu painel</title>
+  <title>Meu painel · Articulação</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/publico.css" />
   <script src="/icones.js"></script>
+  <script src="/site.js"></script>
 </head>
-<body>
-<main class="wrap" id="app"><p class="kicker">carregando…</p></main>
+<body class="painel">
+<div id="app"><main class="wrap"><p class="kicker">carregando…</p></main></div>
 <script>
 const H = { 'Content-Type': 'application/json', 'X-Requested-With': 'espelho' };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -21,98 +23,188 @@ const token = location.pathname.split('/').filter(Boolean).pop();
 const app = document.getElementById('app');
 const fmt = (d) => (d ? new Date(d.length === 10 ? d + 'T12:00' : d).toLocaleDateString('pt-BR') : '');
 const seguro = (u) => /^https?:\/\//i.test(u || '');
+const plataforma = (u) => {
+  try {
+    const h = new URL(u).hostname.replace(/^www\./, '');
+    if (h.includes('instagram')) return 'Instagram';
+    if (h.includes('tiktok')) return 'TikTok';
+    if (h.includes('youtu')) return 'YouTube';
+    if (h === 'x.com' || h.includes('twitter')) return 'X';
+    if (h.includes('facebook') || h.includes('fb.')) return 'Facebook';
+    if (h.includes('kwai')) return 'Kwai';
+    return h;
+  } catch { return 'link'; }
+};
+let D = null, C = null;
+let aba = ['parte', 'videos', 'gente', 'materiais'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'parte';
+let filtroPauta = '', buscaGente = '';
 
-async function enviar(caminho, dados, msgEl) {
-  msgEl.className = 'msg'; msgEl.textContent = 'Enviando…';
+async function post(caminho, dados) {
   const r = await fetch(`/public/painel/${encodeURIComponent(token)}/${caminho}`, { method: 'POST', headers: H, body: JSON.stringify(dados) });
   const out = await r.json().catch(() => ({}));
-  if (!r.ok) { msgEl.className = 'msg err'; msgEl.textContent = out.error || 'Não enviou. Tente de novo.'; return; }
-  msgEl.className = 'msg ok'; msgEl.textContent = 'Recebido.';
-  setTimeout(carregar, 1000);
+  if (!r.ok) throw new Error(out.error || 'Não enviou. Tente de novo.');
+  return out;
 }
-
 async function carregar() {
-  const r = await fetch('/public/painel/' + encodeURIComponent(token));
-  if (!r.ok) {
-    app.innerHTML = '<p class="kicker">link inválido</p><h1>Esse link não funciona</h1><p class="lead">Confira se o endereço está completo. Se perdeu o seu link, fale com a equipe no grupo.</p><p><a class="btn ghost" href="/">Ir para o início</a></p>';
+  const [r1, r2] = await Promise.all([fetch('/public/painel/' + encodeURIComponent(token)), fetch(`/public/painel/${encodeURIComponent(token)}/comunidade`)]);
+  if (!r1.ok) {
+    app.innerHTML = '<main class="wrap"><p class="kicker">link inválido</p><h1>Esse link não funciona</h1><p class="lead">Confira se o endereço está completo. Se perdeu o seu link, fale com a equipe no grupo.</p><p><a class="btn ghost" href="/">Ir para o início</a></p></main>';
     return;
   }
-  const d = await r.json();
-  const primeiro = esc(d.nome.split(' ')[0]);
-  const criador = d.tipo === 'criador';
-  const minhas = new Set(d.escolhidas || []);
+  D = await r1.json(); C = r2.ok ? await r2.json() : { participantes: [], mural: [], totais: { participantes: 0, videos: 0 } };
+  desenha();
+}
 
-  app.innerHTML = `
-    <p class="kicker">seu painel</p>
-    <h1>Oi, ${primeiro}</h1>
-    <p class="muted">Este link é só seu. Não compartilhe.</p>
-    ${d.grupoWhatsapp ? `<a class="grupo" href="${esc(d.grupoWhatsapp)}" target="_blank" rel="noopener noreferrer">${ICONE.conversa}<div><strong>Grupo do WhatsApp</strong><span>Avisos e material com as sugestões de roteiro.</span></div></a>` : ''}
-    ${d.materialPautas ? `<a class="grupo" href="${esc(d.materialPautas)}" target="_blank" rel="noopener noreferrer">${ICONE.documento}<div><strong>Material das pautas</strong><span>Pautas e sugestões de roteiro.</span></div></a>` : ''}
-    ${d.sugestaoLinha ? `<div class="marca"><b>O que pensamos para você</b>${esc(d.sugestaoLinha)}</div>` : ''}
+function topo() {
+  const primeiro = esc(D.nome.split(' ')[0]);
+  const n = (D.escolhidas || []).length;
+  return `<header class="barra sobre-vermelho"><div class="miolo"><a class="marca-site" href="/"><i></i>Articulação</a><nav><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav></div></header>
+  <section class="topo"><div class="topo-in cabeca">
+    <div class="topo-l">
+      <p class="kicker">articulação · seu painel</p>
+      <h1>Oi, ${primeiro}</h1>
+      <p class="sub">${D.tipo === 'criador' ? 'Criador de conteúdo' : 'Participante'} · este link é só seu</p>
+    </div>
+    <dl class="nums">
+      <div><dd>${C.totais.participantes}</dd><dt>participando</dt></div>
+      <div><dd>${C.totais.videos}</dd><dt>vídeos no ar</dt></div>
+      <div><dd>${n}</dd><dt>suas pautas</dt></div>
+    </dl>
+  </div>
+  <div class="topo-in atalhos">
+    ${D.grupoWhatsapp ? `<a href="${esc(D.grupoWhatsapp)}" target="_blank" rel="noopener noreferrer">${ICONE.conversa} Grupo do WhatsApp</a>` : ''}
+    ${D.materialPautas ? `<a href="${esc(D.materialPautas)}" target="_blank" rel="noopener noreferrer">${ICONE.documento} Material das pautas</a>` : ''}
+  </div></section>
+  <nav class="abas-p"><div class="topo-in">
+    ${[['parte', 'Minha parte'], ['videos', `Vídeos <span>${C.mural.length}</span>`], ['gente', `Quem participa <span>${C.participantes.length}</span>`], ['materiais', `Materiais <span>${D.materiais.length}</span>`]]
+      .map(([k, l]) => `<button data-aba="${k}" class="${aba === k ? 'on' : ''}">${l}</button>`).join('')}
+  </div></nav>`;
+}
 
-    <h2>${criador ? 'Suas pautas' : 'Sobre o que você vai falar'}</h2>
-    ${d.pautas.length ? `
-      <p class="muted" style="margin-top:12px">${minhas.size ? `Você marcou ${minhas.size === 1 ? 'uma pauta' : minhas.size + ' pautas'}${d.escolhidaEm ? ' em ' + fmt(d.escolhidaEm) : ''}. Pode mudar quando quiser.` : 'Marque uma ou mais.'}</p>
-      <form id="fp">
-        ${d.pautas.map((o) => `
-          <label class="op ${minhas.has(o.id) ? 'on' : ''}">
-            <input type="checkbox" name="p" value="${esc(o.id)}" ${minhas.has(o.id) ? 'checked' : ''} />
-            <span>
-              <strong>${esc(o.titulo)}</strong>
-              ${o.tema || o.prazo ? `<span class="t">${esc(o.tema)}${o.tema && o.prazo ? ' · ' : ''}${o.prazo ? 'até ' + fmt(o.prazo) : ''}</span>` : ''}
-              ${o.descricao ? `<p>${esc(o.descricao)}</p>` : ''}
-              ${o.linhaSugerida ? `<p><em>${esc(o.linhaSugerida)}</em></p>` : ''}
-              ${o.roteiro ? `<div class="roteiro"><b>sugestão de roteiro</b>${esc(o.roteiro)}</div>` : ''}
-            </span>
-          </label>`).join('')}
-        <label class="f">Como pensa em fazer? <i>(opcional)</i><textarea name="c" maxlength="2000">${esc(d.comentario)}</textarea></label>
-        <button class="btn" type="submit">${minhas.size ? 'Salvar mudança' : 'Confirmar pautas'}</button>
-        <div class="msg" id="mp" role="status"></div>
-      </form>` : `<p class="muted" style="margin-top:12px">As pautas ainda estão sendo preparadas. Os avisos chegam pelo grupo.</p>`}
+function minhaParte() {
+  const minhas = new Set(D.escolhidas || []);
+  return `<div class="grade">
+    <section>
+      ${D.sugestaoLinha ? `<div class="marca" style="margin-top:0"><b>O que pensamos para você</b>${esc(D.sugestaoLinha)}</div>` : ''}
+      <h2 style="margin-top:${D.sugestaoLinha ? 28 : 0}px">${D.tipo === 'criador' ? 'Suas pautas' : 'Sobre o que você vai falar'}</h2>
+      ${D.pautas.length ? `
+        <form id="fp">
+          ${D.pautas.map((o) => `
+            <label class="op ${minhas.has(o.id) ? 'on' : ''}">
+              <input type="checkbox" name="p" value="${esc(o.id)}" ${minhas.has(o.id) ? 'checked' : ''} />
+              <span>
+                <strong>${esc(o.titulo)}</strong>
+                ${o.descricao ? `<p>${esc(o.descricao)}</p>` : ''}
+                ${o.linhaSugerida ? `<p><em>${esc(o.linhaSugerida)}</em></p>` : ''}
+                ${o.roteiro ? `<div class="roteiro"><b>sugestão de roteiro</b>${esc(o.roteiro)}</div>` : ''}
+              </span>
+            </label>`).join('')}
+          <label class="f">Como pensa em fazer <i>(opcional)</i><textarea name="c" maxlength="2000">${esc(D.comentario)}</textarea></label>
+          <button class="btn" type="submit">${minhas.size ? 'Salvar mudança' : 'Confirmar pautas'}</button>
+          <div class="msg" id="mp" role="status"></div>
+        </form>` : `<p class="muted" style="margin-top:12px">As pautas ainda estão sendo preparadas. Os avisos chegam pelo grupo.</p>`}
+    </section>
+    <aside>
+      <div class="caixa">
+        <h3>${ICONE.camera} Mandar o link do vídeo</h3>
+        <form id="fpub">
+          <label class="f">Link do post<input type="url" name="link" maxlength="500" placeholder="https://" /></label>
+          <label class="f">Onde postou <i>(opcional)</i><input type="text" name="c" maxlength="300" placeholder="stories, grupo da família…" /></label>
+          <button class="btn" type="submit">${ICONE.link} Enviar</button>
+          <div class="msg" id="mpub" role="status"></div>
+        </form>
+        ${D.publicacoes.length ? `<ul class="envios">${D.publicacoes.slice().reverse().map((p) => `<li><small>${fmt(p.em)}</small>${seguro(p.link) ? `<a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">${esc(plataforma(p.link))}</a>` : 'sem link'}${p.comentario ? ` · ${esc(p.comentario)}` : ''}</li>`).join('')}</ul>` : ''}
+      </div>
+      <div class="caixa">
+        <h3>${ICONE.escrita} Outra ideia de pauta</h3>
+        ${D.ideias.length ? `<ul class="envios">${D.ideias.map((i) => `<li>${esc(i.titulo)} <small>${esc(i.status)}</small></li>`).join('')}</ul>` : ''}
+        <form id="fi">
+          <label class="f">Título<input type="text" name="titulo" maxlength="140" /></label>
+          <label class="f">Como você faria <i>(opcional)</i><textarea name="descricao" maxlength="1500" style="min-height:70px"></textarea></label>
+          <button class="btn ghost" type="submit">Mandar ideia</button>
+          <div class="msg" id="mi" role="status"></div>
+        </form>
+      </div>
+      <label class="consent leve"><input type="checkbox" id="mostrar" ${D.mostrar ? 'checked' : ''} />
+        <span>Aparecer em "Quem participa" e mostrar meu nome nos meus vídeos.</span></label>
+    </aside>
+  </div>`;
+}
 
-    <h2>Link do vídeo</h2>
-    ${d.publicacoes.map((p) => `<div class="item"><small>${fmt(p.em)}</small>${seguro(p.link) ? `<a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">${esc(p.link)}</a>` : 'Sem link'}${p.comentario ? `<div class="muted">${esc(p.comentario)}</div>` : ''}</div>`).reverse().join('')}
-    <form id="fpub">
-      <label class="f">Link do post <i>(se mandou só no WhatsApp, pode deixar em branco)</i><input type="url" name="link" maxlength="500" placeholder="https://" /></label>
-      <label class="f">Onde postou, como foi <i>(opcional)</i><textarea name="c" maxlength="1000"></textarea></label>
-      <button class="btn" type="submit">${ICONE.link} Enviar</button>
-      <div class="msg" id="mpub" role="status"></div>
-    </form>
+function videos() {
+  const pautas = [...new Set(C.mural.flatMap((v) => v.pautas))];
+  const lista = C.mural.filter((v) => !filtroPauta || v.pautas.includes(filtroPauta));
+  return `${pautas.length ? `<div class="filtro"><select id="fpauta"><option value="">Todas as pautas</option>${pautas.map((p) => `<option ${p === filtroPauta ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>` : ''}
+    ${lista.length ? `<div class="mural">${lista.map((v) => `
+      <a class="video" href="${esc(v.link)}" target="_blank" rel="noopener noreferrer">
+        <span class="plat">${ICONE.camera} ${esc(plataforma(v.link))}</span>
+        <strong>${esc(v.nome)}</strong>
+        ${v.pautas.length ? `<span class="pts">${esc(v.pautas.join(' · '))}</span>` : ''}
+        <span class="data">${fmt(v.em)} ${ICONE.externo}</span>
+      </a>`).join('')}</div>` : `<p class="vazio">Nenhum vídeo no mural ainda. Os vídeos entram aqui depois que a equipe confere.</p>`}`;
+}
 
-    ${d.materiais.length ? `<h2>Materiais</h2>${d.materiais.map((m) => `
-      <div class="item"><small>${esc(m.tipo || 'material')}</small><strong>${esc(m.titulo)}</strong>${m.descricao ? `<div class="muted">${esc(m.descricao)}</div>` : ''}
-      <div><a class="btn ghost" style="margin-top:8px;min-height:38px" href="${esc(m.link)}" target="_blank" rel="noopener noreferrer">${ICONE.externo} Abrir</a></div></div>`).join('')}` : ''}
+function gente() {
+  const q = buscaGente.toLowerCase();
+  const lista = C.participantes.filter((p) => !q || `${p.nome} ${p.handle} ${p.cidade}`.toLowerCase().includes(q));
+  return `<div class="filtro"><input type="search" id="bgente" placeholder="Buscar nome, @ ou cidade" value="${esc(buscaGente)}" /></div>
+    ${lista.length ? `<ul class="gente">${lista.map((p) => `
+      <li>
+        <span class="av">${esc((p.nome || '?').trim().charAt(0))}</span>
+        <div><strong>${esc(p.nome)}</strong>
+          <small>${p.tipo === 'criador' ? (p.handle ? `<a href="https://www.instagram.com/${encodeURIComponent(p.handle)}/" target="_blank" rel="noopener noreferrer">@${esc(p.handle)}</a>` : 'criador') : 'participante'}${p.cidade ? ' · ' + esc(p.cidade) : ''}${p.videos ? ` · ${p.videos} vídeo${p.videos > 1 ? 's' : ''}` : ''}</small>
+        </div>
+      </li>`).join('')}</ul>` : `<p class="vazio">${C.participantes.length ? 'Ninguém com essa busca.' : 'Ainda não tem ninguém aqui. Só aparece quem autoriza.'}</p>`}`;
+}
 
-    <h2>Outra ideia de pauta</h2>
-    ${d.ideias.map((i) => `<div class="item"><strong>${esc(i.titulo)}</strong><small>${esc(i.status)}</small></div>`).join('')}
-    <form id="fi">
-      <label class="f">Título<input type="text" name="titulo" maxlength="140" /></label>
-      <label class="f">Como você faria <i>(opcional)</i><textarea name="descricao" maxlength="1500"></textarea></label>
-      <button class="btn ghost" type="submit">Mandar ideia</button>
-      <div class="msg" id="mi" role="status"></div>
-    </form>
-    <p class="rodape"><span>Dúvidas? Pergunte no grupo.</span><a href="/">início</a></p>`;
+function materiais() {
+  return D.materiais.length ? `<ul class="mats">${D.materiais.map((m) => `
+    <li><span class="plat">${ICONE.documento} ${esc(m.tipo || 'material')}</span><strong>${esc(m.titulo)}</strong>${m.descricao ? `<p>${esc(m.descricao)}</p>` : ''}
+    <a class="btn ghost" href="${esc(m.link)}" target="_blank" rel="noopener noreferrer">${ICONE.externo} Abrir</a></li>`).join('')}</ul>`
+    : `<p class="vazio">Os materiais ainda estão sendo preparados.</p>`;
+}
 
+function desenha() {
+  const corpo = { parte: minhaParte, videos, gente, materiais }[aba]();
+  app.innerHTML = `${topo()}<main class="conteudo"><div class="topo-in">${corpo}</div></main>
+    <footer class="topo-in rodape" style="margin-bottom:40px"><span>Dúvidas? Pergunte no grupo.</span><a href="/">início</a></footer>`;
+  document.querySelectorAll('[data-aba]').forEach((b) => (b.onclick = () => { aba = b.dataset.aba; history.replaceState(null, '', '#' + aba); desenha(); window.scrollTo(0, 0); }));
+  liga();
+}
+
+function liga() {
+  const msg = (id, t, ok) => { const m = document.getElementById(id); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; };
   const fp = document.getElementById('fp');
   if (fp) {
     fp.addEventListener('change', (e) => { if (e.target.name === 'p') e.target.closest('.op').classList.toggle('on', e.target.checked); });
-    fp.addEventListener('submit', (e) => {
+    fp.addEventListener('submit', async (e) => {
       e.preventDefault();
       const ids = [...fp.querySelectorAll('input[name=p]:checked')].map((x) => x.value);
-      if (!ids.length) { const m = document.getElementById('mp'); m.className = 'msg err'; m.textContent = 'Marque pelo menos uma pauta.'; return; }
-      enviar('escolha', { pautaIds: ids, comentario: fp.c.value }, document.getElementById('mp'));
+      if (!ids.length) return msg('mp', 'Marque pelo menos uma pauta.');
+      try { await post('escolha', { pautaIds: ids, comentario: fp.c.value }); msg('mp', 'Salvo.', true); setTimeout(carregar, 700); } catch (err) { msg('mp', err.message); }
     });
   }
   const fpub = document.getElementById('fpub');
-  fpub.addEventListener('submit', (e) => { e.preventDefault(); enviar('postei', { link: fpub.link.value.trim(), comentario: fpub.c.value }, document.getElementById('mpub')); });
-  const fi = document.getElementById('fi');
-  fi.addEventListener('submit', (e) => {
+  if (fpub) fpub.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!fi.titulo.value.trim()) { const m = document.getElementById('mi'); m.className = 'msg err'; m.textContent = 'Dê um título para a ideia.'; return; }
-    enviar('ideia', { titulo: fi.titulo.value, descricao: fi.descricao.value }, document.getElementById('mi'));
+    const link = fpub.link.value.trim();
+    if (!seguro(link)) return msg('mpub', 'Cole o link começando com https://');
+    try { await post('postei', { link, comentario: fpub.c.value }); msg('mpub', 'Recebido. Entra no mural depois que a equipe conferir.', true); setTimeout(carregar, 1500); } catch (err) { msg('mpub', err.message); }
   });
+  const fi = document.getElementById('fi');
+  if (fi) fi.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!fi.titulo.value.trim()) return msg('mi', 'Dê um título para a ideia.');
+    try { await post('ideia', { titulo: fi.titulo.value, descricao: fi.descricao.value }); msg('mi', 'Recebido.', true); setTimeout(carregar, 700); } catch (err) { msg('mi', err.message); }
+  });
+  const mo = document.getElementById('mostrar');
+  if (mo) mo.onchange = async () => { try { await post('preferencias', { mostrar: mo.checked }); D.mostrar = mo.checked; const c = await fetch(`/public/painel/${encodeURIComponent(token)}/comunidade`); C = await c.json(); } catch { mo.checked = !mo.checked; } };
+  const fpauta = document.getElementById('fpauta');
+  if (fpauta) fpauta.onchange = () => { filtroPauta = fpauta.value; desenha(); };
+  const bg = document.getElementById('bgente');
+  if (bg) bg.oninput = () => { buscaGente = bg.value; const pos = bg.selectionStart; desenha(); const n = document.getElementById('bgente'); n.focus(); n.setSelectionRange(pos, pos); };
 }
-carregar().catch(() => { app.innerHTML = '<h1>Não carregou</h1><p class="lead">Recarregue a página.</p>'; });
+carregar().catch(() => { app.innerHTML = '<main class="wrap"><h1>Não carregou</h1><p class="lead">Recarregue a página.</p></main>'; });
 </script>
 </body>
 </html>
