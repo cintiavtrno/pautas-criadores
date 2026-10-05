@@ -15,7 +15,7 @@ app.use(express.json({ limit: '1mb' }));
 if (process.env.APP_PASSWORD) {
   app.use((req, res, next) => {
     // a página onde o criador escolhe a pauta é aberta sem senha (o link já é secreto)
-    if (req.path === '/health' || req.path.startsWith('/escolha/') || req.path.startsWith('/public/') || req.path === '/escolha.css') return next();
+    if (req.path === '/health' || req.path.startsWith('/escolha/') || req.path.startsWith('/public/') || req.path === '/participar') return next();
     const h = req.headers.authorization || '';
     const [, b64] = h.split(' ');
     const pass = b64 ? Buffer.from(b64, 'base64').toString().split(':').slice(1).join(':') : '';
@@ -77,6 +77,57 @@ app.post('/public/escolha/:token', wrap(async (req, res) => {
 }));
 
 app.get('/escolha/:token', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'escolha.html')));
+
+// ---------- formulário público de inscrição ----------
+// O criador se inscreve sozinho e entra direto na lista, marcado como "inscrição".
+app.get('/participar', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'participar.html')));
+app.get('/public/nichos', wrap(async (_req, res) => res.json((await db.list('nichos')).map((n) => n.nome))));
+
+const tentativas = new Map(); // limite simples contra robô: 10 envios por IP a cada 10 min
+const limpaHandle = (h) => String(h || '').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[/?#\s]/)[0].toLowerCase();
+const txt = (v, max = 300) => String(v || '').trim().slice(0, max);
+
+app.post('/public/inscricao', wrap(async (req, res) => {
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+  const agora = Date.now();
+  const t = (tentativas.get(ip) || []).filter((x) => agora - x < 10 * 60 * 1000);
+  if (t.length >= 10) return res.status(429).json({ error: 'Muitos envios seguidos. Tente de novo daqui a pouco.' });
+  tentativas.set(ip, [...t, agora]);
+
+  const b = req.body || {};
+  if (b.site) return res.json({ ok: true }); // campo invisível: se veio preenchido, é robô
+  const nome = txt(b.nome, 120);
+  const handle = limpaHandle(b.handle);
+  const whats = txt(b.whats, 40);
+  const email = txt(b.email, 160);
+  if (!nome || !handle) return res.status(400).json({ error: 'Preencha seu nome e seu @ do Instagram.' });
+  if (!whats && !email) return res.status(400).json({ error: 'Deixe um WhatsApp ou um e-mail para a gente falar com você.' });
+  if (!b.consentimento) return res.status(400).json({ error: 'Marque a autorização de contato para enviar.' });
+
+  const validos = new Set((await db.list('nichos')).map((n) => n.nome));
+  const nichos = (Array.isArray(b.nichos) ? b.nichos : []).filter((n) => validos.has(n)).slice(0, 5);
+  const dados = {
+    contatoWhats: whats, contatoEmail: email, cidade: txt(b.cidade, 120), outrasRedes: txt(b.outrasRedes, 300),
+    seguidores: txt(b.seguidores, 40), nichoOutro: txt(b.nichoOutro, 80), mensagemInscricao: txt(b.sobre, 1500),
+    inscritoEm: new Date().toISOString(),
+  };
+
+  const existente = (await db.list('creators')).find((c) => (c.handle || '').toLowerCase() === handle);
+  if (existente) {
+    // já estava na lista: só completa o contato, sem apagar o que a equipe escreveu
+    const patch = { ...dados, inscreveuSe: true };
+    if (!(existente.nichos || []).length && nichos.length) patch.nichos = nichos;
+    await db.update('creators', existente.id, patch);
+  } else {
+    await db.insert('creators', {
+      nome, handle, url: `https://www.instagram.com/${handle}/`, nichos, nichoConfirmado: false,
+      resumo: dados.mensagemInscricao, sugestaoLinha: '', observacoes: '', responsavel: '', status: 'Mapeado',
+      modoPauta: 'atribuida', pautaId: '', pautasOpcoes: [], roteiristaId: '', editorId: '',
+      origem: 'inscricao', inscreveuSe: true, token: newToken(), ...dados,
+    });
+  }
+  res.json({ ok: true });
+}));
 
 app.put('/api/:col/:id', checkCol, wrap(async (req, res) => {
   const r = await db.update(req.params.col, req.params.id, req.body || {});

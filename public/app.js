@@ -11,7 +11,7 @@ const S = {
   creators: [], pautas: [], team: [], nichos: [],
   view: 'criadores',
   sel: {},
-  f: { q: '', nicho: '', status: '', linha: '', resp: '' },
+  f: { q: '', nicho: '', status: '', linha: '', resp: '', origem: '' },
   fp: { q: '', nicho: '', status: '' },
 };
 
@@ -138,7 +138,9 @@ VIEWS.criadores = {
       <select data-f="status">${opt(STATUS, f.status, 'Todos os status')}</select>
       <select data-f="linha">${opt([['vazia', 'Linha em branco'], ['ok', 'Linha preenchida']], f.linha, 'Linha: todas')}</select>
       <select data-f="resp">${opt([...RESP, ['__ninguem', 'Sem responsável']], f.resp, 'Responsável: todas')}</select>
+      <select data-f="origem">${opt([['inscricao', 'Se inscreveram'], ['equipe', 'Mapeados pela equipe']], f.origem, 'Origem: todas')}</select>
       <span class="sp"></span>
+      <button class="btn ghost" data-copy="${esc(location.origin + '/participar')}" title="Formulário aberto para criadores se inscreverem">Copiar link do formulário</button>
       <a class="btn ghost" href="/export/creators.csv">Exportar CSV</a>
       <button class="btn solid" data-new>Novo criador</button>`;
   },
@@ -149,7 +151,8 @@ VIEWS.criadores = {
       (!f.nicho || (f.nicho === '__sem' ? !(c.nichos || []).length : (c.nichos || []).includes(f.nicho))) &&
       (!f.status || (c.status || 'Mapeado') === f.status) &&
       (!f.linha || (f.linha === 'vazia' ? !c.sugestaoLinha?.trim() : !!c.sugestaoLinha?.trim())) &&
-      (!f.resp || (f.resp === '__ninguem' ? !c.responsavel : c.responsavel === f.resp)));
+      (!f.resp || (f.resp === '__ninguem' ? !c.responsavel : c.responsavel === f.resp)) &&
+      (!f.origem || (f.origem === 'inscricao' ? !!c.inscreveuSe : !c.inscreveuSe)));
   },
   groups(list) {
     const out = S.nichos.map((n) => ({ title: n.nome, color: n.cor, items: list.filter((c) => (c.nichos || [])[0] === n.nome) }));
@@ -159,7 +162,7 @@ VIEWS.criadores = {
   groupNote: 'Cada criador aparece no grupo do seu primeiro nicho.',
   row(c) {
     const linha = c.sugestaoLinha?.trim();
-    return `<span class="who"><span class="name">${esc(c.nome)}${c.nichoConfirmado ? '' : '<span class="flag" style="color:var(--amber)">conferir nicho</span>'}</span>
+    return `<span class="who"><span class="name">${esc(c.nome)}${c.inscreveuSe ? '<span class="flag" style="color:var(--green)">inscrição</span>' : ''}${c.nichoConfirmado ? '' : '<span class="flag" style="color:var(--amber)">conferir nicho</span>'}</span>
       <span class="muted">@${esc(c.handle)}${(c.nichos || []).length ? ' · ' + esc(c.nichos.join(', ')) : ''}</span></span>
       ${statusTag(c.status || 'Mapeado')}
       <span class="line ${linha ? 'ok' : 'empty'}">${linha ? 'linha ok' : 'sem linha'}</span>
@@ -178,7 +181,7 @@ VIEWS.criadores = {
     return `
       <div class="dhead">
         <button class="btn ghost back" data-back>← Voltar à lista</button>
-        <div class="kicker">${statusTag(c.status || 'Mapeado')}<span>${c.nichoConfirmado ? 'nicho confirmado' : 'nicho a conferir'}</span><span class="sp"></span><span class="saved">salvo</span></div>
+        <div class="kicker">${statusTag(c.status || 'Mapeado')}<span>${c.nichoConfirmado ? 'nicho confirmado' : 'nicho a conferir'}</span>${c.inscritoEm ? `<span style="color:var(--green)">inscrito pelo formulário em ${fmtData(c.inscritoEm)}</span>` : ''}<span class="sp"></span><span class="saved">salvo</span></div>
         <h2 data-h="nome">${esc(c.nome)}</h2>
         ${c.handle ? `<a class="handle" href="${esc(c.url || `https://www.instagram.com/${c.handle}/`)}" target="_blank" rel="noopener">instagram.com/${esc(c.handle)} ↗</a>` : '<span class="handle" style="color:var(--ink-3)">sem @ cadastrado</span>'}
       </div>
@@ -199,6 +202,16 @@ VIEWS.criadores = {
           ${escolha ? field({ k: 'pautasOpcoes', type: 'chips', label: 'Opções oferecidas', full: true, none: 'Nenhuma pauta cadastrada. Crie na aba Pautas.', opts: () => S.pautas.map((p) => ({ v: p.id, l: p.titulo, c: p.nicho ? corNicho(p.nicho) : '' })) }, c) : ''}
           ${field({ k: 'pautaId', type: 'select', label: escolha ? 'Pauta escolhida' : 'Pauta definida', full: true, opts: pautas, empty: S.pautas.length ? 'Nenhuma ainda' : 'Nenhuma pauta cadastrada' }, c)}
           ${escolha ? linkEscolha(c) : ''}
+        </div></section>
+
+        <section class="fs"><h3>Contato</h3><div class="grid2">
+          ${field({ k: 'contatoWhats', label: 'WhatsApp' }, c)}
+          ${field({ k: 'contatoEmail', label: 'E-mail' }, c)}
+          ${field({ k: 'cidade', label: 'Cidade' }, c)}
+          ${field({ k: 'seguidores', label: 'Seguidores' }, c)}
+          ${field({ k: 'outrasRedes', label: 'Outras redes', full: true }, c)}
+          ${c.nichoOutro ? `<div class="f full"><span>Outro tema que a pessoa marcou</span><div>${esc(c.nichoOutro)}</div></div>` : ''}
+          ${c.mensagemInscricao ? `<div class="f full"><span>O que escreveu na inscrição</span><div style="font-size:15px;color:var(--ink-2)">${esc(c.mensagemInscricao)}</div></div>` : ''}
         </div></section>
 
         <section class="fs"><h3>Perfil</h3><div class="grid2">
@@ -377,6 +390,10 @@ function renderSplit() {
   const bar = $('.bar');
   $$('[data-f]', bar).forEach((el) => (el[el.tagName === 'INPUT' ? 'oninput' : 'onchange'] = () => { S.f[el.dataset.f] = el.value; renderRows(); }));
   $$('[data-fp]', bar).forEach((el) => (el[el.tagName === 'INPUT' ? 'oninput' : 'onchange'] = () => { S.fp[el.dataset.fp] = el.value; renderRows(); }));
+  $$('[data-copy]', bar).forEach((b) => (b.onclick = async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); toast('Link do formulário copiado'); }
+    catch { prompt('Copie o link:', b.dataset.copy); }
+  }));
   const nb = $('[data-new]', bar);
   if (nb) nb.onclick = async () => {
     const rec = await V.create(); S[V.col].push(rec); select(rec.id);
@@ -475,7 +492,7 @@ function renderStats() {
   const conferir = c.filter((x) => !x.nichoConfirmado).length;
   const andando = c.filter((x) => ANDAMENTO.includes(x.status)).length;
   $('#stats').innerHTML = [
-    ['criadores', c.length], ['sem linha', semLinha, semLinha > 0], ['conferir nicho', conferir], ['em andamento', andando], ['pautas', S.pautas.length],
+    ['criadores', c.length], ['sem linha', semLinha, semLinha > 0], ['conferir nicho', conferir], ['inscrições', c.filter((x) => x.inscreveuSe).length], ['em andamento', andando], ['pautas', S.pautas.length],
   ].map(([l, n, w]) => `<div class="${w ? 'warn' : ''}"><dt>${l}</dt><dd>${n}</dd></div>`).join('');
 }
 

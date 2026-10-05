@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quero participar</title>
+  <meta name="description" content="Cadastro de criadores de conteúdo." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --paper:#efeee9; --sheet:#fbfaf7; --ink:#151513; --ink-2:#5b5a54; --ink-3:#8d8b83; --rule:#d6d4cc; --marker:#ffe55c; --marker-soft:#fff6c4; --red:#d43a1a; --green:#22714a;
+      --sans:"Archivo","Arial Narrow",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; }
+    @media (prefers-color-scheme: dark) { :root { --paper:#121211; --sheet:#1a1a18; --ink:#ecebe6; --ink-2:#a9a79f; --ink-3:#74726b; --rule:#2f2e2b; --marker-soft:rgba(255,229,92,.1); --red:#ff7452; --green:#5ec48f; } }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:400 16px/1.5 var(--sans); -webkit-font-smoothing:antialiased; }
+    .wrap { max-width:680px; margin:0 auto; padding:40px 20px 80px; }
+    .kicker { font:500 11px var(--mono); text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); }
+    h1 { margin:8px 0 10px; font-weight:800; font-stretch:62%; font-size:56px; line-height:.9; text-transform:uppercase; border-bottom:2px solid var(--ink); padding-bottom:14px; }
+    .lead { color:var(--ink-2); font-size:17px; max-width:54ch; margin:0; }
+    fieldset { border:0; padding:0; margin:34px 0 0; }
+    legend { font:500 11px var(--mono); text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); border-bottom:1px solid var(--rule); padding-bottom:6px; width:100%; margin-bottom:6px; }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }
+    label.f { display:block; margin-top:16px; font-weight:600; font-size:14px; color:var(--ink-2); }
+    label.f i { font-style:normal; font-weight:400; color:var(--ink-3); }
+    input[type=text], input[type=email], input[type=tel], select, textarea {
+      display:block; width:100%; margin-top:4px; border:0; border-bottom:1px solid var(--rule); background:transparent;
+      padding:7px 0; font:400 17px var(--sans); color:var(--ink); border-radius:0;
+    }
+    textarea { min-height:90px; resize:vertical; line-height:1.5; border:1px solid var(--rule); padding:8px 10px; background:var(--sheet); }
+    input:focus, select:focus { outline:none; border-bottom:2px solid var(--ink); padding-bottom:6px; }
+    textarea:focus { outline:2px solid var(--ink); outline-offset:-1px; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .chips label { position:relative; }
+    .chips input { position:absolute; opacity:0; pointer-events:none; }
+    .chips span { display:inline-block; border:1px solid var(--rule); padding:6px 11px; font-size:14.5px; cursor:pointer; user-select:none; }
+    .chips input:checked + span { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+    .chips input:focus-visible + span { outline:2px solid var(--ink); outline-offset:2px; }
+    .consent { display:flex; gap:10px; align-items:flex-start; margin-top:26px; font-size:14.5px; color:var(--ink-2); background:var(--marker-soft); border-top:3px solid var(--marker); padding:12px 14px; }
+    .consent input { width:18px; height:18px; margin-top:2px; accent-color:var(--ink); flex:none; }
+    .hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+    button { margin-top:22px; height:50px; padding:0 26px; border:1px solid var(--ink); background:var(--ink); color:var(--paper); font:600 17px var(--sans); cursor:pointer; }
+    button:disabled { opacity:.45; cursor:wait; }
+    .msg { margin-top:14px; font-size:15px; min-height:1.5em; }
+    .msg.err { color:var(--red); }
+    .done h1 { border:0; }
+    .done p { font-size:18px; color:var(--ink-2); }
+    @media (max-width:560px) { h1 { font-size:42px; } .row2 { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<main class="wrap" id="app">
+  <p class="kicker">cadastro de criadores</p>
+  <h1>Quero participar</h1>
+  <p class="lead">Você cria conteúdo e quer fazer parte? Deixe seus dados aqui. A equipe lê cada inscrição e entra em contato para combinar a pauta.</p>
+
+  <form id="f" novalidate>
+    <fieldset>
+      <legend>Quem é você</legend>
+      <div class="row2">
+        <label class="f">Nome ou nome artístico<input type="text" name="nome" required maxlength="120" autocomplete="name" /></label>
+        <label class="f">@ do Instagram<input type="text" name="handle" required maxlength="120" placeholder="@seuperfil" autocapitalize="off" /></label>
+      </div>
+      <div class="row2">
+        <label class="f">Cidade e estado <i>(opcional)</i><input type="text" name="cidade" maxlength="120" placeholder="Salvador, BA" /></label>
+        <label class="f">Seguidores, mais ou menos <i>(opcional)</i>
+          <select name="seguidores">
+            <option value="">Escolha</option>
+            <option>Até 10 mil</option><option>10 mil a 50 mil</option><option>50 mil a 100 mil</option>
+            <option>100 mil a 500 mil</option><option>500 mil a 1 milhão</option><option>Mais de 1 milhão</option>
+          </select>
+        </label>
+      </div>
+      <label class="f">Outras redes <i>(opcional: TikTok, YouTube, X…)</i><input type="text" name="outrasRedes" maxlength="300" placeholder="tiktok.com/@…" /></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Sobre o seu conteúdo</legend>
+      <label class="f" style="margin-top:8px">Sobre o que você fala? <i>(marque até 5)</i></label>
+      <div class="chips" id="nichos"></div>
+      <label class="f">Outro tema <i>(opcional)</i><input type="text" name="nichoOutro" maxlength="80" /></label>
+      <label class="f">Conte um pouco do seu trabalho <i>(opcional)</i><textarea name="sobre" maxlength="1500"></textarea></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Como falamos com você</legend>
+      <div class="row2">
+        <label class="f">WhatsApp<input type="tel" name="whats" maxlength="40" placeholder="(71) 9…" autocomplete="tel" /></label>
+        <label class="f">E-mail<input type="email" name="email" maxlength="160" autocomplete="email" /></label>
+      </div>
+      <p class="kicker" style="margin-top:8px">preencha pelo menos um dos dois</p>
+    </fieldset>
+
+    <label class="hp" aria-hidden="true">Não preencha<input type="text" name="site" tabindex="-1" autocomplete="off" /></label>
+
+    <label class="consent"><input type="checkbox" name="consentimento" />
+      <span>Autorizo a equipe a usar esses dados só para entrar em contato comigo sobre esta ação.</span></label>
+
+    <button type="submit">Enviar inscrição</button>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </form>
+</main>
+<script>
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const f = document.getElementById('f');
+const msg = document.getElementById('msg');
+
+fetch('/public/nichos').then((r) => r.json()).then((list) => {
+  document.getElementById('nichos').innerHTML = list.map((n) => `<label><input type="checkbox" name="nichos" value="${esc(n)}" /><span>${esc(n)}</span></label>`).join('');
+}).catch(() => {});
+
+f.addEventListener('change', (e) => {
+  if (e.target.name !== 'nichos') return;
+  const marcados = f.querySelectorAll('input[name=nichos]:checked');
+  if (marcados.length > 5) { e.target.checked = false; msg.className = 'msg err'; msg.textContent = 'No máximo 5 temas.'; }
+});
+
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(f));
+  d.nichos = [...f.querySelectorAll('input[name=nichos]:checked')].map((x) => x.value);
+  d.consentimento = f.consentimento.checked;
+  msg.className = 'msg err';
+  if (!d.nome.trim() || !d.handle.trim()) { msg.textContent = 'Preencha seu nome e seu @ do Instagram.'; return; }
+  if (!d.whats.trim() && !d.email.trim()) { msg.textContent = 'Deixe um WhatsApp ou um e-mail.'; return; }
+  if (!d.consentimento) { msg.textContent = 'Marque a autorização de contato para enviar.'; return; }
+  const b = f.querySelector('button'); b.disabled = true; msg.className = 'msg'; msg.textContent = 'Enviando…';
+  try {
+    const r = await fetch('/public/inscricao', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
+    const out = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(out.error || 'Não enviou. Tente de novo.');
+    document.getElementById('app').innerHTML = `<div class="done"><p class="kicker">inscrição recebida</p><h1>Valeu, ${esc(d.nome.trim().split(' ')[0])}</h1><p>Recebemos seus dados. A equipe vai falar com você pelo contato que você deixou.</p></div>`;
+    window.scrollTo(0, 0);
+  } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; b.disabled = false; }
+});
+</script>
+</body>
+</html>
