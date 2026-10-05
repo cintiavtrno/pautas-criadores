@@ -454,3 +454,8 @@ h1, .titulo-secao, .texto p.titulo-secao, .capa h1, .lateral h1, .folha > h1, .t
 .op .roteiro { border-left: 0; background: none; padding: 10px 0 0; }
 .op.on { box-shadow: none; background: var(--rosa); }
 .capa-acoes > .caminho + .caminho { border-bottom: 1.5px solid currentColor; }
+
+/* hover dos caminhos: a cor nunca pode ficar igual ao fundo */
+.faixa.escura .caminho, .faixa.escura .caminho:hover, .faixa.escura .caminho:focus-visible { color: var(--branco) !important; }
+.capa .caminho:hover, .capa .caminho:focus-visible, .faixa.vermelha .caminho:hover { color: var(--branco) !important; }
+.folha .caminho:hover { color: var(--verde) !important; }
