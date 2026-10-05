@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#c8102e" />
-  <title>Quero participar</title>
+  <meta name="theme-color" content="#61bf99" />
+  <title>Quero participar · seu voto decide</title>
   <meta name="description" content="Cadastro para participar: criadores de conteúdo e pessoas comuns." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/publico.css" />
   <script src="/icones.js"></script>
   <script src="/site.js"></script>
 </head>
 <header class="barra clara">
   <div class="miolo">
-    <a class="marca-site" href="/"><i></i>Articulação</a>
+    <a class="marca-site" href="/"><span>seu voto</span> <b>decide</b></a>
     <nav><a href="/#como">Como funciona</a><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav>
   </div>
 </header>
@@ -99,9 +99,9 @@
     <label class="hp" aria-hidden="true">Não preencha<input type="text" name="site" tabindex="-1" autocomplete="off" /></label>
 
     <label class="consent leve"><input type="checkbox" name="mostrar" />
-      <span>Pode mostrar meu nome (e meu @, se eu for criador) para quem também participa da articulação.</span></label>
+      <span>Pode mostrar meu nome (e meu @, se eu for criador) para quem também participa.</span></label>
     <label class="consent" style="margin-top:8px"><input type="checkbox" name="consentimento" />
-      <span>Autorizo a equipe a usar esses dados só para falar comigo sobre a articulação.</span></label>
+      <span>Autorizo a equipe a usar esses dados só para falar comigo sobre o seu voto decide.</span></label>
 
     <div id="captcha" style="margin-top:22px"></div>
     <button type="submit" class="btn">Enviar cadastro</button>
@@ -177,7 +177,7 @@ function sucesso(nome, out) {
       <div class="linkbox"><input type="text" readonly value="${esc(link)}" id="lk" /><button class="btn" id="cp" type="button">${ICONE.copiar} Copiar</button></div>
       <div class="btns">
         <a class="btn ghost" href="${esc(link)}">Abrir meu painel</a>
-        <a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Meu link pessoal da articulação: ' + link)}">Mandar o link para mim no WhatsApp</a>
+        <a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Meu link pessoal do seu voto decide: ' + link)}">Mandar o link para mim no WhatsApp</a>
       </div>`;
     document.getElementById('cp').onclick = async () => {
       try { await navigator.clipboard.writeText(link); document.getElementById('cp').innerHTML = ICONE.check + ' Copiado'; }

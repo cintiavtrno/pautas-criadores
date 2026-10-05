@@ -442,18 +442,22 @@ app.post('/public/painel/:token/ideia', painelLimite, wrap(async (req, res) => {
 /* ---- comunidade: quem participa e os vídeos conferidos ---- */
 // Só aparece quem autorizou. Vídeo só entra no mural depois que a equipe marca como conferido.
 async function comunidade() {
-  const [criadores, pessoas, videos, pautas] = await Promise.all(['creators', 'pessoas', 'videos', 'pautas'].map((c) => db.list(c)));
+  const [criadores, pessoas, videos, pautas, equipe] = await Promise.all(['creators', 'pessoas', 'videos', 'pautas', 'team'].map((c) => db.list(c)));
+  const cfg = await config();
   const conferidos = videos.filter((v) => v.conferido && urlOk(v.link));
   const qtd = (campo, id) => conferidos.filter((v) => v[campo] === id).length;
   const participantes = [
+    ...equipe.filter((t) => t.mostrarNoSite !== false).map((t) => ({ nome: t.nome, tipo: 'equipe', handle: '', cidade: (t.funcoes || [])[0] || '', videos: 0, desde: '0' })),
     ...criadores.filter((c) => c.mostrarNaComunidade).map((c) => ({ nome: c.nome, tipo: 'criador', handle: c.handle || '', cidade: c.cidade || '', videos: qtd('creatorId', c.id), desde: c.inscritoEm || c.createdAt })),
     ...pessoas.filter((p) => p.mostrarNaComunidade).map((p) => ({ nome: p.nome, tipo: 'pessoa', handle: '', cidade: p.cidade || '', videos: qtd('pessoaId', p.id), desde: p.inscritoEm || p.createdAt })),
-  ].sort((a, b) => String(b.desde).localeCompare(String(a.desde)));
+  ].sort((a, b) => (a.tipo === 'equipe') - (b.tipo === 'equipe') || String(b.desde).localeCompare(String(a.desde)));
   const titulo = (id) => pautas.find((p) => p.id === id)?.titulo;
   const mural = conferidos.sort((a, b) => String(b.em).localeCompare(String(a.em))).slice(0, 200).map((v) => ({
     nome: v.mostrarNome ? v.nome : 'Participante', link: v.link, em: v.em, pautas: (v.pautaIds || []).map(titulo).filter(Boolean),
   }));
-  const total = criadores.filter((c) => c.inscreveuSe || ANDAMENTO_CRIADOR.includes(c.status)).length + pessoas.length;
+  // conta: equipe (participa mesmo sem gravar) + quem se cadastrou + quem participa fora do site (número posto em Ajustes)
+  const extra = Math.max(0, parseInt(cfg.participantesExtra, 10) || 0);
+  const total = equipe.length + criadores.filter((c) => c.inscreveuSe || ANDAMENTO_CRIADOR.includes(c.status)).length + pessoas.length + extra;
   return { participantes, mural, totais: { participantes: total, videos: conferidos.length } };
 }
 const ANDAMENTO_CRIADOR = ['Topou', 'Em roteiro', 'Em edição', 'Publicado'];

@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#c8102e" />
+  <meta name="theme-color" content="#61bf99" />
   <meta name="robots" content="noindex" />
   <meta name="referrer" content="no-referrer" />
-  <title>Meu painel · Articulação</title>
+  <title>Meu painel · seu voto decide</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/publico.css" />
   <script src="/icones.js"></script>
   <script src="/site.js"></script>
@@ -58,10 +58,10 @@ async function carregar() {
 function topo() {
   const primeiro = esc(D.nome.split(' ')[0]);
   const n = (D.escolhidas || []).length;
-  return `<header class="barra sobre-vermelho"><div class="miolo"><a class="marca-site" href="/"><i></i>Articulação</a><nav><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav></div></header>
+  return `<header class="barra sobre-vermelho"><div class="miolo"><a class="marca-site" href="/"><span>seu voto</span> <b>decide</b></a><nav><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav></div></header>
   <section class="topo"><div class="topo-in cabeca">
     <div class="topo-l">
-      <p class="kicker">articulação · seu painel</p>
+      <p class="kicker">seu painel</p>
       <h1>Oi, ${primeiro}</h1>
       <p class="sub">${D.tipo === 'criador' ? 'Criador de conteúdo' : 'Participante'} · este link é só seu</p>
     </div>
@@ -152,7 +152,7 @@ function gente() {
       <li>
         <span class="av">${esc((p.nome || '?').trim().charAt(0))}</span>
         <div><strong>${esc(p.nome)}</strong>
-          <small>${p.tipo === 'criador' ? (p.handle ? `<a href="https://www.instagram.com/${encodeURIComponent(p.handle)}/" target="_blank" rel="noopener noreferrer">@${esc(p.handle)}</a>` : 'criador') : 'participante'}${p.cidade ? ' · ' + esc(p.cidade) : ''}${p.videos ? ` · ${p.videos} vídeo${p.videos > 1 ? 's' : ''}` : ''}</small>
+          <small>${p.tipo === 'equipe' ? 'equipe · ' + esc(p.cidade) : p.tipo === 'criador' ? (p.handle ? `<a href="https://www.instagram.com/${encodeURIComponent(p.handle)}/" target="_blank" rel="noopener noreferrer">@${esc(p.handle)}</a>` : 'criador') : 'participante'}${p.cidade && p.tipo !== 'equipe' ? ' · ' + esc(p.cidade) : ''}${p.videos ? ` · ${p.videos} vídeo${p.videos > 1 ? 's' : ''}` : ''}</small>
         </div>
       </li>`).join('')}</ul>` : `<p class="vazio">${C.participantes.length ? 'Ninguém com essa busca.' : 'Ainda não tem ninguém aqui. Só aparece quem autoriza.'}</p>`}`;
 }

@@ -593,6 +593,10 @@ async function renderAjustes() {
       ${field({ k: 'grupoWhatsapp', type: 'url', label: 'Link do grupo do WhatsApp', full: true, ph: 'https://chat.whatsapp.com/…' }, c)}
       ${field({ k: 'materialPautas', type: 'url', label: 'Link do material com as pautas e roteiros (PDF no Drive, por exemplo)', full: true, ph: 'https://' }, c)}
     </div></section>
+    <section class="fs"><h3>Contagem de participantes</h3><div class="grid2">
+      ${field({ k: 'participantesExtra', label: 'Pessoas participando fora do site', ph: 'ex.: 15' }, c)}
+      <div class="f"><span>Como o site conta</span><div style="font-size:14.5px;color:var(--ink-2)">equipe (${S.team.length}) + cadastros (${S.pessoas.length + S.creators.filter((x) => x.inscreveuSe || ANDAMENTO.includes(x.status)).length}) + este número</div></div>
+    </div></section>
     <section class="fs"><h3>Endereços para divulgar</h3><div class="grid2">
       ${[['Página inicial', '/'], ['Cadastro de pessoas comuns', '/participar?tipo=pessoa'], ['Cadastro de criadores', '/participar?tipo=criador'], ['Mandar link do vídeo', '/enviar-video']].map(([l, u]) => `<div class="f full"><span>${l}</span><div class="copy"><input type="text" readonly value="${esc(location.origin + u)}" /><button type="button" class="btn" data-copy="${esc(location.origin + u)}">${ICONE.copiar}</button></div></div>`).join('')}
     </div></section></div></div>`;
@@ -824,7 +828,7 @@ function telaLogin(msg = '') {
   $('#mast').hidden = true;
   $('#view').innerHTML = `<form class="login" id="fl">
     <p class="kicker-l">controle interno</p>
-    <h1>Espelho de pautas</h1>
+    <h1>seu voto <b>decide</b></h1>
     <label class="f"><span>Login</span><input name="login" autocomplete="username" autocapitalize="off" required /></label>
     <label class="f"><span>Senha</span><input name="senha" type="password" autocomplete="current-password" required /></label>
     <button class="btn solid" type="submit">Entrar</button>

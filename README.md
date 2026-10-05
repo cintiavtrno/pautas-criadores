@@ -1,4 +1,4 @@
-# Espelho de pautas
+# seu voto decide
 
 Sistema para organizar a campanha com criadores: lista de criadores separada por nicho, banco de pautas, distribuição (pauta definida ou criador escolhe entre opções), equipe de roteiro/edição e um quadro de acompanhamento.
 

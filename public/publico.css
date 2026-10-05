@@ -295,3 +295,111 @@ textarea:focus { outline: 2px solid var(--vermelho); outline-offset: -1px; }
 .capa h1 em { background: linear-gradient(transparent 8%, var(--branco) 8%, var(--branco) 96%, transparent 96%); padding: 0 .06em; }
 .texto p.kicker { font-size: 12.5px; margin: 0; max-width: none; line-height: 1.4; }
 .texto p.titulo-secao { font: 900 clamp(40px, 5vw, 76px)/.92 var(--display); margin: 10px 0 0; }
+
+/* =====================================================================
+   IDENTIDADE "seu voto decide"
+   Verde-menta de fundo, verde-escuro de destaque, branco. Grotesca pesada
+   em caixa baixa e com letra apertada, como na arte da campanha.
+   ===================================================================== */
+:root {
+  --menta: #61bf99;
+  --menta-2: #74c9a6;
+  --verde: #2a6049;
+  --verde-2: #1f4a38;
+  --verde-tinta: #12352a;
+  --branco: #f8faf6;
+  --papel: #ecf4ee;
+  --tinta: #132a22;
+  --tinta-2: #3f5a50;
+  --tinta-3: #73887f;
+  --linha: #d3e3da;
+  --vermelho: #2a6049;          /* destaque principal agora é o verde-escuro */
+  --vermelho-escuro: #1f4a38;
+  --rosa: #dcf0e5;
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+}
+::selection { background: var(--verde); color: var(--branco); }
+
+/* títulos: grotesca pesada, caixa baixa, letra apertada */
+h1, .titulo-secao, .texto p.titulo-secao, .capa h1, .lateral h1, .folha > h1, .topo h1 {
+  font-family: var(--display); font-weight: 800; text-transform: lowercase; letter-spacing: -.045em; line-height: .9;
+}
+.capa h1 { font-size: clamp(64px, 9vw, 156px); }
+.titulo-secao, .texto p.titulo-secao { font-size: clamp(42px, 5vw, 80px); }
+.caminho strong, .op strong, .video strong, .mats strong, .passos strong, .funcao h3, .conversa h3, .grupo strong, .caixa h3, .btn, .atalhos a, .abas-p button {
+  font-family: var(--display); text-transform: none; letter-spacing: -.02em;
+}
+.caminho strong { font-weight: 800; font-size: 28px; }
+.op strong { font-weight: 700; font-size: 24px; }
+.video strong, .mats strong { font-weight: 800; font-size: 28px; }
+.passos strong { font-weight: 800; font-size: 34px; letter-spacing: -.035em; }
+.funcao h3 { font-weight: 800; font-size: 28px; letter-spacing: -.03em; }
+.conversa h3 { font-weight: 800; font-size: 32px; letter-spacing: -.035em; }
+.grupo strong { font-weight: 800; font-size: 28px; }
+.caixa h3 { font-weight: 800; font-size: 24px; }
+.btn { font-weight: 700; font-size: 19px; letter-spacing: -.01em; }
+.atalhos a { font-weight: 700; font-size: 17px; }
+.abas-p button { font-weight: 700; font-size: 19px; letter-spacing: -.02em; }
+.numeros b, .nums dd { font-family: var(--display); font-weight: 800; letter-spacing: -.04em; }
+
+/* logo tipográfico */
+.marca-site { font-family: var(--display); font-weight: 800; font-size: 25px; letter-spacing: -.045em; text-transform: lowercase; gap: 0; }
+.marca-site span { color: var(--branco); }
+.marca-site b { color: var(--verde); font-weight: 800; margin-left: .22em; }
+.barra.clara .marca-site span { color: var(--tinta); }
+.barra.clara .marca-site b { color: var(--menta); }
+
+/* faixas de cor: fundo menta, texto verde-escuro, título branco com a palavra-chave em verde */
+.barra.sobre-vermelho, .capa, .faixa.vermelha, .lateral, .topo { background: var(--menta); color: var(--verde-tinta); }
+.barra.sobre-vermelho nav a { color: var(--verde-tinta); }
+.capa h1, .lateral h1, .topo h1, .faixa.vermelha .titulo-secao { color: var(--branco); }
+.capa h1 em { background: none; color: var(--verde); padding: 0; }
+.capa .kicker, .lateral .kicker, .topo .kicker, .faixa.vermelha .kicker { color: var(--verde); }
+.capa .lead, .lateral .lead { color: var(--verde-tinta); }
+.capa::after { background: var(--branco); }
+.capa .caminho, .faixa.vermelha .caminho { border-color: var(--verde-tinta); color: var(--verde-tinta); background: transparent; }
+.capa .caminho:hover, .faixa.vermelha .caminho:hover { background: var(--verde-tinta); color: var(--branco); }
+.link-video { color: var(--verde-tinta); }
+.numeros span, .nums dt { color: var(--verde); opacity: 1; }
+.numeros b { color: var(--branco); }
+.nums dd { color: var(--branco); }
+.topo .sub { color: var(--verde-tinta); opacity: .8; }
+.atalhos a { border-color: var(--verde-tinta); color: var(--verde-tinta); }
+.atalhos a:hover { background: var(--verde-tinta); color: var(--branco); }
+.lateral ol { border-top-color: rgba(18, 53, 42, .35); }
+.lateral ol li { border-bottom-color: rgba(18, 53, 42, .2); color: var(--verde-tinta); }
+.lateral ol li b { font-family: var(--display); font-weight: 800; color: var(--branco); }
+
+/* como funciona (faixa menta) */
+.passos { border-top-color: var(--verde-tinta); }
+.passos li { color: var(--verde-tinta); }
+.passos li + li { border-left-color: rgba(18, 53, 42, .25); }
+.passos .n { border-color: var(--verde-tinta); color: var(--verde-tinta); background: rgba(255, 255, 255, .25); }
+.passos strong { color: var(--branco); }
+.passos .num { color: var(--verde); opacity: 1; }
+@media (max-width: 640px) { .passos li, .passos li + li { border-bottom-color: rgba(18, 53, 42, .2); } }
+
+/* faixa escura: verde-escuro com branco */
+.faixa.escura { background: var(--verde); color: var(--branco); }
+.faixa.escura .titulo-secao { color: var(--branco); }
+.faixa.escura .kicker { color: var(--menta); }
+.faixa.escura .caminho { border-color: var(--branco); color: var(--branco); }
+.faixa.escura .caminho:hover { background: var(--branco); color: var(--verde); }
+
+/* detalhes */
+.funcao { border-top-color: var(--verde); }
+.funcao header { color: var(--menta); }
+.conversa { box-shadow: 10px 10px 0 var(--menta); }
+.conversa .selo { background: var(--verde); }
+.fala { border-left-color: var(--verde); }
+.fala small, .marca b, .op .roteiro b, legend, .video .plat, .mats .plat { color: var(--verde); }
+.video:hover { box-shadow: 8px 8px 0 var(--menta); }
+.gente .av { background: var(--menta); color: var(--branco); font-family: var(--display); font-weight: 800; }
+.rodape-site { background: var(--verde-2); }
+.folha > h1 { color: var(--verde); }
+.abas-p button.on { color: var(--verde); border-bottom-color: var(--menta); }
+.grupo.contorno { border-color: var(--verde); color: var(--verde); }
+.grupo.contorno:hover { background: var(--verde); color: var(--branco); }
+.msg.err { color: #b3261e; }
+@media (max-width: 640px) { .conversa { box-shadow: 6px 6px 0 var(--menta); } }
+.funcao header { color: var(--verde); }

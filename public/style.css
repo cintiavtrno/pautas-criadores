@@ -340,3 +340,25 @@ body { background: var(--paper); }
 main { height: calc(100vh - 150px); }
 .row.on .flag { color: #fff !important; opacity: .85; }
 @media (max-width: 1100px) { .mast .mast-r { grid-column: 1 / -1; grid-row: auto; justify-self: start; } .mast .tabs { grid-row: auto; } }
+
+/* ---------- identidade "seu voto decide" ---------- */
+:root {
+  --vermelho: #2a6049; --vermelho-escuro: #1f4a38; --red: #2a6049; --red-soft: #dcf0e5;
+  --marker: #2a6049; --marker-ink: #1f4a38; --marker-soft: #e3f3ea;
+  --sel: #2a6049; --menta: #61bf99;
+  --paper: #f1f6f2; --sheet: #fbfdfb; --ink: #132a22; --ink-2: #3f5a50; --ink-3: #73887f; --rule: #d3e3da; --rule-2: #e4eee8;
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+}
+.mast { background: var(--vermelho); }
+.mast h1 { font-family: var(--display); font-weight: 800; text-transform: lowercase; letter-spacing: -.045em; font-size: 30px; line-height: .9; }
+.mast h1 b, .login h1 b { color: var(--menta); font-weight: 800; }
+.tabs button, .grp h2, .dhead h2, .col header h3, .empty-detail h2, .stats dd, .login h1 { font-family: var(--display); letter-spacing: -.03em; }
+.tabs button { text-transform: lowercase; font-weight: 700; font-size: 17px; }
+.tabs button.on { border-bottom-color: var(--menta); }
+.grp h2 { font-weight: 800; text-transform: lowercase; font-size: 26px; }
+.dhead h2 { font-weight: 800; text-transform: none; letter-spacing: -.04em; }
+.stats dd { font-weight: 800; }
+.stats .warn dd { color: #b8f0d5; }
+.login h1 { color: var(--vermelho); text-transform: lowercase; font-weight: 800; letter-spacing: -.045em; border-bottom-color: var(--vermelho); }
+.login .btn.solid { font-family: var(--display); text-transform: none; font-weight: 700; }
+.marker { border-left-color: var(--vermelho); }
