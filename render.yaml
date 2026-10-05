@@ -1,0 +1,21 @@
+# Blueprint do Render: cria o site + um banco Postgres e já liga um no outro.
+# No Render: New > Blueprint > escolha o repositório.
+services:
+  - type: web
+    name: pautas-criadores
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pautas-db
+          property: connectionString
+      - key: APP_PASSWORD
+        sync: false   # o Render pede o valor na criação
+
+databases:
+  - name: pautas-db
+    plan: free
