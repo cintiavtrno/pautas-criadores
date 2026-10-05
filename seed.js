@@ -123,4 +123,17 @@ const equipe = [
   { nome: 'Rahuany Velleda', funcoes: ['Design'] },
 ];
 
-module.exports = { nichos, criadores, correcoes, equipe };
+// Acessos iniciais ao controle interno (senha inicial = APP_PASSWORD; cada uma troca no primeiro login)
+const admins = [
+  { login: 'cintia', nome: 'Cíntia Vitorino', nomeEquipe: 'Cíntia Vitorino' },
+  { login: 'camilla', nome: 'Camilla', nomeEquipe: 'Camilla' },
+  { login: 'yara', nome: 'Yara Damasceno', nomeEquipe: 'Yara Damasceno' },
+];
+
+// Etapas das tarefas de produção (vídeos e peças de divulgação da articulação)
+const ETAPAS = ['A fazer', 'Em andamento', 'Em revisão', 'Pronto', 'Publicado'];
+
+// "Com quem você quer falar?" no cadastro de pessoa comum
+const COM_QUEM = ['Família', 'Amigos', 'Colegas de trabalho ou escola', 'Stories / status', 'Grupos de WhatsApp', 'Vizinhança / bairro'];
+
+module.exports = { nichos, criadores, correcoes, equipe, admins, ETAPAS, COM_QUEM };

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Controle · Espelho de pautas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="mast" id="mast" hidden>
+    <div class="mast-l">
+      <h1>Espelho<br /> de pautas</h1>
+    </div>
+    <nav id="tabs" class="tabs"></nav>
+    <div class="mast-r">
+      <div class="conta" id="conta"></div>
+      <dl id="stats" class="stats"></dl>
+    </div>
+  </header>
+
+  <main id="view"><p class="nothing">carregando…</p></main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

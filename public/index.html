@@ -3,29 +3,37 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Espelho de pautas</title>
+  <title>Participe</title>
+  <meta name="description" content="Grave um vídeo e fale com quem você conhece. Criadores de conteúdo e pessoas comuns podem participar." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/publico.css" />
 </head>
 <body>
-  <header class="mast">
-    <div class="mast-l">
-      <h1>Espelho<br /> de pautas</h1>
-    </div>
-    <nav id="tabs" class="tabs">
-      <button data-view="criadores">Criadores</button>
-      <button data-view="pautas">Pautas</button>
-      <button data-view="quadro">Quadro</button>
-      <button data-view="equipe">Equipe</button>
-      <button data-view="nichos">Nichos</button>
-    </nav>
-    <dl id="stats" class="stats"></dl>
-  </header>
+<main class="wrap">
+  <!-- TEXTOS DA PÁGINA INICIAL: pode trocar à vontade -->
+  <p class="kicker">participe</p>
+  <h1>Fale com quem você conhece</h1>
+  <p class="lead">Uma conversa com a prima, um vídeo no status, um recado no grupo da família. Quem está perto escuta mais. Você pode participar tendo muitos seguidores ou nenhum.</p>
 
-  <main id="view"></main>
-  <div id="toast" role="status" aria-live="polite"></div>
-  <script src="/app.js"></script>
+  <div class="caminhos">
+    <a class="caminho" href="/participar?tipo=pessoa">
+      <strong>Não sou criador de conteúdo</strong>
+      <span>Quero gravar para minha família, meus amigos, meu status. Recebo sugestões do que falar.</span>
+    </a>
+    <a class="caminho" href="/participar?tipo=criador">
+      <strong>Sou criador de conteúdo</strong>
+      <span>Tenho um perfil com público e quero receber pautas para os meus vídeos.</span>
+    </a>
+  </div>
+
+  <h2>Como funciona</h2>
+  <div class="item"><strong>1. Você se cadastra.</strong> Leva dois minutos.</div>
+  <div class="item"><strong>2. Recebe o seu link pessoal.</strong> Nele estão as pautas, as sugestões do que falar e os materiais da campanha.</div>
+  <div class="item"><strong>3. Grava do seu jeito e conta pra gente.</strong> Assim a equipe sabe quantas pessoas se mexeram.</div>
+
+  <p class="rodape"><span>Já se cadastrou? Use o link pessoal que você recebeu.</span><a href="/admin">acesso da equipe</a></p>
+</main>
 </body>
 </html>

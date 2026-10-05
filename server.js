@@ -3,183 +3,218 @@ const crypto = require('crypto');
 const path = require('path');
 const db = require('./db');
 const seed = require('./seed');
+const seg = require('./security');
+const auth = require('./auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const COLLECTIONS = ['creators', 'pautas', 'team', 'nichos'];
+const PUB = path.join(__dirname, 'public');
 
-const seg = require('./security');
+// coleções que só as admins mexem pela API genérica
+const COLECOES = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao'];
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // o Render fica na frente: assim o IP real de quem acessa é o que conta
 app.use(seg.headers);
 app.use(seg.geral);
 app.use(express.json({ limit: '200kb' }));
+app.use(auth.sessao(db));
 
-// Senha do painel: defina APP_PASSWORD no Render. Usuário pode ser qualquer um; só a senha é conferida.
-// Formulário (/participar) e links de escolha (/escolha/...) ficam abertos.
-if (process.env.APP_PASSWORD) app.use(seg.senha(process.env.APP_PASSWORD));
-else console.warn('ATENÇÃO: APP_PASSWORD não definida. O painel está aberto para qualquer pessoa.');
-
-app.get('/health', (_req, res) => res.json({ ok: true, storage: db.kind }));
-
-const checkCol = (req, res, next) =>
-  COLLECTIONS.includes(req.params.col) ? next() : res.status(404).json({ error: 'coleção inválida' });
-
-const wrap = (fn) => (req, res) => fn(req, res).catch((e) => {
+const wrap = (fn) => (req, res, next) => fn(req, res, next).catch((e) => {
   console.error(e);
   res.status(500).json({ error: 'Erro no servidor. Tente de novo.' });
 });
+const txt = (v, max = 300) => String(v || '').trim().slice(0, max);
+const newToken = () => crypto.randomBytes(12).toString('base64url');
+const agora = () => new Date().toISOString();
+const urlOk = (u) => /^https?:\/\/[^\s]{3,}$/i.test(String(u || '').trim());
+const slug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '');
 
-app.get('/api/:col', checkCol, wrap(async (req, res) => res.json(await db.list(req.params.col))));
+// ações que mudam dados precisam vir do próprio site (proteção contra CSRF)
+function mesmoSite(req, res, next) {
+  if (['GET', 'HEAD'].includes(req.method)) return next();
+  if (req.get('X-Requested-With') !== 'espelho') return res.status(403).json({ error: 'Requisição recusada.' });
+  next();
+}
+const logado = (req, res, next) => (req.usuario ? next() : res.status(401).json({ error: 'Faça login.' }));
+const soAdmin = (req, res, next) => (req.usuario?.papel === 'admin' ? next() : res.status(403).json({ error: 'Só administradoras.' }));
 
-const newToken = () => crypto.randomBytes(9).toString('base64url');
+app.get('/health', (_req, res) => res.json({ ok: true, storage: db.kind }));
 
-app.post('/api/:col', checkCol, wrap(async (req, res) => {
+/* =========================================================
+   PÁGINAS
+   ========================================================= */
+app.get('/admin', (_req, res) => res.sendFile(path.join(PUB, 'admin.html')));
+app.get('/participar', (_req, res) => res.sendFile(path.join(PUB, 'participar.html')));
+app.get('/p/:token', (_req, res) => res.sendFile(path.join(PUB, 'painel.html')));
+app.get('/escolha/:token', (req, res) => res.redirect(301, `/p/${encodeURIComponent(req.params.token)}`));
+
+/* =========================================================
+   LOGIN DO CONTROLE INTERNO
+   ========================================================= */
+app.use('/auth', mesmoSite);
+
+app.get('/auth/me', (req, res) => (req.usuario ? res.json(auth.publico(req.usuario)) : res.status(401).json({ error: 'Faça login.' })));
+
+app.post('/auth/login', wrap(async (req, res) => {
+  const ip = seg.ipOf(req);
+  const login = txt(req.body?.login, 80).toLowerCase();
+  const L = seg.limits.senhaErrada;
+  if (L.count(ip) >= L.max || L.count('u:' + login) >= L.max) {
+    return res.status(429).json({ error: 'Muitas tentativas. Espere 15 minutos.' });
+  }
+  const u = (await db.list('usuarios')).find((x) => x.login === login && !x.desativado);
+  if (!u || !auth.confereSenha(req.body?.senha || '', u.senhaHash)) {
+    L.hit(ip); L.hit('u:' + login);
+    return res.status(401).json({ error: 'Login ou senha incorretos.' });
+  }
+  L.reset(ip); L.reset('u:' + login);
+  await db.update('usuarios', u.id, { ultimoAcesso: agora() });
+  auth.abreSessao(req, res, u);
+  res.json(auth.publico(u));
+}));
+
+app.post('/auth/logout', (req, res) => { auth.fechaSessao(req, res); res.json({ ok: true }); });
+
+app.post('/auth/senha', logado, wrap(async (req, res) => {
+  const { atual, nova } = req.body || {};
+  if (!auth.confereSenha(atual || '', req.usuario.senhaHash)) return res.status(400).json({ error: 'A senha atual não confere.' });
+  if (String(nova || '').length < 8) return res.status(400).json({ error: 'A nova senha precisa ter pelo menos 8 caracteres.' });
+  const u = await db.update('usuarios', req.usuario.id, {
+    senhaHash: auth.hashSenha(nova), trocarSenha: false, sessaoVersao: (req.usuario.sessaoVersao || 0) + 1,
+  });
+  auth.abreSessao(req, res, u);
+  res.json(auth.publico(u));
+}));
+
+/* =========================================================
+   API INTERNA
+   ========================================================= */
+app.use('/api', mesmoSite, logado);
+
+/* ---- equipe: só as próprias tarefas de produção ---- */
+async function minhasTarefas(u) {
+  const equipe = await db.list('team');
+  const nome = (id) => equipe.find((t) => t.id === id)?.nome || '';
+  return (await db.list('producao'))
+    .filter((t) => u.teamId && (t.responsaveis || []).includes(u.teamId))
+    .map((t) => ({ ...t, responsaveisNomes: (t.responsaveis || []).map(nome).filter(Boolean) }));
+}
+app.get('/api/minhas-tarefas', wrap(async (req, res) => res.json(await minhasTarefas(req.usuario))));
+app.put('/api/minhas-tarefas/:id', wrap(async (req, res) => {
+  const t = (await minhasTarefas(req.usuario)).find((x) => x.id === req.params.id);
+  if (!t) return res.status(404).json({ error: 'Tarefa não encontrada.' });
+  const b = req.body || {};
+  const patch = {};
+  if ('etapa' in b && seed.ETAPAS.includes(b.etapa)) patch.etapa = b.etapa;
+  if ('entregaLink' in b) patch.entregaLink = txt(b.entregaLink, 500);
+  if ('notasEquipe' in b) patch.notasEquipe = txt(b.notasEquipe, 3000);
+  res.json(await db.update('producao', t.id, patch));
+}));
+
+/* ---- daqui pra baixo, só administradoras ---- */
+app.use('/api', soAdmin);
+
+/* acessos (usuários do controle interno) */
+const usuarioSemSenha = ({ senhaHash, ...u }) => u;
+app.get('/api/usuarios', wrap(async (_req, res) => res.json((await db.list('usuarios')).map(usuarioSemSenha))));
+
+app.post('/api/usuarios', wrap(async (req, res) => {
+  const b = req.body || {};
+  const nome = txt(b.nome, 120);
+  if (!nome) return res.status(400).json({ error: 'Falta o nome.' });
+  const todos = await db.list('usuarios');
+  let login = slug(b.login || nome.split(' ')[0]);
+  if (!login) return res.status(400).json({ error: 'Login inválido.' });
+  let n = 2; const base = login;
+  while (todos.some((u) => u.login === login)) login = `${base}${n++}`;
+  if (b.teamId && todos.some((u) => u.teamId === b.teamId)) return res.status(400).json({ error: 'Essa pessoa já tem acesso.' });
+  const senha = auth.senhaProvisoria();
+  const u = await db.insert('usuarios', {
+    nome, login, papel: b.papel === 'admin' ? 'admin' : 'equipe', teamId: txt(b.teamId, 80),
+    senhaHash: auth.hashSenha(senha), trocarSenha: true, sessaoVersao: 0,
+  });
+  res.status(201).json({ usuario: usuarioSemSenha(u), senhaProvisoria: senha });
+}));
+
+app.post('/api/usuarios/:id/redefinir', wrap(async (req, res) => {
+  const u = await db.get('usuarios', req.params.id);
+  if (!u) return res.status(404).json({ error: 'Não encontrado.' });
+  const senha = auth.senhaProvisoria();
+  await db.update('usuarios', u.id, { senhaHash: auth.hashSenha(senha), trocarSenha: true, sessaoVersao: (u.sessaoVersao || 0) + 1 });
+  res.json({ senhaProvisoria: senha });
+}));
+
+app.put('/api/usuarios/:id', wrap(async (req, res) => {
+  const u = await db.get('usuarios', req.params.id);
+  if (!u) return res.status(404).json({ error: 'Não encontrado.' });
+  const patch = {};
+  if (req.body?.papel && ['admin', 'equipe'].includes(req.body.papel)) {
+    if (u.id === req.usuario.id && req.body.papel !== 'admin') return res.status(400).json({ error: 'Você não pode tirar o seu próprio acesso de administradora.' });
+    patch.papel = req.body.papel;
+    patch.sessaoVersao = (u.sessaoVersao || 0) + 1;
+  }
+  res.json(usuarioSemSenha(await db.update('usuarios', u.id, patch)));
+}));
+
+app.delete('/api/usuarios/:id', wrap(async (req, res) => {
+  if (req.params.id === req.usuario.id) return res.status(400).json({ error: 'Você não pode remover o seu próprio acesso.' });
+  const ok = await db.remove('usuarios', req.params.id);
+  ok ? res.json({ ok: true }) : res.status(404).json({ error: 'Não encontrado.' });
+}));
+
+/* API genérica das coleções */
+const colecaoOk = (req, res, next) => (COLECOES.includes(req.params.col) ? next() : res.status(404).json({ error: 'Coleção inválida.' }));
+
+app.get('/api/:col', colecaoOk, wrap(async (req, res) => res.json(await db.list(req.params.col))));
+
+app.post('/api/:col', colecaoOk, wrap(async (req, res) => {
   const data = { ...(req.body || {}) };
-  if (req.params.col === 'creators' && !data.token) data.token = newToken();
+  if (['creators', 'pessoas'].includes(req.params.col) && !data.token) data.token = newToken();
   res.status(201).json(await db.insert(req.params.col, data));
 }));
 
-// ---------- página pública: o criador escolhe a pauta ----------
-async function creatorByToken(token) {
-  if (!token || token.length < 8) return null;
-  return (await db.list('creators')).find((c) => c.token === token) || null;
-}
-const publicPauta = (p) => ({ id: p.id, titulo: p.titulo, tema: p.tema || '', descricao: p.descricao || '', linhaSugerida: p.linhaSugerida || '', prazo: p.prazo || '' });
-
-app.get('/public/escolha/:token', wrap(async (req, res) => {
-  const c = await creatorByToken(req.params.token);
-  if (!c) return res.status(404).json({ error: 'Link inválido.' });
-  const pautas = await db.list('pautas');
-  const ids = c.pautasOpcoes || [];
-  const opcoes = pautas.filter((p) => ids.includes(p.id)).map(publicPauta);
-  res.json({
-    nome: c.nome, sugestaoLinha: c.sugestaoLinha || '', opcoes,
-    escolhida: c.pautaId || '', comentario: c.comentarioCriador || '', escolhidaEm: c.escolhidaEm || '',
-  });
+app.put('/api/:col/:id', colecaoOk, wrap(async (req, res) => {
+  const { token, ...data } = req.body || {}; // o link pessoal não muda pela tela
+  const r = await db.update(req.params.col, req.params.id, data);
+  r ? res.json(r) : res.status(404).json({ error: 'Não encontrado.' });
 }));
 
-app.post('/public/escolha/:token', wrap(async (req, res) => {
-  if (!seg.limits.escolha.hit(seg.ipOf(req))) return seg.demais(res);
-  const c = await creatorByToken(req.params.token);
-  if (!c) return res.status(404).json({ error: 'Link inválido.' });
-  const { pautaId, comentario } = req.body || {};
-  if (!(c.pautasOpcoes || []).includes(pautaId)) return res.status(400).json({ error: 'Escolha uma das pautas da lista.' });
-  const patch = { pautaId, comentarioCriador: String(comentario || '').slice(0, 2000), escolhidaEm: new Date().toISOString() };
-  if (!c.status || c.status === 'Mapeado' || c.status === 'Contatado') patch.status = 'Topou';
-  await db.update('creators', c.id, patch);
-  const p = await db.get('pautas', pautaId);
-  if (p) await db.update('pautas', p.id, { creatorId: c.id, status: !p.status || p.status === 'Livre' ? 'Reservada' : p.status });
-  res.json({ ok: true });
-}));
-
-app.get('/escolha/:token', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'escolha.html')));
-
-// ---------- formulário público de inscrição ----------
-// O criador se inscreve sozinho e entra direto na lista, marcado como "inscrição".
-app.get('/participar', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'participar.html')));
-app.get('/public/nichos', wrap(async (_req, res) => res.json((await db.list('nichos')).map((n) => n.nome))));
-app.get('/public/config', (_req, res) => res.json({ turnstile: seg.turnstileAtivo() ? process.env.TURNSTILE_SITE_KEY : '' }));
-
-const limpaHandle = (h) => String(h || '').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[/?#\s]/)[0].toLowerCase();
-const txt = (v, max = 300) => String(v || '').trim().slice(0, max);
-
-app.post('/public/inscricao', wrap(async (req, res) => {
-  const ip = seg.ipOf(req);
-  if (!seg.limits.inscricao.hit(ip)) return seg.demais(res, 'Muitos envios seguidos deste aparelho. Tente de novo daqui a pouco.');
-  if (seg.limits.inscricaoTotal.count('site') >= seg.limits.inscricaoTotal.max) {
-    return res.status(503).json({ error: 'Muitas inscrições chegando agora. Tente de novo em alguns minutos.' });
-  }
-
-  const b = req.body || {};
-  // armadilhas para robô: campo invisível preenchido ou formulário enviado rápido demais.
-  // Respondemos "ok" para o robô não perceber que foi barrado.
-  if (b.site || Number(b.t) < 2500) return res.json({ ok: true });
-  if (!(await seg.turnstileOk(b.turnstile, ip))) return res.status(400).json({ error: 'Não conseguimos confirmar que você não é um robô. Recarregue a página e tente de novo.' });
-  seg.limits.inscricaoTotal.hit('site');
-  const nome = txt(b.nome, 120);
-  const handle = limpaHandle(b.handle);
-  const whats = txt(b.whats, 40);
-  const email = txt(b.email, 160);
-  if (!nome || !handle) return res.status(400).json({ error: 'Preencha seu nome e seu @ do Instagram.' });
-  if (!whats && !email) return res.status(400).json({ error: 'Deixe um WhatsApp ou um e-mail para a gente falar com você.' });
-  if (!b.consentimento) return res.status(400).json({ error: 'Marque a autorização de contato para enviar.' });
-
-  const validos = new Set((await db.list('nichos')).map((n) => n.nome));
-  const nichos = (Array.isArray(b.nichos) ? b.nichos : []).filter((n) => validos.has(n)).slice(0, 5);
-  const dados = {
-    contatoWhats: whats, contatoEmail: email, cidade: txt(b.cidade, 120), outrasRedes: txt(b.outrasRedes, 300),
-    seguidores: txt(b.seguidores, 40), nichoOutro: txt(b.nichoOutro, 80), mensagemInscricao: txt(b.sobre, 1500),
-    inscritoEm: new Date().toISOString(),
-  };
-
-  let criador = (await db.list('creators')).find((c) => (c.handle || '').toLowerCase() === handle);
-  if (criador) {
-    // já estava na lista: só completa o contato, sem apagar o que a equipe escreveu
-    // só preenche o que estiver vazio: ninguém consegue trocar o contato de quem já está na lista
-    const patch = { inscreveuSe: true, inscritoEm: dados.inscritoEm };
-    for (const [k, v] of Object.entries(dados)) if (v && !criador[k]) patch[k] = v;
-    if (!(criador.nichos || []).length && nichos.length) patch.nichos = nichos;
-    await db.update('creators', criador.id, patch);
-  } else {
-    criador = await db.insert('creators', {
-      nome, handle, url: `https://www.instagram.com/${handle}/`, nichos, nichoConfirmado: false,
-      resumo: dados.mensagemInscricao, sugestaoLinha: '', observacoes: '', responsavel: '', status: 'Mapeado',
-      modoPauta: 'atribuida', pautaId: '', pautasOpcoes: [], roteiristaId: '', editorId: '',
-      origem: 'inscricao', inscreveuSe: true, token: newToken(), ...dados,
-    });
-  }
-
-  // a pessoa pode já mandar a própria ideia de pauta: entra na aba Pautas como "Sugerida"
-  const pautaTitulo = txt(b.pautaTitulo, 140);
-  if (pautaTitulo) {
-    await db.insert('pautas', {
-      titulo: pautaTitulo, tema: '', nicho: nichos[0] || '', descricao: txt(b.pautaDescricao, 1500), linhaSugerida: '',
-      status: 'Sugerida', creatorId: criador.id, prazo: '', origem: 'inscricao', sugeridaPor: nome,
-    });
-  }
-  res.json({ ok: true });
-}));
-
-app.put('/api/:col/:id', checkCol, wrap(async (req, res) => {
-  const r = await db.update(req.params.col, req.params.id, req.body || {});
-  r ? res.json(r) : res.status(404).json({ error: 'não encontrado' });
-}));
-
-app.delete('/api/:col/:id', checkCol, wrap(async (req, res) => {
+app.delete('/api/:col/:id', colecaoOk, wrap(async (req, res) => {
   const { col, id } = req.params;
-  const ok = await db.remove(col, id);
-  if (!ok) return res.status(404).json({ error: 'não encontrado' });
+  if (!(await db.remove(col, id))) return res.status(404).json({ error: 'Não encontrado.' });
   // limpa referências soltas
+  const limpa = async (colecao, fn) => { for (const r of await db.list(colecao)) { const p = fn(r); if (p) await db.update(colecao, r.id, p); } };
   if (col === 'pautas') {
-    for (const c of await db.list('creators')) {
-      const patch = {};
-      if (c.pautaId === id) patch.pautaId = '';
-      if ((c.pautasOpcoes || []).includes(id)) patch.pautasOpcoes = c.pautasOpcoes.filter((x) => x !== id);
-      if (Object.keys(patch).length) await db.update('creators', c.id, patch);
-    }
+    await limpa('creators', (c) => {
+      const p = {};
+      if (c.pautaId === id) p.pautaId = '';
+      if ((c.pautasOpcoes || []).includes(id)) p.pautasOpcoes = c.pautasOpcoes.filter((x) => x !== id);
+      return Object.keys(p).length ? p : null;
+    });
+    await limpa('pessoas', (c) => (c.pautaId === id ? { pautaId: '' } : null));
   }
-  if (col === 'creators') {
-    for (const p of await db.list('pautas')) if (p.creatorId === id) await db.update('pautas', p.id, { creatorId: '' });
-  }
+  if (col === 'creators') await limpa('pautas', (p) => (p.creatorId === id ? { creatorId: '' } : null));
+  if (col === 'pessoas') await limpa('pautas', (p) => (p.pessoaId === id ? { pessoaId: '' } : null));
   if (col === 'team') {
-    for (const c of await db.list('creators')) {
-      const patch = {};
-      if (c.roteiristaId === id) patch.roteiristaId = '';
-      if (c.editorId === id) patch.editorId = '';
-      if (Object.keys(patch).length) await db.update('creators', c.id, patch);
-    }
+    await limpa('creators', (c) => {
+      const p = {};
+      if (c.roteiristaId === id) p.roteiristaId = '';
+      if (c.editorId === id) p.editorId = '';
+      return Object.keys(p).length ? p : null;
+    });
+    await limpa('producao', (t) => ((t.responsaveis || []).includes(id) ? { responsaveis: t.responsaveis.filter((x) => x !== id) } : null));
+    await limpa('usuarios', (u) => (u.teamId === id ? { teamId: '', desativado: true } : null));
   }
   res.json({ ok: true });
 }));
 
-// Exportação CSV (abre no Excel / Google Sheets)
-app.get('/export/:col.csv', checkCol, wrap(async (req, res) => {
-  const rows = await db.list(req.params.col);
+/* exportação CSV (abre no Excel / Google Sheets) */
+app.get('/export/:col.csv', mesmoSite, logado, soAdmin, colecaoOk, wrap(async (req, res) => {
+  const rows = (await db.list(req.params.col)).map(({ token, ...r }) => r);
   const keys = [...new Set(rows.flatMap((r) => Object.keys(r)))];
   const esc = (v) => {
-    let s = Array.isArray(v) ? v.join('; ') : v == null ? '' : String(v);
+    let s = Array.isArray(v) ? v.map((x) => (typeof x === 'object' ? JSON.stringify(x) : x)).join('; ') : v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v);
     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // impede fórmula maliciosa ao abrir no Excel
     return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
@@ -189,40 +224,213 @@ app.get('/export/:col.csv', checkCol, wrap(async (req, res) => {
   res.send('﻿' + csv);
 }));
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+/* =========================================================
+   PÚBLICO: CADASTRO E PAINEL PESSOAL
+   ========================================================= */
+app.use('/public', mesmoSite);
+app.get('/public/nichos', wrap(async (_req, res) => res.json((await db.list('nichos')).map((n) => n.nome))));
+app.get('/public/config', (_req, res) => res.json({ turnstile: seg.turnstileAtivo() ? process.env.TURNSTILE_SITE_KEY : '' }));
+
+const limpaHandle = (h) => String(h || '').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[/?#\s]/)[0].toLowerCase();
+
+app.post('/public/inscricao', wrap(async (req, res) => {
+  const ip = seg.ipOf(req);
+  if (!seg.limits.inscricao.hit(ip)) return seg.demais(res, 'Muitos envios seguidos deste aparelho. Tente de novo daqui a pouco.');
+  if (seg.limits.inscricaoTotal.count('site') >= seg.limits.inscricaoTotal.max) {
+    return res.status(503).json({ error: 'Muitas inscrições chegando agora. Tente de novo em alguns minutos.' });
+  }
+  const b = req.body || {};
+  // armadilhas para robô: campo invisível preenchido ou formulário enviado rápido demais.
+  // Respondemos "ok" para o robô não perceber que foi barrado.
+  if (b.site || Number(b.t) < 2500) return res.json({ ok: true });
+  if (!(await seg.turnstileOk(b.turnstile, ip))) return res.status(400).json({ error: 'Não conseguimos confirmar que você não é um robô. Recarregue a página e tente de novo.' });
+
+  const tipo = b.tipo === 'pessoa' ? 'pessoa' : 'criador';
+  const nome = txt(b.nome, 120);
+  const whats = txt(b.whats, 40);
+  const email = txt(b.email, 160);
+  const handle = limpaHandle(b.handle);
+  if (!nome) return res.status(400).json({ error: 'Preencha seu nome.' });
+  if (tipo === 'criador' && !handle) return res.status(400).json({ error: 'Preencha seu @ do Instagram.' });
+  if (!whats && !email) return res.status(400).json({ error: 'Deixe um WhatsApp ou um e-mail para a gente falar com você.' });
+  if (!b.consentimento) return res.status(400).json({ error: 'Marque a autorização de contato para enviar.' });
+  seg.limits.inscricaoTotal.hit('site');
+
+  const base = { contatoWhats: whats, contatoEmail: email, cidade: txt(b.cidade, 120), inscritoEm: agora() };
+  const pautaTitulo = txt(b.pautaTitulo, 140);
+  const ideia = (extra) => pautaTitulo && db.insert('pautas', {
+    titulo: pautaTitulo, descricao: txt(b.pautaDescricao, 1500), tema: '', linhaSugerida: '', roteiro: '', prazo: '',
+    status: 'Sugerida', paraQuem: '', origem: 'inscricao', sugeridaPor: nome, ...extra,
+  });
+
+  if (tipo === 'pessoa') {
+    const comQuem = (Array.isArray(b.comQuem) ? b.comQuem : []).filter((x) => seed.COM_QUEM.includes(x));
+    const p = await db.insert('pessoas', {
+      nome, ...base, comQuem, sobre: txt(b.sobre, 1500), status: 'Inscrita', pautaId: '', comentario: '',
+      publicacoes: [], observacoes: '', responsavel: '', token: newToken(),
+    });
+    await ideia({ pessoaId: p.id, nicho: '' });
+    return res.json({ ok: true, token: p.token });
+  }
+
+  const validos = new Set((await db.list('nichos')).map((n) => n.nome));
+  const nichos = (Array.isArray(b.nichos) ? b.nichos : []).filter((n) => validos.has(n)).slice(0, 5);
+  const dados = {
+    ...base, outrasRedes: txt(b.outrasRedes, 300), seguidores: txt(b.seguidores, 40),
+    nichoOutro: txt(b.nichoOutro, 80), mensagemInscricao: txt(b.sobre, 1500),
+  };
+  let criador = (await db.list('creators')).find((c) => (c.handle || '').toLowerCase() === handle);
+  if (criador) {
+    // Já estava na lista. Só preenche o que estiver vazio (ninguém troca o contato de outra pessoa)
+    // e NÃO devolve o link do painel: a equipe confere e manda pelo contato cadastrado.
+    const patch = { inscreveuSe: true, inscritoEm: dados.inscritoEm };
+    for (const [k, v] of Object.entries(dados)) if (v && !criador[k]) patch[k] = v;
+    if (!(criador.nichos || []).length && nichos.length) patch.nichos = nichos;
+    await db.update('creators', criador.id, patch);
+    await ideia({ creatorId: criador.id, nicho: nichos[0] || '' });
+    return res.json({ ok: true, existente: true });
+  }
+  criador = await db.insert('creators', {
+    nome, handle, url: `https://www.instagram.com/${handle}/`, nichos, nichoConfirmado: false,
+    resumo: dados.mensagemInscricao, sugestaoLinha: '', observacoes: '', responsavel: '', status: 'Mapeado',
+    modoPauta: 'atribuida', pautaId: '', pautasOpcoes: [], roteiristaId: '', editorId: '', publicacoes: [],
+    origem: 'inscricao', inscreveuSe: true, token: newToken(), ...dados,
+  });
+  await ideia({ creatorId: criador.id, nicho: nichos[0] || '' });
+  res.json({ ok: true, token: criador.token });
+}));
+
+/* ---- painel pessoal (/p/:token) ---- */
+async function porToken(token) {
+  if (!token || token.length < 10) return null;
+  for (const col of ['creators', 'pessoas']) {
+    const r = (await db.list(col)).find((x) => x.token === token);
+    if (r) return { col, tipo: col === 'creators' ? 'criador' : 'pessoa', r };
+  }
+  return null;
+}
+const PARA_CRIADOR = ['Criadores', 'Todos'];
+const PARA_PESSOA = ['Pessoas comuns', 'Todos'];
+
+async function pautasVisiveis({ tipo, r }) {
+  const pautas = await db.list('pautas');
+  let lista;
+  if (tipo === 'criador') {
+    const ops = r.pautasOpcoes || [];
+    lista = ops.length
+      ? pautas.filter((p) => ops.includes(p.id))
+      : pautas.filter((p) => PARA_CRIADOR.includes(p.paraQuem) && (p.status === 'Livre' || (p.paraQuem === 'Todos' && !['Sugerida', 'Descartada'].includes(p.status))));
+  } else {
+    lista = pautas.filter((p) => PARA_PESSOA.includes(p.paraQuem) && !['Sugerida', 'Descartada'].includes(p.status));
+  }
+  if (r.pautaId && !lista.some((p) => p.id === r.pautaId)) {
+    const atual = pautas.find((p) => p.id === r.pautaId);
+    if (atual) lista.unshift(atual);
+  }
+  return lista;
+}
+const pautaPublica = (p) => ({ id: p.id, titulo: p.titulo, tema: p.tema || '', descricao: p.descricao || '', linhaSugerida: p.linhaSugerida || '', roteiro: p.roteiro || '', prazo: p.prazo || '' });
+
+app.get('/public/painel/:token', wrap(async (req, res) => {
+  const q = await porToken(req.params.token);
+  if (!q) return res.status(404).json({ error: 'Link inválido.' });
+  const { tipo, r } = q;
+  const materiais = (await db.list('materiais'))
+    .filter((m) => m.paraQuem === 'Todos' || (tipo === 'criador' ? m.paraQuem === 'Criadores' : m.paraQuem === 'Pessoas comuns'))
+    .filter((m) => urlOk(m.link))
+    .map((m) => ({ titulo: m.titulo, tipo: m.tipo || '', descricao: m.descricao || '', link: m.link }));
+  const ideias = (await db.list('pautas'))
+    .filter((p) => (tipo === 'criador' ? p.creatorId === r.id : p.pessoaId === r.id) && ['inscricao', 'painel'].includes(p.origem))
+    .map((p) => ({ titulo: p.titulo, status: p.status === 'Sugerida' ? 'em análise' : p.status === 'Descartada' ? 'não seguiu' : 'aprovada' }));
+  res.json({
+    tipo, nome: r.nome, sugestaoLinha: tipo === 'criador' ? r.sugestaoLinha || '' : '',
+    pautas: (await pautasVisiveis(q)).map(pautaPublica),
+    escolhida: r.pautaId || '', comentario: (tipo === 'criador' ? r.comentarioCriador : r.comentario) || '', escolhidaEm: r.escolhidaEm || '',
+    publicacoes: (r.publicacoes || []).map(({ em, link, comentario }) => ({ em, link, comentario })),
+    materiais, ideias,
+  });
+}));
+
+const painelLimite = (req, res, next) => (seg.limits.painel.hit(seg.ipOf(req)) ? next() : seg.demais(res));
+
+app.post('/public/painel/:token/escolha', painelLimite, wrap(async (req, res) => {
+  const q = await porToken(req.params.token);
+  if (!q) return res.status(404).json({ error: 'Link inválido.' });
+  const { pautaId, comentario } = req.body || {};
+  const p = (await pautasVisiveis(q)).find((x) => x.id === pautaId);
+  if (!p) return res.status(400).json({ error: 'Escolha uma das pautas da lista.' });
+  const { col, tipo, r } = q;
+  const patch = { pautaId, escolhidaEm: agora() };
+  if (tipo === 'criador') {
+    patch.comentarioCriador = txt(comentario, 2000);
+    if (!r.status || ['Mapeado', 'Contatado'].includes(r.status)) patch.status = 'Topou';
+    // pauta de criador fica reservada para quem escolheu (as abertas para "Todos" não)
+    if (p.paraQuem !== 'Todos') await db.update('pautas', p.id, { creatorId: r.id, status: !p.status || p.status === 'Livre' ? 'Reservada' : p.status });
+  } else {
+    patch.comentario = txt(comentario, 2000);
+    if (!r.status || r.status === 'Inscrita') patch.status = 'Escolheu pauta';
+  }
+  await db.update(col, r.id, patch);
+  res.json({ ok: true });
+}));
+
+app.post('/public/painel/:token/postei', painelLimite, wrap(async (req, res) => {
+  const q = await porToken(req.params.token);
+  if (!q) return res.status(404).json({ error: 'Link inválido.' });
+  const link = txt(req.body?.link, 500);
+  if (link && !urlOk(link)) return res.status(400).json({ error: 'O link precisa começar com http:// ou https://' });
+  const { col, tipo, r } = q;
+  const pubs = (r.publicacoes || []).slice(-19);
+  pubs.push({ em: agora(), link, comentario: txt(req.body?.comentario, 1000), pautaId: r.pautaId || '' });
+  await db.update(col, r.id, { publicacoes: pubs, status: tipo === 'criador' ? 'Publicado' : 'Postou' });
+  res.json({ ok: true });
+}));
+
+app.post('/public/painel/:token/ideia', painelLimite, wrap(async (req, res) => {
+  const q = await porToken(req.params.token);
+  if (!q) return res.status(404).json({ error: 'Link inválido.' });
+  const titulo = txt(req.body?.titulo, 140);
+  if (!titulo) return res.status(400).json({ error: 'Dê um título para a sua ideia.' });
+  const { tipo, r } = q;
+  const ja = (await db.list('pautas')).filter((p) => (tipo === 'criador' ? p.creatorId === r.id : p.pessoaId === r.id) && p.origem === 'painel');
+  if (ja.length >= 10) return res.status(400).json({ error: 'Você já mandou 10 ideias. Espere a equipe responder.' });
+  await db.insert('pautas', {
+    titulo, descricao: txt(req.body?.descricao, 1500), tema: '', nicho: tipo === 'criador' ? (r.nichos || [])[0] || '' : '',
+    linhaSugerida: '', roteiro: '', prazo: '', status: 'Sugerida', paraQuem: '', origem: 'painel', sugeridaPor: r.nome,
+    ...(tipo === 'criador' ? { creatorId: r.id } : { pessoaId: r.id }),
+  });
+  res.json({ ok: true });
+}));
+
+/* =========================================================
+   ARQUIVOS E INÍCIO
+   ========================================================= */
+app.use(express.static(PUB, { index: 'index.html' }));
+app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
 
 (async () => {
   await db.init();
-  // Dados iniciais: entra só o que ainda não foi semeado (o que vocês apagarem não volta).
-  const metaList = await db.list('meta');
-  const meta = metaList[0] || (await db.insert('meta', { seeded: [], seededNichos: [] }));
-  const nichosExist = new Set((await db.list('nichos')).map((n) => n.nome));
-  const nichosSeeded = new Set(meta.seededNichos || []);
-  for (const n of seed.nichos) {
-    if (nichosSeeded.has(n.nome)) continue;
-    if (!nichosExist.has(n.nome)) await db.insert('nichos', n);
-    nichosSeeded.add(n.nome);
-  }
-  await db.update('meta', meta.id, { seededNichos: [...nichosSeeded] });
+  const meta = (await db.list('meta'))[0] || (await db.insert('meta', {}));
 
-  // equipe inicial (por nome; quem vocês apagarem não volta)
-  const equipeExist = new Set((await db.list('team')).map((t) => t.nome.toLowerCase()));
-  const equipeSeeded = new Set(meta.seededEquipe || []);
-  for (const t of seed.equipe || []) {
-    if (equipeSeeded.has(t.nome)) continue;
-    if (!equipeExist.has(t.nome.toLowerCase())) await db.insert('team', { contato: '', obs: '', ...t });
-    equipeSeeded.add(t.nome);
-  }
-  await db.update('meta', meta.id, { seededEquipe: [...equipeSeeded] });
-  const existing = new Set((await db.list('creators')).map((c) => c.handle));
-  const seeded = new Set(meta.seeded || []);
-  for (const c of seed.criadores) {
-    if (seeded.has(c.handle)) continue;
-    if (!existing.has(c.handle)) await db.insert('creators', c);
-    seeded.add(c.handle);
-  }
-  await db.update('meta', meta.id, { seeded: [...seeded] });
+  // chave das sessões: fica guardada no banco para o login não cair a cada deploy
+  let segredo = process.env.SESSION_SECRET || meta.sessionSecret;
+  if (!segredo) { segredo = crypto.randomBytes(32).toString('hex'); await db.update('meta', meta.id, { sessionSecret: segredo }); }
+  auth.setSecret(segredo);
+
+  // Dados iniciais: entra só o que ainda não foi semeado (o que vocês apagarem não volta).
+  const semeia = async (colecao, itens, chave, marca, montar = (x) => x) => {
+    const existentes = new Set((await db.list(colecao)).map((x) => String(x[chave] || '').toLowerCase()));
+    const feitos = new Set(meta[marca] || []);
+    for (const it of itens) {
+      if (feitos.has(it[chave])) continue;
+      if (!existentes.has(String(it[chave]).toLowerCase())) await db.insert(colecao, montar(it));
+      feitos.add(it[chave]);
+    }
+    await db.update('meta', meta.id, { [marca]: [...feitos] });
+  };
+  await semeia('nichos', seed.nichos, 'nome', 'seededNichos');
+  await semeia('team', seed.equipe, 'nome', 'seededEquipe', (t) => ({ contato: '', obs: '', ...t }));
+  await semeia('creators', seed.criadores, 'handle', 'seeded', (c) => ({ publicacoes: [], ...c }));
 
   // correções pontuais, uma vez só
   const feitas = new Set(meta.correcoes || []);
@@ -235,7 +443,19 @@ app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.h
   }
   await db.update('meta', meta.id, { correcoes: [...feitas] });
 
-  // todo criador ganha um link secreto de escolha
-  for (const c of await db.list('creators')) if (!c.token) await db.update('creators', c.id, { token: newToken() });
+  // todo criador e toda pessoa têm um link pessoal
+  for (const col of ['creators', 'pessoas']) for (const c of await db.list(col)) if (!c.token) await db.update(col, c.id, { token: newToken() });
+
+  // primeiros acessos: as três administradoras
+  if ((await db.list('usuarios')).length === 0) {
+    const senha = process.env.APP_PASSWORD || auth.senhaProvisoria();
+    const equipe = await db.list('team');
+    for (const a of seed.admins) {
+      const t = equipe.find((x) => x.nome.toLowerCase() === a.nomeEquipe.toLowerCase());
+      await db.insert('usuarios', { nome: a.nome, login: a.login, papel: 'admin', teamId: t?.id || '', senhaHash: auth.hashSenha(senha), trocarSenha: true, sessaoVersao: 0 });
+    }
+    console.log(`Acessos criados: ${seed.admins.map((a) => a.login).join(', ')}. Senha inicial: ${process.env.APP_PASSWORD ? 'a mesma do APP_PASSWORD' : senha}. Cada uma troca no primeiro login.`);
+  }
+
   app.listen(PORT, () => console.log(`Rodando na porta ${PORT} · armazenamento: ${db.kind}`));
 })();

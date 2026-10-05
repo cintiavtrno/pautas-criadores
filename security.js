@@ -23,7 +23,8 @@ const limits = {
   inscricao: new Limiter(5, 10 * 60 * 1000),      // 5 inscrições a cada 10 min por IP
   inscricaoTotal: new Limiter(300, 60 * 60 * 1000), // teto geral: 300 inscrições por hora no site todo
   escolha: new Limiter(20, 10 * 60 * 1000),       // 20 envios de escolha a cada 10 min por IP
-  senhaErrada: new Limiter(10, 15 * 60 * 1000),   // 10 senhas erradas = bloqueio de 15 min
+  senhaErrada: new Limiter(10, 15 * 60 * 1000),   // 10 senhas erradas = bloqueio de 15 min (por IP e por login)
+  painel: new Limiter(30, 10 * 60 * 1000),        // 30 ações no painel pessoal a cada 10 min
 };
 setInterval(() => Object.values(limits).forEach((l) => l.sweep()), 5 * 60 * 1000).unref();
 
@@ -64,32 +65,10 @@ function headers(_req, res, next) {
 function geral(req, res, next) {
   if (req.path === '/health') return next();
   if (!limits.geral.hit(ipOf(req))) return demais(res);
-  if (req.method === 'GET' && (req.path.startsWith('/public/') || req.path.startsWith('/escolha/') || req.path === '/participar')) {
+  if (req.method === 'GET' && (req.path.startsWith('/public/') || req.path.startsWith('/p/') || req.path.startsWith('/escolha/'))) {
     if (!limits.publicoLeitura.hit(ipOf(req))) return demais(res);
   }
   next();
-}
-
-/* ---------- senha do painel ---------- */
-const hash = (s) => crypto.createHash('sha256').update(String(s)).digest();
-const ABERTAS = (p) => p === '/health' || p === '/participar' || p.startsWith('/escolha/') || p.startsWith('/public/');
-
-function senha(password) {
-  const alvo = hash(password);
-  return (req, res, next) => {
-    if (ABERTAS(req.path)) return next();
-    const ip = ipOf(req);
-    if (limits.senhaErrada.count(ip) >= limits.senhaErrada.max) {
-      return res.status(429).send('Muitas tentativas de senha. Espere 15 minutos.');
-    }
-    const [tipo, b64] = (req.headers.authorization || '').split(' ');
-    if (tipo === 'Basic' && b64) {
-      const pass = Buffer.from(b64, 'base64').toString().split(':').slice(1).join(':');
-      if (crypto.timingSafeEqual(hash(pass), alvo)) { limits.senhaErrada.reset(ip); return next(); }
-      limits.senhaErrada.hit(ip);
-    }
-    res.set('WWW-Authenticate', 'Basic realm="Espelho de pautas", charset="UTF-8"').status(401).send('Acesso restrito');
-  };
 }
 
 /* ---------- verificação anti-robô opcional (Cloudflare Turnstile) ---------- */
@@ -108,4 +87,4 @@ async function turnstileOk(token, ip) {
   } catch { return false; }
 }
 
-module.exports = { limits, ipOf, demais, headers, geral, senha, turnstileAtivo, turnstileOk };
+module.exports = { limits, ipOf, demais, headers, geral, turnstileAtivo, turnstileOk };

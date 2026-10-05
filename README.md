@@ -2,8 +2,21 @@
 
 Sistema para organizar a campanha com criadores: lista de criadores separada por nicho, banco de pautas, distribuição (pauta definida ou criador escolhe entre opções), equipe de roteiro/edição e um quadro de acompanhamento.
 
-- **Backend:** Node.js + Express (`server.js`), API REST em `/api/...`
+- **Backend:** Node.js + Express (`server.js`), login em `auth.js`, travas em `security.js`
 - **Frontend:** HTML/CSS/JS puro em `public/`
+
+## Endereços
+
+| Endereço | Quem usa | O que é |
+|---|---|---|
+| `/` | público | página inicial: "sou criador" ou "não sou criador" |
+| `/participar` | público | cadastro (dois caminhos) |
+| `/p/<link>` | cada participante | painel pessoal: pautas, roteiro, materiais, "já gravei", ideias |
+| `/admin` | equipe | controle interno com login individual |
+
+No controle interno, administradoras veem tudo. Quem tem acesso de **equipe** vê só as tarefas de produção que estão com ela.
+
+**Primeiro acesso:** os logins `cintia`, `camilla` e `yara` são criados sozinhos, com a senha que estiver em `APP_PASSWORD` no Render. Cada uma troca a senha no primeiro login. Acessos para o resto da equipe são criados na aba Equipe (o sistema gera uma senha provisória).
 - **Banco:** Postgres quando existe `DATABASE_URL`; sem ela, salva em `data/db.json` (só para testar no computador)
 
 Na primeira vez que o sistema sobe, ele já carrega os 20 criadores mapeados e os nichos. Se no futuro entrarem criadores novos no `seed.js`, eles são acrescentados no próximo deploy; quem vocês apagaram não volta. O campo **Sugestão de linha** vem em branco para a Camilla e a Yara preencherem direto na ficha (tudo salva sozinho).
@@ -30,7 +43,7 @@ O sistema é um serviço novo, separado do backend que já roda lá. Nada do out
 - Language: `Node` · Branch: `main` · Build Command: `npm install` · Start Command: `npm start` · Instance: Free.
 - Em **Environment Variables**:
   - `DATABASE_URL` = a Internal Database URL do passo 1
-  - `APP_PASSWORD` = uma senha para a equipe (quem abrir o link digita qualquer usuário e essa senha)
+  - `APP_PASSWORD` = senha inicial das administradoras (cintia, camilla, yara); cada uma troca no primeiro login
 - Em **Advanced → Health Check Path**: `/health`
 - **Create Web Service**. Em uns 2 minutos o endereço `….onrender.com` fica no ar.
 
@@ -51,3 +64,13 @@ O arquivo `render.yaml` é opcional (serve para criar tudo de uma vez pelo Bluep
 | Nichos | Criar, renomear e colorir categorias |
 
 Criadores e pautas podem ser exportados em CSV (abre no Excel ou Google Sheets).
+
+## Segurança
+
+- Login individual com senha guardada em hash (scrypt) e sessão em cookie protegido. 10 senhas erradas bloqueiam aquele IP e aquele login por 15 minutos.
+- Links pessoais longos e aleatórios. Quem se cadastra com o @ de um criador que já está na lista não recebe o link dele: a equipe confere e envia.
+- Limite de requisições por IP (600 a cada 5 min no geral; 5 inscrições a cada 10 min) e teto de 300 inscrições por hora no site todo.
+- Formulário com campo-armadilha invisível e trava de tempo (envio em menos de 2,5 s é descartado como robô).
+- Quem já está na lista não tem o contato sobrescrito por uma inscrição nova com o mesmo @.
+- Cabeçalhos de proteção (CSP, anti-iframe, HSTS) e exportação CSV protegida contra fórmulas maliciosas.
+- Verificação anti-robô opcional da Cloudflare (Turnstile): crie um widget grátis em dash.cloudflare.com → Turnstile, e coloque `TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET` nas variáveis do Render. Sem elas, o formulário funciona sem a verificação.

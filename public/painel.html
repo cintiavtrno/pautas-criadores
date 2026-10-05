@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Meu painel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/publico.css" />
+</head>
+<body>
+<main class="wrap" id="app"><p class="kicker">carregando…</p></main>
+<script>
+const H = { 'Content-Type': 'application/json', 'X-Requested-With': 'espelho' };
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const token = location.pathname.split('/').filter(Boolean).pop();
+const app = document.getElementById('app');
+const fmt = (d) => (d ? new Date(d.length === 10 ? d + 'T12:00' : d).toLocaleDateString('pt-BR') : '');
+const seguro = (u) => /^https?:\/\//i.test(u || '');
+
+async function enviar(caminho, dados, msgEl) {
+  msgEl.className = 'msg'; msgEl.textContent = 'Enviando…';
+  const r = await fetch(`/public/painel/${encodeURIComponent(token)}/${caminho}`, { method: 'POST', headers: H, body: JSON.stringify(dados) });
+  const out = await r.json().catch(() => ({}));
+  if (!r.ok) { msgEl.className = 'msg err'; msgEl.textContent = out.error || 'Não enviou. Tente de novo.'; return false; }
+  msgEl.className = 'msg ok'; msgEl.textContent = 'Recebido. Obrigada!';
+  setTimeout(carregar, 1200);
+  return true;
+}
+
+async function carregar() {
+  const r = await fetch('/public/painel/' + encodeURIComponent(token));
+  if (!r.ok) {
+    app.innerHTML = '<p class="kicker">link inválido</p><h1>Esse link não funciona</h1><p class="lead">Confira se o endereço está completo. Se perdeu o seu link, fale com quem te convidou.</p><p><a class="btn ghost" href="/">Ir para o início</a></p>';
+    return;
+  }
+  const d = await r.json();
+  const primeiro = esc(d.nome.split(' ')[0]);
+  const criador = d.tipo === 'criador';
+  const escolhida = d.pautas.find((p) => p.id === d.escolhida);
+
+  app.innerHTML = `
+    <p class="kicker">seu painel · ${criador ? 'criador de conteúdo' : 'participante'}</p>
+    <h1>Oi, ${primeiro}</h1>
+    <p class="lead">${criador ? 'Aqui ficam as pautas separadas para você, os materiais da campanha e o espaço para contar quando publicar.' : 'Aqui ficam as sugestões do que falar, os materiais para compartilhar e o espaço para contar quando você gravar.'}</p>
+    <p class="muted" style="margin-top:10px">Guarde este endereço. É por ele que você volta aqui. Não compartilhe.</p>
+    ${d.sugestaoLinha ? `<div class="marca"><b>O que pensamos para você</b>${esc(d.sugestaoLinha)}</div>` : ''}
+
+    <h2>${criador ? 'Sua pauta' : 'O que falar'}</h2>
+    ${d.pautas.length ? `
+      ${escolhida ? `<div class="feito"><b>Você escolheu${d.escolhidaEm ? ' em ' + fmt(d.escolhidaEm) : ''}</b>${esc(escolhida.titulo)}. Pode trocar quando quiser.</div>` : `<p class="muted" style="margin-top:12px">Escolha a que mais combina com você. É só um ponto de partida: o jeito de falar é seu.</p>`}
+      <form id="fp">
+        ${d.pautas.map((o) => `
+          <label class="op ${o.id === d.escolhida ? 'on' : ''}">
+            <input type="radio" name="p" value="${esc(o.id)}" ${o.id === d.escolhida ? 'checked' : ''} />
+            <span>
+              <strong>${esc(o.titulo)}</strong>
+              ${o.tema || o.prazo ? `<span class="t">${esc(o.tema)}${o.tema && o.prazo ? ' · ' : ''}${o.prazo ? 'até ' + fmt(o.prazo) : ''}</span>` : ''}
+              ${o.descricao ? `<p>${esc(o.descricao)}</p>` : ''}
+              ${o.linhaSugerida ? `<p><em>${esc(o.linhaSugerida)}</em></p>` : ''}
+              ${o.roteiro ? `<div class="roteiro"><b>sugestão do que falar</b>${esc(o.roteiro)}</div>` : ''}
+            </span>
+          </label>`).join('')}
+        <label class="f">Quer contar como pensa em fazer? <i>(opcional)</i><textarea name="c" maxlength="2000">${esc(d.comentario)}</textarea></label>
+        <button class="btn" type="submit" ${d.escolhida ? '' : 'disabled'}>${d.escolhida ? 'Atualizar escolha' : 'Escolher esta'}</button>
+        <div class="msg" id="mp" role="status"></div>
+      </form>` : `<p class="muted" style="margin-top:12px">As ${criador ? 'pautas' : 'sugestões'} ainda estão sendo preparadas. Volte neste mesmo link daqui a pouco.</p>`}
+
+    <h2>Já gravou ou postou?</h2>
+    ${d.publicacoes.length ? d.publicacoes.slice().reverse().map((p) => `<div class="item"><small>${fmt(p.em)}</small>${seguro(p.link) ? `<a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">${esc(p.link)}</a>` : 'Sem link'}${p.comentario ? `<div class="muted">${esc(p.comentario)}</div>` : ''}</div>`).join('') : ''}
+    <form id="fpub">
+      <label class="f">Link do post <i>(opcional: se mandou só no WhatsApp ou contou pessoalmente, deixe em branco)</i><input type="url" name="link" maxlength="500" placeholder="https://instagram.com/…" /></label>
+      <label class="f">Como foi? <i>(opcional)</i><textarea name="c" maxlength="1000" placeholder="Ex.: mandei no grupo da família e minha tia respondeu…"></textarea></label>
+      <button class="btn" type="submit">Contar que gravei</button>
+      <div class="msg" id="mpub" role="status"></div>
+    </form>
+
+    ${d.materiais.length ? `<h2>Materiais para usar e compartilhar</h2>${d.materiais.map((m) => `
+      <div class="item"><small>${esc(m.tipo || 'material')}</small><strong>${esc(m.titulo)}</strong>${m.descricao ? `<div class="muted">${esc(m.descricao)}</div>` : ''}
+      <div><a class="btn ghost" style="margin-top:8px;min-height:38px" href="${esc(m.link)}" target="_blank" rel="noopener noreferrer">Abrir</a></div></div>`).join('')}` : ''}
+
+    <h2>Tem uma ideia?</h2>
+    ${d.ideias.length ? d.ideias.map((i) => `<div class="item"><strong>${esc(i.titulo)}</strong><small>${esc(i.status)}</small></div>`).join('') : ''}
+    <form id="fi">
+      <label class="f">Título<input type="text" name="titulo" maxlength="140" /></label>
+      <label class="f">Como você faria? <i>(opcional)</i><textarea name="descricao" maxlength="1500"></textarea></label>
+      <button class="btn ghost" type="submit">Mandar ideia</button>
+      <div class="msg" id="mi" role="status"></div>
+    </form>
+    <p class="rodape"><span>Dúvidas? Fale com quem te convidou.</span><a href="/">início</a></p>`;
+
+  const fp = document.getElementById('fp');
+  if (fp) {
+    fp.addEventListener('change', () => {
+      const v = fp.p.value;
+      fp.querySelectorAll('.op').forEach((l) => l.classList.toggle('on', l.querySelector('input').value === v));
+      fp.querySelector('button').disabled = !v;
+    });
+    fp.addEventListener('submit', (e) => { e.preventDefault(); enviar('escolha', { pautaId: fp.p.value, comentario: fp.c.value }, document.getElementById('mp')); });
+  }
+  const fpub = document.getElementById('fpub');
+  fpub.addEventListener('submit', (e) => { e.preventDefault(); enviar('postei', { link: fpub.link.value.trim(), comentario: fpub.c.value }, document.getElementById('mpub')); });
+  const fi = document.getElementById('fi');
+  fi.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!fi.titulo.value.trim()) { const m = document.getElementById('mi'); m.className = 'msg err'; m.textContent = 'Dê um título para a ideia.'; return; }
+    enviar('ideia', { titulo: fi.titulo.value, descricao: fi.descricao.value }, document.getElementById('mi'));
+  });
+}
+carregar().catch(() => { app.innerHTML = '<h1>Não carregou</h1><p class="lead">Recarregue a página.</p>'; });
+</script>
+</body>
+</html>
