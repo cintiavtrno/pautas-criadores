@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mandar o link do vídeo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/publico.css" />
+  <script src="/icones.js"></script>
+</head>
+<body>
+<main class="wrap" id="app">
+  <p class="kicker">articulação</p>
+  <h1>Gravou? Manda o link</h1>
+  <p class="lead">Assim a gente acompanha até onde a articulação está chegando.</p>
+
+  <form id="f" novalidate>
+    <fieldset>
+      <legend>Seu vídeo</legend>
+      <label class="f">Link do vídeo<input type="url" name="link" maxlength="500" placeholder="https://" /></label>
+      <div class="row2">
+        <label class="f">Seu nome<input type="text" name="nome" maxlength="120" autocomplete="name" /></label>
+        <label class="f">@ ou WhatsApp <i>(opcional)</i><input type="text" name="contato" maxlength="160" /></label>
+      </div>
+      <label class="f">Onde postou, como foi <i>(opcional)</i><textarea name="comentario" maxlength="1000"></textarea></label>
+    </fieldset>
+    <fieldset id="bloco-pautas" hidden>
+      <legend>Sobre qual pauta</legend>
+      <div id="pautas"></div>
+    </fieldset>
+    <label class="hp" aria-hidden="true">Não preencha<input type="text" name="site" tabindex="-1" autocomplete="off" /></label>
+    <div id="captcha" style="margin-top:22px"></div>
+    <button type="submit" class="btn" id="enviar"></button>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </form>
+  <p class="rodape"><span>Ainda não se cadastrou?</span><a href="/participar">fazer cadastro</a></p>
+</main>
+<script>
+const H = { 'Content-Type': 'application/json', 'X-Requested-With': 'espelho' };
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const f = document.getElementById('f');
+const msg = document.getElementById('msg');
+const abertoEm = Date.now();
+let turnstileToken = '';
+document.getElementById('enviar').innerHTML = ICONE.link + ' Enviar link';
+
+Promise.all(['pessoa', 'criador'].map((t) => fetch('/public/pautas?tipo=' + t).then((r) => r.json()).catch(() => []))).then(([a, b]) => {
+  const vistas = new Set(); const lista = [...a, ...b].filter((p) => !vistas.has(p.id) && vistas.add(p.id));
+  document.getElementById('bloco-pautas').hidden = !lista.length;
+  document.getElementById('pautas').innerHTML = lista.map((p) => `<label class="op"><input type="checkbox" name="pautaIds" value="${esc(p.id)}" /><span><strong>${esc(p.titulo)}</strong></span></label>`).join('');
+});
+f.addEventListener('change', (e) => { if (e.target.name === 'pautaIds') e.target.closest('.op').classList.toggle('on', e.target.checked); });
+
+fetch('/public/config').then((r) => r.json()).then((c) => {
+  if (!c.turnstile) return;
+  window.onTurnstileLoad = () => window.turnstile.render('#captcha', { sitekey: c.turnstile, callback: (t) => { turnstileToken = t; } });
+  const s = document.createElement('script');
+  s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad'; s.async = true;
+  document.head.appendChild(s);
+}).catch(() => {});
+
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const v = (n) => (f.elements[n]?.value || '').trim();
+  const d = { link: v('link'), nome: v('nome'), contato: v('contato'), comentario: v('comentario'), site: v('site'),
+    pautaIds: [...f.querySelectorAll('input[name=pautaIds]:checked')].map((x) => x.value), t: Date.now() - abertoEm, turnstile: turnstileToken };
+  msg.className = 'msg err';
+  if (!/^https?:\/\//i.test(d.link)) { msg.textContent = 'Cole o link do vídeo, começando com https://'; return; }
+  if (!d.nome) { msg.textContent = 'Preencha seu nome.'; return; }
+  const b = document.getElementById('enviar'); b.disabled = true; msg.className = 'msg'; msg.textContent = 'Enviando…';
+  try {
+    const r = await fetch('/public/video', { method: 'POST', headers: H, body: JSON.stringify(d) });
+    const out = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(out.error || 'Não enviou. Tente de novo.');
+    document.getElementById('app').innerHTML = `<p class="kicker">recebido</p><h1>Valeu, ${esc(d.nome.split(' ')[0])}</h1><p class="lead">Seu vídeo entrou na nossa base.</p><div class="btns"><a class="btn ghost" href="/enviar-video">Mandar outro link</a><a class="btn ghost" href="/">Início</a></div>`;
+  } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; b.disabled = false; }
+});
+</script>
+</body>
+</html>

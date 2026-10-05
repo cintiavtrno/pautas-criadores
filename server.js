@@ -11,7 +11,9 @@ const PORT = process.env.PORT || 3000;
 const PUB = path.join(__dirname, 'public');
 
 // coleções que só as admins mexem pela API genérica
-const COLECOES = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao'];
+const PARA_CRIADOR = ['Criadores', 'Todos'];
+const PARA_PESSOA = ['Pessoas comuns', 'Todos'];
+const COLECOES = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'videos', 'config'];
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // o Render fica na frente: assim o IP real de quem acessa é o que conta
@@ -47,6 +49,7 @@ app.get('/health', (_req, res) => res.json({ ok: true, storage: db.kind }));
 app.get('/admin', (_req, res) => res.sendFile(path.join(PUB, 'admin.html')));
 app.get('/participar', (_req, res) => res.sendFile(path.join(PUB, 'participar.html')));
 app.get('/p/:token', (_req, res) => res.sendFile(path.join(PUB, 'painel.html')));
+app.get('/enviar-video', (_req, res) => res.sendFile(path.join(PUB, 'enviar-video.html')));
 app.get('/escolha/:token', (req, res) => res.redirect(301, `/p/${encodeURIComponent(req.params.token)}`));
 
 /* =========================================================
@@ -229,7 +232,28 @@ app.get('/export/:col.csv', mesmoSite, logado, soAdmin, colecaoOk, wrap(async (r
    ========================================================= */
 app.use('/public', mesmoSite);
 app.get('/public/nichos', wrap(async (_req, res) => res.json((await db.list('nichos')).map((n) => n.nome))));
-app.get('/public/config', (_req, res) => res.json({ turnstile: seg.turnstileAtivo() ? process.env.TURNSTILE_SITE_KEY : '' }));
+const config = async () => (await db.list('config'))[0] || {};
+app.get('/public/config', wrap(async (_req, res) => {
+  const c = await config();
+  res.json({
+    turnstile: seg.turnstileAtivo() ? process.env.TURNSTILE_SITE_KEY : '',
+    grupoWhatsapp: urlOk(c.grupoWhatsapp) ? c.grupoWhatsapp : '',
+    materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
+  });
+}));
+// equipe que aparece na página inicial (só nome e função)
+app.get('/public/equipe', wrap(async (_req, res) => {
+  res.json((await db.list('team')).filter((t) => t.mostrarNoSite !== false).map((t) => ({ nome: t.nome, funcoes: t.funcoes || (t.funcao ? [t.funcao] : []) })));
+}));
+// pautas que dá para escolher já no cadastro
+app.get('/public/pautas', wrap(async (req, res) => {
+  const criador = req.query.tipo === 'criador';
+  const ativa = (p) => !['Sugerida', 'Descartada'].includes(p.status);
+  const lista = (await db.list('pautas')).filter((p) => (criador
+    ? PARA_CRIADOR.includes(p.paraQuem) && ((p.status || 'Livre') === 'Livre' || (p.paraQuem === 'Todos' && ativa(p)))
+    : PARA_PESSOA.includes(p.paraQuem) && ativa(p)));
+  res.json(lista.map((p) => ({ id: p.id, titulo: p.titulo, descricao: p.descricao || '' })));
+}));
 
 const limpaHandle = (h) => String(h || '').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[/?#\s]/)[0].toLowerCase();
 
@@ -256,6 +280,10 @@ app.post('/public/inscricao', wrap(async (req, res) => {
   if (!b.consentimento) return res.status(400).json({ error: 'Marque a autorização de contato para enviar.' });
   seg.limits.inscricaoTotal.hit('site');
 
+  // pautas escolhidas já no cadastro (pode ser mais de uma)
+  const pautasPublicas = (await db.list('pautas')).filter((p) => (tipo === 'criador' ? PARA_CRIADOR : PARA_PESSOA).includes(p.paraQuem) && !['Sugerida', 'Descartada'].includes(p.status));
+  const pautaIds = (Array.isArray(b.pautaIds) ? b.pautaIds : []).filter((id) => pautasPublicas.some((p) => p.id === id)).slice(0, 10);
+  const escolha = pautaIds.length ? { pautaIds, pautaId: pautaIds[0], escolhidaEm: agora() } : { pautaIds: [] };
   const base = { contatoWhats: whats, contatoEmail: email, cidade: txt(b.cidade, 120), inscritoEm: agora() };
   const pautaTitulo = txt(b.pautaTitulo, 140);
   const ideia = (extra) => pautaTitulo && db.insert('pautas', {
@@ -266,7 +294,7 @@ app.post('/public/inscricao', wrap(async (req, res) => {
   if (tipo === 'pessoa') {
     const comQuem = (Array.isArray(b.comQuem) ? b.comQuem : []).filter((x) => seed.COM_QUEM.includes(x));
     const p = await db.insert('pessoas', {
-      nome, ...base, comQuem, sobre: txt(b.sobre, 1500), status: 'Inscrita', pautaId: '', comentario: '',
+      nome, ...base, comQuem, sobre: txt(b.sobre, 1500), status: pautaIds.length ? 'Escolheu pauta' : 'Inscrita', pautaId: '', comentario: '', ...escolha,
       publicacoes: [], observacoes: '', responsavel: '', token: newToken(),
     });
     await ideia({ pessoaId: p.id, nicho: '' });
@@ -286,6 +314,7 @@ app.post('/public/inscricao', wrap(async (req, res) => {
     const patch = { inscreveuSe: true, inscritoEm: dados.inscritoEm };
     for (const [k, v] of Object.entries(dados)) if (v && !criador[k]) patch[k] = v;
     if (!(criador.nichos || []).length && nichos.length) patch.nichos = nichos;
+    if (pautaIds.length && !(criador.pautaIds || []).length && !criador.pautaId) Object.assign(patch, escolha);
     await db.update('creators', criador.id, patch);
     await ideia({ creatorId: criador.id, nicho: nichos[0] || '' });
     return res.json({ ok: true, existente: true });
@@ -294,8 +323,11 @@ app.post('/public/inscricao', wrap(async (req, res) => {
     nome, handle, url: `https://www.instagram.com/${handle}/`, nichos, nichoConfirmado: false,
     resumo: dados.mensagemInscricao, sugestaoLinha: '', observacoes: '', responsavel: '', status: 'Mapeado',
     modoPauta: 'atribuida', pautaId: '', pautasOpcoes: [], roteiristaId: '', editorId: '', publicacoes: [],
-    origem: 'inscricao', inscreveuSe: true, token: newToken(), ...dados,
+    origem: 'inscricao', inscreveuSe: true, token: newToken(), ...dados, ...escolha,
   });
+  for (const p of pautasPublicas.filter((x) => pautaIds.includes(x.id) && x.paraQuem !== 'Todos' && !x.creatorId)) {
+    await db.update('pautas', p.id, { creatorId: criador.id, status: (p.status || 'Livre') === 'Livre' ? 'Reservada' : p.status });
+  }
   await ideia({ creatorId: criador.id, nicho: nichos[0] || '' });
   res.json({ ok: true, token: criador.token });
 }));
@@ -309,8 +341,6 @@ async function porToken(token) {
   }
   return null;
 }
-const PARA_CRIADOR = ['Criadores', 'Todos'];
-const PARA_PESSOA = ['Pessoas comuns', 'Todos'];
 
 async function pautasVisiveis({ tipo, r }) {
   const pautas = await db.list('pautas');
@@ -323,8 +353,10 @@ async function pautasVisiveis({ tipo, r }) {
   } else {
     lista = pautas.filter((p) => PARA_PESSOA.includes(p.paraQuem) && !['Sugerida', 'Descartada'].includes(p.status));
   }
-  if (r.pautaId && !lista.some((p) => p.id === r.pautaId)) {
-    const atual = pautas.find((p) => p.id === r.pautaId);
+  const minhas = [...new Set([...(r.pautaIds || []), r.pautaId].filter(Boolean))];
+  for (const id of minhas) {
+    if (lista.some((p) => p.id === id)) continue;
+    const atual = pautas.find((p) => p.id === id);
     if (atual) lista.unshift(atual);
   }
   return lista;
@@ -342,10 +374,12 @@ app.get('/public/painel/:token', wrap(async (req, res) => {
   const ideias = (await db.list('pautas'))
     .filter((p) => (tipo === 'criador' ? p.creatorId === r.id : p.pessoaId === r.id) && ['inscricao', 'painel'].includes(p.origem))
     .map((p) => ({ titulo: p.titulo, status: p.status === 'Sugerida' ? 'em análise' : p.status === 'Descartada' ? 'não seguiu' : 'aprovada' }));
+  const c = await config();
   res.json({
+    grupoWhatsapp: urlOk(c.grupoWhatsapp) ? c.grupoWhatsapp : '', materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
     tipo, nome: r.nome, sugestaoLinha: tipo === 'criador' ? r.sugestaoLinha || '' : '',
     pautas: (await pautasVisiveis(q)).map(pautaPublica),
-    escolhida: r.pautaId || '', comentario: (tipo === 'criador' ? r.comentarioCriador : r.comentario) || '', escolhidaEm: r.escolhidaEm || '',
+    escolhidas: (r.pautaIds && r.pautaIds.length ? r.pautaIds : r.pautaId ? [r.pautaId] : []), comentario: (tipo === 'criador' ? r.comentarioCriador : r.comentario) || '', escolhidaEm: r.escolhidaEm || '',
     publicacoes: (r.publicacoes || []).map(({ em, link, comentario }) => ({ em, link, comentario })),
     materiais, ideias,
   });
@@ -356,18 +390,20 @@ const painelLimite = (req, res, next) => (seg.limits.painel.hit(seg.ipOf(req)) ?
 app.post('/public/painel/:token/escolha', painelLimite, wrap(async (req, res) => {
   const q = await porToken(req.params.token);
   if (!q) return res.status(404).json({ error: 'Link inválido.' });
-  const { pautaId, comentario } = req.body || {};
-  const p = (await pautasVisiveis(q)).find((x) => x.id === pautaId);
-  if (!p) return res.status(400).json({ error: 'Escolha uma das pautas da lista.' });
+  const b = req.body || {};
+  const pedidas = Array.isArray(b.pautaIds) ? b.pautaIds : b.pautaId ? [b.pautaId] : [];
+  const visiveis = await pautasVisiveis(q);
+  const escolhidas = visiveis.filter((p) => pedidas.includes(p.id)).slice(0, 10);
+  if (!escolhidas.length) return res.status(400).json({ error: 'Marque pelo menos uma pauta da lista.' });
   const { col, tipo, r } = q;
-  const patch = { pautaId, escolhidaEm: agora() };
+  const patch = { pautaIds: escolhidas.map((p) => p.id), pautaId: escolhidas[0].id, escolhidaEm: agora() };
   if (tipo === 'criador') {
-    patch.comentarioCriador = txt(comentario, 2000);
+    patch.comentarioCriador = txt(b.comentario, 2000);
     if (!r.status || ['Mapeado', 'Contatado'].includes(r.status)) patch.status = 'Topou';
     // pauta de criador fica reservada para quem escolheu (as abertas para "Todos" não)
-    if (p.paraQuem !== 'Todos') await db.update('pautas', p.id, { creatorId: r.id, status: !p.status || p.status === 'Livre' ? 'Reservada' : p.status });
+    for (const p of escolhidas) if (p.paraQuem !== 'Todos' && p.creatorId !== r.id) await db.update('pautas', p.id, { creatorId: r.id, status: !p.status || p.status === 'Livre' ? 'Reservada' : p.status });
   } else {
-    patch.comentario = txt(comentario, 2000);
+    patch.comentario = txt(b.comentario, 2000);
     if (!r.status || r.status === 'Inscrita') patch.status = 'Escolheu pauta';
   }
   await db.update(col, r.id, patch);
@@ -383,6 +419,7 @@ app.post('/public/painel/:token/postei', painelLimite, wrap(async (req, res) => 
   const pubs = (r.publicacoes || []).slice(-19);
   pubs.push({ em: agora(), link, comentario: txt(req.body?.comentario, 1000), pautaId: r.pautaId || '' });
   await db.update(col, r.id, { publicacoes: pubs, status: tipo === 'criador' ? 'Publicado' : 'Postou' });
+  if (link) await db.insert('videos', { nome: r.nome, contato: r.contatoWhats || r.contatoEmail || (r.handle ? '@' + r.handle : ''), link, comentario: txt(req.body?.comentario, 1000), pautaIds: r.pautaIds || (r.pautaId ? [r.pautaId] : []), origem: 'painel', tipo, [tipo === 'criador' ? 'creatorId' : 'pessoaId']: r.id, em: agora(), conferido: false });
   res.json({ ok: true });
 }));
 
@@ -399,6 +436,21 @@ app.post('/public/painel/:token/ideia', painelLimite, wrap(async (req, res) => {
     linhaSugerida: '', roteiro: '', prazo: '', status: 'Sugerida', paraQuem: '', origem: 'painel', sugeridaPor: r.nome,
     ...(tipo === 'criador' ? { creatorId: r.id } : { pessoaId: r.id }),
   });
+  res.json({ ok: true });
+}));
+
+/* ---- formulário aberto para mandar o link do vídeo ---- */
+app.post('/public/video', painelLimite, wrap(async (req, res) => {
+  const b = req.body || {};
+  if (b.site || Number(b.t) < 2500) return res.json({ ok: true }); // robô
+  if (!(await seg.turnstileOk(b.turnstile, seg.ipOf(req)))) return res.status(400).json({ error: 'Não conseguimos confirmar que você não é um robô. Recarregue a página e tente de novo.' });
+  const nome = txt(b.nome, 120);
+  const link = txt(b.link, 500);
+  if (!nome) return res.status(400).json({ error: 'Preencha seu nome.' });
+  if (!urlOk(link)) return res.status(400).json({ error: 'Cole o link do vídeo (começando com http:// ou https://).' });
+  const publicas = (await db.list('pautas')).filter((p) => [...PARA_PESSOA, ...PARA_CRIADOR].includes(p.paraQuem));
+  const pautaIds = (Array.isArray(b.pautaIds) ? b.pautaIds : []).filter((id) => publicas.some((p) => p.id === id)).slice(0, 10);
+  await db.insert('videos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), pautaIds, origem: 'formulario', tipo: '', em: agora(), conferido: false });
   res.json({ ok: true });
 }));
 
@@ -429,6 +481,19 @@ app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
     await db.update('meta', meta.id, { [marca]: [...feitos] });
   };
   await semeia('nichos', seed.nichos, 'nome', 'seededNichos');
+
+  // correções na equipe, antes de semear (para não duplicar quem mudou de nome)
+  const feitasEq = new Set(meta.correcoesEquipe || []);
+  for (const fix of seed.correcoesEquipe || []) {
+    if (feitasEq.has(fix.id)) continue;
+    const t = (await db.list('team')).find((x) => x.nome === fix.nome);
+    if (t) {
+      await db.update('team', t.id, fix.set);
+      if (fix.set.nome) for (const u of await db.list('usuarios')) if (u.teamId === t.id) await db.update('usuarios', u.id, { nome: fix.set.nome });
+    }
+    feitasEq.add(fix.id);
+  }
+  await db.update('meta', meta.id, { correcoesEquipe: [...feitasEq] });
   await semeia('team', seed.equipe, 'nome', 'seededEquipe', (t) => ({ contato: '', obs: '', ...t }));
   await semeia('creators', seed.criadores, 'handle', 'seeded', (c) => ({ publicacoes: [], ...c }));
 

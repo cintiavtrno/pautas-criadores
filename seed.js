@@ -116,7 +116,7 @@ const equipe = [
   { nome: 'Ramires Montenegro', funcoes: ['Edição dos vídeos'] },
   { nome: 'João Bigon', funcoes: ['Escrita e pesquisa'] },
   { nome: 'Matheus Pestana', funcoes: ['Escrita e pesquisa'] },
-  { nome: 'Camilla', funcoes: ['Apresentação', 'Escrita e pesquisa'] },
+  { nome: 'Camilla Apresentação', funcoes: ['Escrita e pesquisa'] },
   { nome: 'Cíntia Vitorino', funcoes: ['Site', 'Escrita e pesquisa'] },
   { nome: 'Yara Damasceno', funcoes: ['Escrita e pesquisa'] },
   { nome: 'Klismann Schramm', funcoes: ['Edição dos vídeos'] },
@@ -126,7 +126,7 @@ const equipe = [
 // Acessos iniciais ao controle interno (senha inicial = APP_PASSWORD; cada uma troca no primeiro login)
 const admins = [
   { login: 'cintia', nome: 'Cíntia Vitorino', nomeEquipe: 'Cíntia Vitorino' },
-  { login: 'camilla', nome: 'Camilla', nomeEquipe: 'Camilla' },
+  { login: 'camilla', nome: 'Camilla Apresentação', nomeEquipe: 'Camilla Apresentação' },
   { login: 'yara', nome: 'Yara Damasceno', nomeEquipe: 'Yara Damasceno' },
 ];
 
@@ -136,4 +136,10 @@ const ETAPAS = ['A fazer', 'Em andamento', 'Em revisão', 'Pronto', 'Publicado']
 // "Com quem você quer falar?" no cadastro de pessoa comum
 const COM_QUEM = ['Família', 'Amigos', 'Colegas de trabalho ou escola', 'Stories / status', 'Grupos de WhatsApp', 'Vizinhança / bairro'];
 
-module.exports = { nichos, criadores, correcoes, equipe, admins, ETAPAS, COM_QUEM };
+// Correções na equipe (rodam uma vez, antes de semear)
+const correcoesEquipe = [
+  { id: '2026-10-05-camilla', nome: 'Camilla', set: { nome: 'Camilla Apresentação', funcoes: ['Escrita e pesquisa'] } },
+  { id: '2026-10-05-cintia', nome: 'Cíntia Vitorino', set: { funcoes: ['Site', 'Escrita e pesquisa'] } },
+];
+
+module.exports = { nichos, criadores, correcoes, equipe, admins, ETAPAS, COM_QUEM, correcoesEquipe };

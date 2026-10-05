@@ -11,8 +11,11 @@ Sistema para organizar a campanha com criadores: lista de criadores separada por
 |---|---|---|
 | `/` | público | página inicial: "sou criador" ou "não sou criador" |
 | `/participar` | público | cadastro (dois caminhos) |
-| `/p/<link>` | cada participante | painel pessoal: pautas, roteiro, materiais, "já gravei", ideias |
+| `/p/<link>` | cada participante | painel pessoal: pautas, roteiro, materiais, link do vídeo, ideias |
+| `/enviar-video` | público | formulário aberto para mandar o link do vídeo, sem precisar de cadastro |
 | `/admin` | equipe | controle interno com login individual |
+
+O link do grupo do WhatsApp e o link do material das pautas são colados na aba **Ajustes** do controle interno. Eles aparecem logo depois do cadastro e no painel pessoal.
 
 No controle interno, administradoras veem tudo. Quem tem acesso de **equipe** vê só as tarefas de produção que estão com ela.
 

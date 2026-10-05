@@ -4,7 +4,7 @@
 const STATUS = ['Mapeado', 'Contatado', 'Topou', 'Em roteiro', 'Em edição', 'Publicado', 'Recusou'];
 const PAUTA_STATUS = ['Sugerida', 'Livre', 'Reservada', 'Em produção', 'Publicada', 'Descartada'];
 const RESP = ['Camilla', 'Yara'];
-const FUNCOES = ['Escrita e pesquisa', 'Edição dos vídeos', 'Design', 'Marketing', 'Apresentação', 'Site'];
+const FUNCOES = ['Escrita e pesquisa', 'Edição dos vídeos', 'Design', 'Marketing', 'Site'];
 const funcoesDe = (t) => (t.funcoes && t.funcoes.length ? t.funcoes : t.funcao ? [t.funcao] : []);
 // lista da equipe para os seletores, com quem tem a função certa primeiro
 const equipePor = (fn) => () => {
@@ -22,7 +22,7 @@ const TIPOS_MATERIAL = ['Arte', 'Vídeo', 'Texto', 'Roteiro', 'Outro'];
 
 const S = {
   me: null,
-  creators: [], pessoas: [], pautas: [], team: [], nichos: [], materiais: [], producao: [], usuarios: [], 'minhas-tarefas': [],
+  creators: [], pessoas: [], pautas: [], team: [], nichos: [], materiais: [], producao: [], usuarios: [], videos: [], config: [], 'minhas-tarefas': [],
   view: 'criadores',
   sel: {},
   f: { q: '', nicho: '', status: '', linha: '', resp: '', origem: '' },
@@ -68,7 +68,7 @@ const api = {
 
 async function loadAll() {
   if (!ehAdmin()) { S['minhas-tarefas'] = await api.list('minhas-tarefas'); return; }
-  const cols = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'usuarios'];
+  const cols = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'usuarios', 'videos', 'config'];
   (await Promise.all(cols.map(api.list))).forEach((lista, i) => { S[cols[i]] = lista; });
 }
 async function save(col, rec, patch) {
@@ -141,9 +141,8 @@ function linkPainel(r, nomeCampoComentario = 'comentarioCriador') {
   const url = r.token ? `${location.origin}/p/${r.token}` : '';
   const pubs = (r.publicacoes || []).slice().reverse();
   return `<div class="f full linkbox"><span>Link pessoal de ${esc((r.nome || '').split(' ')[0])}</span>
-    ${url ? `<div class="copy"><input type="text" readonly value="${esc(url)}" /><button type="button" class="btn" data-copy="${esc(url)}">Copiar</button></div>
-    <small>Mande pelo WhatsApp. Abre sem senha e mostra só o que é dessa pessoa: as pautas, os materiais e onde ela conta que gravou.</small>` : '<small>O link aparece depois que o servidor reiniciar.</small>'}
-    ${r.escolhidaEm ? `<div class="resposta"><b>Escolheu em ${fmtData(r.escolhidaEm)}</b>${esc(find('pautas', r.pautaId)?.titulo || '')}${r[nomeCampoComentario] ? `<p>"${esc(r[nomeCampoComentario])}"</p>` : ''}</div>` : ''}
+    ${url ? `<div class="copy"><input type="text" readonly value="${esc(url)}" /><button type="button" class="btn" data-copy="${esc(url)}">Copiar</button></div>` : '<small>O link aparece depois que o servidor reiniciar.</small>'}
+    ${r.escolhidaEm ? `<div class="resposta"><b>Escolheu em ${fmtData(r.escolhidaEm)}</b>${((r.pautaIds && r.pautaIds.length) ? r.pautaIds : [r.pautaId]).map((id) => esc(find('pautas', id)?.titulo || '')).filter(Boolean).join(' · ')}${r[nomeCampoComentario] ? `<p>"${esc(r[nomeCampoComentario])}"</p>` : ''}</div>` : ''}
     ${pubs.map((p) => `<div class="resposta"><b>Contou que gravou em ${fmtData(p.em)}</b>${/^https?:\/\//i.test(p.link || '') ? `<a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">${esc(p.link)}</a>` : 'sem link'}${p.comentario ? `<p>"${esc(p.comentario)}"</p>` : ''}</div>`).join('')}
   </div>`;
 }
@@ -182,7 +181,6 @@ VIEWS.criadores = {
     out.push({ title: 'Sem nicho definido', items: list.filter((c) => !(c.nichos || []).length || !S.nichos.some((n) => n.nome === c.nichos[0])) });
     return out;
   },
-  groupNote: 'Cada criador aparece no grupo do seu primeiro nicho.',
   row(c) {
     const linha = c.sugestaoLinha?.trim();
     return `<span class="who"><span class="name">${esc(c.nome)}${c.inscreveuSe ? '<span class="flag" style="color:var(--green)">inscrição</span>' : ''}${c.nichoConfirmado ? '' : '<span class="flag" style="color:var(--amber)">conferir nicho</span>'}</span>
@@ -202,10 +200,10 @@ VIEWS.criadores = {
     const escolha = c.modoPauta === 'escolha';
     return `
       <div class="dhead">
-        <button class="btn ghost back" data-back>← Voltar à lista</button>
+        <button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
         <div class="kicker">${statusTag(c.status || 'Mapeado')}<span>${c.nichoConfirmado ? 'nicho confirmado' : 'nicho a conferir'}</span>${c.inscritoEm ? `<span style="color:var(--green)">inscrito pelo formulário em ${fmtData(c.inscritoEm)}</span>` : ''}<span class="sp"></span><span class="saved">salvo</span></div>
         <h2 data-h="nome">${esc(c.nome)}</h2>
-        ${c.handle ? `<a class="handle" href="${esc(c.url || `https://www.instagram.com/${c.handle}/`)}" target="_blank" rel="noopener">instagram.com/${esc(c.handle)} ↗</a>` : '<span class="handle" style="color:var(--ink-3)">sem @ cadastrado</span>'}
+        ${c.handle ? `<a class="handle" href="${esc(c.url || `https://www.instagram.com/${c.handle}/`)}" target="_blank" rel="noopener">instagram.com/${esc(c.handle)} ${ICONE.externo}</a>` : '<span class="handle" style="color:var(--ink-3)">sem @ cadastrado</span>'}
       </div>
       <div class="dbody">
         <p class="about" data-h="resumo">${esc(c.resumo) || '<span style="color:var(--ink-3)">Sem descrição do perfil.</span>'}</p>
@@ -293,11 +291,11 @@ VIEWS.pautas = {
     return [{ title: 'Serve para qualquer nicho', items: list.filter((p) => !p.nicho) },
       ...S.nichos.map((n) => ({ title: n.nome, color: n.cor, items: list.filter((p) => p.nicho === n.nome) }))];
   },
-  empty: 'Nenhuma pauta ainda. Cadastre os temas aqui; depois é só definir para um criador ou oferecer como opção.',
+  empty: 'Nenhuma pauta ainda.',
   row(p) {
     const c = find('creators', p.creatorId);
     const ofertas = S.creators.filter((x) => (x.pautasOpcoes || []).includes(p.id)).length;
-    const pessoasN = S.pessoas.filter((x) => x.pautaId === p.id).length;
+    const pessoasN = S.pessoas.filter((x) => (x.pautaIds || [x.pautaId]).includes(p.id)).length;
     return `<span class="who"><span class="name">${esc(p.titulo)}${p.sugeridaPor ? '<span class="flag" style="color:var(--green)">sugestão</span>' : ''}${p.paraQuem ? `<span class="flag" style="color:var(--blue)">no painel: ${esc(p.paraQuem.toLowerCase())}</span>` : ''}${pessoasN ? `<span class="flag" style="color:var(--ink-2)">${pessoasN} pessoa${pessoasN > 1 ? 's' : ''}</span>` : ''}</span><span class="muted">${p.sugeridaPor ? 'sugerida por ' + esc(p.sugeridaPor) + ' · ' : ''}${esc(p.tema || 'sem tema')}${p.prazo ? ' · até ' + fmtData(p.prazo) : ''}</span></span>
       ${statusTag(p.status || 'Livre')}
       <span class="line ok">${c ? esc(c.nome.split(' ')[0]) : p.pessoaId && find('pessoas', p.pessoaId) ? esc(find('pessoas', p.pessoaId).nome.split(' ')[0]) : ofertas ? `${ofertas} oferta${ofertas > 1 ? 's' : ''}` : 'sem criador'}</span><span></span>`;
@@ -305,11 +303,11 @@ VIEWS.pautas = {
   async create() { return api.save('pautas', { titulo: 'Nova pauta', tema: '', nicho: '', descricao: '', linhaSugerida: '', roteiro: '', paraQuem: '', status: 'Livre', creatorId: '', prazo: '' }); },
   detail(p) {
     const ofertas = S.creators.filter((x) => (x.pautasOpcoes || []).includes(p.id));
-    const pessoasQ = S.pessoas.filter((x) => x.pautaId === p.id);
+    const pessoasQ = S.pessoas.filter((x) => (x.pautaIds || [x.pautaId]).includes(p.id));
     const quem = p.pessoaId ? find('pessoas', p.pessoaId) : null;
     return `
       <div class="dhead">
-        <button class="btn ghost back" data-back>← Voltar à lista</button>
+        <button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
         <div class="kicker">${statusTag(p.status || 'Livre')}<span>${esc(p.nicho || 'qualquer nicho')}</span>${p.sugeridaPor ? `<span style="color:var(--green)">sugerida por ${esc(p.sugeridaPor)}${quem ? ' (pessoa comum)' : ''}</span>` : ''}<span class="sp"></span><span class="saved">salvo</span></div>
         <h2 data-h="titulo">${esc(p.titulo)}</h2>
       </div>
@@ -325,7 +323,6 @@ VIEWS.pautas = {
         </div></section>
         <section class="fs"><h3>Distribuição</h3><div class="grid2">
           ${field({ k: 'paraQuem', type: 'seg', label: 'Aparece no painel de quem', full: true, opts: () => PARA_QUEM }, { ...p, paraQuem: p.paraQuem || '' })}
-          <div class="f full"><small style="color:var(--ink-3);font-size:12.5px">"Só uso interno" não aparece para ninguém de fora. Pautas para pessoas comuns podem ser escolhidas por muita gente ao mesmo tempo; pautas para criadores ficam reservadas para quem escolher primeiro (as de "Todos" não).</small></div>
           ${field({ k: 'status', type: 'seg', label: 'Status', full: true, opts: () => PAUTA_STATUS }, { ...p, status: p.status || 'Livre' })}
           ${field({ k: 'creatorId', type: 'select', label: 'Com quem está', full: true, opts: () => S.creators.map((c) => [c.id, c.nome]), empty: 'Ninguém ainda' }, p)}
           <div class="f full"><span>Oferecida como opção a</span><div style="font-size:14.5px">${ofertas.map((c) => esc(c.nome)).join(', ') || '<span style="color:var(--ink-3)">ninguém</span>'}</div></div>
@@ -348,15 +345,14 @@ VIEWS.pautas = {
 /* Equipe */
 VIEWS.equipe = {
   col: 'team',
-  bar: () => `<span style="color:var(--ink-2);font-size:14px">Quem faz o trabalho, separado por função.</span><span class="sp"></span><button class="btn solid" data-new>Nova pessoa</button>`,
+  bar: () => `<span class="sp"></span><button class="btn solid" data-new>Nova pessoa</button>`,
   filtered: () => S.team,
   groups(list) {
     const out = FUNCOES.map((fn) => ({ title: fn, items: list.filter((t) => funcoesDe(t)[0] === fn) }));
     out.push({ title: 'Outras funções', items: list.filter((t) => !FUNCOES.includes(funcoesDe(t)[0])) });
     return out;
   },
-  groupNote: 'Cada pessoa aparece no grupo da sua primeira função.',
-  empty: 'Ninguém cadastrado ainda. Cadastre aqui quem faz roteiro e edição; depois é só escolher no painel de cada criador.',
+  empty: 'Ninguém cadastrado ainda.',
   row(t) {
     const n = S.creators.filter((c) => c.roteiristaId === t.id || c.editorId === t.id).length;
     const u = S.usuarios.find((x) => x.teamId === t.id && !x.desativado);
@@ -367,7 +363,7 @@ VIEWS.equipe = {
   detail(t) {
     const com = S.creators.filter((c) => c.roteiristaId === t.id || c.editorId === t.id);
     return `
-      <div class="dhead"><button class="btn ghost back" data-back>← Voltar à lista</button>
+      <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
         <div class="kicker"><span>equipe</span><span class="sp"></span><span class="saved">salvo</span></div>
         <h2 data-h="nome">${esc(t.nome)}</h2></div>
       <div class="dbody">
@@ -378,6 +374,7 @@ VIEWS.equipe = {
             const sel = funcoesDe(t);
             return [...sel, ...FUNCOES.filter((f) => !sel.includes(f))].map((f) => ({ v: f, l: f }));
           } }, { ...t, funcoes: funcoesDe(t) })}
+          ${field({ k: 'mostrarNoSite', type: 'bool', text: 'Aparece na página inicial, em "Quem está fazendo"', full: true }, { ...t, mostrarNoSite: t.mostrarNoSite !== false })}
           ${field({ k: 'obs', type: 'textarea', label: 'Observações', full: true }, t)}
         </div></section>
         <section class="fs"><h3>Acesso ao controle</h3>${acessoHtml(t)}</section>
@@ -412,20 +409,21 @@ VIEWS.pessoas = {
   groups(list) {
     return PESSOA_STATUS.map((st) => ({ title: st, items: list.filter((x) => (x.status || 'Inscrita') === st) }));
   },
-  empty: 'Ninguém se cadastrou ainda. Divulgue o link do cadastro de pessoas comuns.',
+  empty: 'Ninguém se cadastrou ainda.',
   row(x) {
-    const p = find('pautas', x.pautaId);
+    const ids = x.pautaIds && x.pautaIds.length ? x.pautaIds : x.pautaId ? [x.pautaId] : [];
+    const p = find('pautas', ids[0]);
     const n = (x.publicacoes || []).length;
     return `<span class="who"><span class="name">${esc(x.nome)}</span><span class="muted">${esc(x.cidade || 'sem cidade')}${(x.comQuem || []).length ? ' · ' + esc(x.comQuem.join(', ')) : ''}</span></span>
       ${statusTag(x.status || 'Inscrita')}
-      <span class="line ok">${p ? esc(p.titulo.slice(0, 18)) : 'sem pauta'}</span>
+      <span class="line ok">${p ? esc(p.titulo.slice(0, 18)) + (ids.length > 1 ? ' +' + (ids.length - 1) : '') : 'sem pauta'}</span>
       <span class="resp">${n ? n + '×' : ''}</span>`;
   },
   async create() { return api.save('pessoas', { nome: 'Nova pessoa', cidade: '', contatoWhats: '', contatoEmail: '', comQuem: [], sobre: '', status: 'Inscrita', pautaId: '', publicacoes: [], observacoes: '', responsavel: '' }); },
   detail(x) {
-    const pautasPessoa = () => S.pautas.filter((p) => ['Pessoas comuns', 'Todos'].includes(p.paraQuem) || p.id === x.pautaId).map((p) => [p.id, p.titulo]);
+    const pautasPessoa = () => S.pautas.filter((p) => ['Pessoas comuns', 'Todos'].includes(p.paraQuem) || (x.pautaIds || []).includes(p.id) || p.id === x.pautaId).map((p) => [p.id, p.titulo]);
     return `
-      <div class="dhead"><button class="btn ghost back" data-back>← Voltar à lista</button>
+      <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
         <div class="kicker">${statusTag(x.status || 'Inscrita')}<span>pessoa comum</span>${x.inscritoEm ? `<span>cadastro em ${fmtData(x.inscritoEm)}</span>` : ''}<span class="sp"></span><span class="saved">salvo</span></div>
         <h2 data-h="nome">${esc(x.nome)}</h2>
         <span class="handle">${esc(x.cidade || '')}</span>
@@ -435,7 +433,7 @@ VIEWS.pessoas = {
         <section class="fs"><h3>Acompanhamento</h3><div class="grid2">
           ${field({ k: 'status', type: 'select', label: 'Status', opts: () => PESSOA_STATUS }, { ...x, status: x.status || 'Inscrita' })}
           ${field({ k: 'responsavel', type: 'seg', label: 'Quem acompanha', opts: () => RESP, clear: true }, x)}
-          ${field({ k: 'pautaId', type: 'select', label: 'Pauta escolhida', full: true, opts: pautasPessoa, empty: 'Nenhuma ainda' }, x)}
+          ${field({ k: 'pautaIds', type: 'chips', label: 'Pautas escolhidas', full: true, none: 'Nenhuma pauta aberta para pessoas comuns.', opts: () => pautasPessoa().map(([v, l]) => ({ v, l })) }, { ...x, pautaIds: x.pautaIds && x.pautaIds.length ? x.pautaIds : x.pautaId ? [x.pautaId] : [] })}
           ${linkPainel(x, 'comentario')}
         </div></section>
         <section class="fs"><h3>Contato</h3><div class="grid2">
@@ -449,7 +447,11 @@ VIEWS.pessoas = {
         <div class="dfoot"><span>atualizado ${fmtData(x.updatedAt)}</span><button class="btn danger" data-del>Excluir pessoa</button></div>
       </div>`;
   },
-  onSaved(k, x) { if (k === 'nome') $('[data-h=nome]').textContent = x.nome; if (['status', 'pautaId', 'comQuem'].includes(k)) renderDetail(); },
+  onSaved(k, x) {
+    if (k === 'nome') $('[data-h=nome]').textContent = x.nome;
+    if (k === 'pautaIds') save('pessoas', x, { pautaId: x.pautaIds[0] || '' });
+    if (['status', 'comQuem'].includes(k)) renderDetail();
+  },
 };
 
 /* Produção interna: vídeos e peças de divulgação da articulação */
@@ -457,10 +459,10 @@ const nomesEquipe = (ids) => (ids || []).map((id) => find('team', id)?.nome).fil
 const atrasada = (t) => t.prazo && t.etapa !== 'Publicado' && t.etapa !== 'Pronto' && new Date(t.prazo + 'T23:59') < new Date();
 VIEWS.producao = {
   col: 'producao',
-  bar: () => `<span style="color:var(--ink-2);font-size:14px">Vídeos, artes e textos de divulgação da articulação. Cada pessoa da equipe vê só o que está com ela.</span><span class="sp"></span><a class="btn ghost" href="/export/producao.csv">Exportar CSV</a><button class="btn solid" data-new>Nova tarefa</button>`,
+  bar: () => `<span class="sp"></span><a class="btn ghost" href="/export/producao.csv">Exportar CSV</a><button class="btn solid" data-new>Nova tarefa</button>`,
   filtered: () => S.producao,
   groups(list) { return ETAPAS.map((e) => ({ title: e, items: list.filter((t) => (t.etapa || 'A fazer') === e) })); },
-  empty: 'Nenhuma tarefa ainda. Crie uma, escolha quem faz e acompanhe por etapa.',
+  empty: 'Nenhuma tarefa ainda.',
   row(t) {
     return `<span class="who"><span class="name">${esc(t.titulo)}${atrasada(t) ? '<span class="flag">atrasada</span>' : ''}</span><span class="muted">${esc(t.tipo || 'sem tipo')} · ${esc(nomesEquipe(t.responsaveis).join(', ') || 'sem responsável')}</span></span>
       ${statusTag(t.etapa || 'A fazer')}<span class="line ok">${t.prazo ? 'até ' + fmtData(t.prazo) : 'sem prazo'}</span><span class="resp">${t.entregaLink ? 'link' : ''}</span>`;
@@ -468,7 +470,7 @@ VIEWS.producao = {
   async create() { return api.save('producao', { titulo: 'Nova tarefa', tipo: 'Vídeo de divulgação', briefing: '', responsaveis: [], etapa: 'A fazer', prazo: '', entregaLink: '', notasEquipe: '' }); },
   detail(t) {
     return `
-      <div class="dhead"><button class="btn ghost back" data-back>← Voltar à lista</button>
+      <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
         <div class="kicker">${statusTag(t.etapa || 'A fazer')}<span>${esc(t.tipo || '')}</span>${atrasada(t) ? '<span style="color:var(--red)">atrasada</span>' : ''}<span class="sp"></span><span class="saved">salvo</span></div>
         <h2 data-h="titulo">${esc(t.titulo)}</h2></div>
       <div class="dbody">
@@ -491,14 +493,14 @@ VIEWS.producao = {
 /* Visão da equipe: só as próprias tarefas */
 VIEWS.tarefas = {
   col: 'minhas-tarefas',
-  bar: () => `<span style="color:var(--ink-2);font-size:14px">As tarefas de divulgação que estão com você.</span>`,
+  bar: () => `<span class="sp"></span>`,
   filtered: () => S['minhas-tarefas'],
   groups(list) { return ETAPAS.map((e) => ({ title: e, items: list.filter((t) => (t.etapa || 'A fazer') === e) })); },
   empty: 'Nenhuma tarefa com você por enquanto.',
   row: (t) => VIEWS.producao.row({ ...t, responsaveis: [] }).replace('sem responsável', esc((t.responsaveisNomes || []).join(', '))),
   detail(t) {
     return `
-      <div class="dhead"><button class="btn ghost back" data-back>← Voltar à lista</button>
+      <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
         <div class="kicker">${statusTag(t.etapa || 'A fazer')}<span>${esc(t.tipo || '')}</span>${t.prazo ? `<span>até ${fmtData(t.prazo)}</span>` : ''}<span class="sp"></span><span class="saved">salvo</span></div>
         <h2>${esc(t.titulo)}</h2></div>
       <div class="dbody">
@@ -517,10 +519,10 @@ VIEWS.tarefas = {
 /* Materiais da campanha (aparecem no painel pessoal) */
 VIEWS.materiais = {
   col: 'materiais',
-  bar: () => `<span style="color:var(--ink-2);font-size:14px">Artes, vídeos e textos para baixar e compartilhar. Aparecem no painel pessoal de quem participa.</span><span class="sp"></span><button class="btn solid" data-new>Novo material</button>`,
+  bar: () => `<span class="sp"></span><button class="btn solid" data-new>Novo material</button>`,
   filtered: () => S.materiais,
   groups(list) { return PARA_QUEM_MAT.map((q) => ({ title: q === 'Todos' ? 'Para todo mundo' : 'Só para ' + q.toLowerCase(), items: list.filter((m) => (m.paraQuem || 'Todos') === q) })); },
-  empty: 'Nenhum material ainda. Suba o arquivo no Google Drive (com acesso "qualquer pessoa com o link") e cole o link aqui.',
+  empty: 'Nenhum material ainda. O link precisa abrir para qualquer pessoa (no Drive: "qualquer pessoa com o link").',
   row(m) {
     const ok = /^https?:\/\//i.test(m.link || '');
     return `<span class="who"><span class="name">${esc(m.titulo)}${ok ? '' : '<span class="flag">sem link: não aparece</span>'}</span><span class="muted">${esc(m.link || '')}</span></span>
@@ -529,7 +531,7 @@ VIEWS.materiais = {
   async create() { return api.save('materiais', { titulo: 'Novo material', tipo: 'Arte', descricao: '', link: '', paraQuem: 'Todos' }); },
   detail(m) {
     return `
-      <div class="dhead"><button class="btn ghost back" data-back>← Voltar à lista</button>
+      <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
         <div class="kicker"><span>material</span><span class="sp"></span><span class="saved">salvo</span></div>
         <h2 data-h="titulo">${esc(m.titulo)}</h2></div>
       <div class="dbody"><section class="fs"><h3>Dados</h3><div class="grid2">
@@ -544,10 +546,61 @@ VIEWS.materiais = {
   onSaved(k, m) { if (k === 'titulo') $('[data-h=titulo]').textContent = m.titulo; if (['tipo', 'paraQuem', 'link'].includes(k)) renderRows(); },
 };
 
+/* Vídeos que chegaram (pelo painel pessoal ou pelo formulário aberto) */
+const titulosPautas = (ids) => (ids || []).map((id) => find('pautas', id)?.titulo).filter(Boolean);
+VIEWS.videos = {
+  col: 'videos',
+  bar: () => `<span class="sp"></span><button class="btn ghost" data-copy="${esc(location.origin + '/enviar-video')}">Copiar link do formulário de vídeo</button><a class="btn ghost" href="/export/videos.csv">Exportar CSV</a>`,
+  filtered: () => S.videos.slice().sort((a, b) => String(b.em).localeCompare(String(a.em))),
+  groups(list) { return [{ title: 'A conferir', items: list.filter((v) => !v.conferido) }, { title: 'Conferidos', items: list.filter((v) => v.conferido) }]; },
+  empty: 'Nenhum vídeo ainda.',
+  row(v) {
+    const pts = titulosPautas(v.pautaIds);
+    return `<span class="who"><span class="name">${esc(v.nome)}${v.tipo === 'criador' ? '<span class="flag" style="color:var(--blue)">criador</span>' : ''}</span><span class="muted">${esc(v.link)}</span></span>
+      <span class="line ok">${esc(pts[0] ? pts[0].slice(0, 16) : 'sem pauta')}</span><span class="line ok">${fmtData(v.em)}</span><span class="resp">${v.origem === 'formulario' ? 'form' : 'painel'}</span>`;
+  },
+  detail(v) {
+    const ok = /^https?:\/\//i.test(v.link || '');
+    return `
+      <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
+        <div class="kicker"><span>${v.origem === 'formulario' ? 'formulário aberto' : 'painel pessoal'}</span><span>${fmtData(v.em)}</span><span class="sp"></span><span class="saved">salvo</span></div>
+        <h2>${esc(v.nome)}</h2>
+        ${ok ? `<a class="handle" href="${esc(v.link)}" target="_blank" rel="noopener noreferrer">${esc(v.link)} ${ICONE.externo}</a>` : ''}
+      </div>
+      <div class="dbody">
+        ${v.comentario ? `<p class="about">${esc(v.comentario)}</p>` : ''}
+        <section class="fs"><h3>Dados</h3><div class="grid2">
+          <div class="f"><span>Contato</span><div>${esc(v.contato || '—')}</div></div>
+          <div class="f"><span>Pautas</span><div>${esc(titulosPautas(v.pautaIds).join(' · ') || '—')}</div></div>
+          ${field({ k: 'conferido', type: 'bool', text: 'Conferido pela equipe', full: true }, v)}
+          ${field({ k: 'notas', type: 'textarea', label: 'Notas', full: true }, v)}
+        </div></section>
+        <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>
+      </div>`;
+  },
+  onSaved(k) { if (k === 'conferido') renderRows(); },
+};
+
+/* Ajustes: link do grupo e do material */
+async function renderAjustes() {
+  let c = S.config[0];
+  if (!c) { c = await api.save('config', { grupoWhatsapp: '', materialPautas: '' }); S.config = [c]; }
+  $('#view').innerHTML = `<div class="ajustes"><div class="dhead"><div class="kicker"><span>ajustes</span><span class="sp"></span><span class="saved">salvo</span></div><h2>Links do site</h2></div>
+    <div class="dbody"><section class="fs"><h3>Aparecem para quem se cadastra</h3><div class="grid2">
+      ${field({ k: 'grupoWhatsapp', type: 'url', label: 'Link do grupo do WhatsApp', full: true, ph: 'https://chat.whatsapp.com/…' }, c)}
+      ${field({ k: 'materialPautas', type: 'url', label: 'Link do material com as pautas e roteiros (PDF no Drive, por exemplo)', full: true, ph: 'https://' }, c)}
+    </div></section>
+    <section class="fs"><h3>Endereços para divulgar</h3><div class="grid2">
+      ${[['Página inicial', '/'], ['Cadastro de pessoas comuns', '/participar?tipo=pessoa'], ['Cadastro de criadores', '/participar?tipo=criador'], ['Mandar link do vídeo', '/enviar-video']].map(([l, u]) => `<div class="f full"><span>${l}</span><div class="copy"><input type="text" readonly value="${esc(location.origin + u)}" /><button type="button" class="btn" data-copy="${esc(location.origin + u)}">${ICONE.copiar}</button></div></div>`).join('')}
+    </div></section></div></div>`;
+  bindFields($('#view'), 'config', c);
+  $$('[data-copy]').forEach((b) => (b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); toast('Copiado'); } catch { b.previousElementSibling.select(); } }));
+}
+
 /* Nichos */
 VIEWS.nichos = {
   col: 'nichos',
-  bar: () => `<span style="color:var(--ink-2);font-size:14px">Categorias que separam criadores e pautas.</span><span class="sp"></span><button class="btn solid" data-new>Novo nicho</button>`,
+  bar: () => `<span class="sp"></span><button class="btn solid" data-new>Novo nicho</button>`,
   filtered: () => S.nichos,
   row(n) {
     const c = S.creators.filter((x) => (x.nichos || []).includes(n.nome)).length;
@@ -558,7 +611,7 @@ VIEWS.nichos = {
   async create() { return api.save('nichos', { nome: 'Novo nicho', cor: '#5b5a54' }); },
   detail(n) {
     return `
-      <div class="dhead"><button class="btn ghost back" data-back>← Voltar à lista</button>
+      <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
         <div class="kicker"><span>nicho</span><span class="sp"></span><span class="saved">salvo</span></div>
         <h2 data-h="nome">${esc(n.nome)}</h2></div>
       <div class="dbody"><section class="fs"><h3>Dados</h3><div class="grid2">
@@ -582,7 +635,7 @@ VIEWS.nichos = {
 /* ---------- acessos da equipe ---------- */
 function acessoHtml(t) {
   const u = S.usuarios.find((x) => x.teamId === t.id && !x.desativado);
-  if (!u) return `<p style="margin:0 0 10px;color:var(--ink-2);font-size:14px">Sem acesso. Quem tem acesso de equipe vê só as tarefas de produção que estão com ela.</p>
+  if (!u) return `<p style="margin:0 0 10px;color:var(--ink-2);font-size:14px">Sem acesso.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-acesso="criar-equipe">Criar acesso de equipe</button><button class="btn ghost" data-acesso="criar-admin">Criar acesso de administradora</button></div>`;
   return `<div class="grid2">
       <div class="f"><span>Login</span><div style="font:500 15px var(--mono)">${esc(u.login)}</div></div>
@@ -598,7 +651,7 @@ function acessoHtml(t) {
 function mostraSenha(login, senha) {
   $('#senha-nova').innerHTML = `<div class="alert" style="margin-top:14px;border-left-color:var(--green);background:var(--paper)"><b style="color:var(--green)">Senha provisória (aparece só agora)</b>
     Login <strong style="font-family:var(--mono)">${esc(login)}</strong> · senha <strong style="font-family:var(--mono)">${esc(senha)}</strong><br>
-    <span style="font-size:13px;color:var(--ink-2)">Mande para a pessoa junto com o endereço ${esc(location.origin)}/admin. No primeiro login ela troca a senha.</span></div>`;
+    <span style="font-size:13px;color:var(--ink-2)">Endereço: ${esc(location.origin)}/admin</span></div>`;
 }
 function bindAcesso(box, t) {
   $$('[data-acesso]', box).forEach((b) => (b.onclick = async () => {
@@ -671,16 +724,11 @@ function renderDetail() {
   const rec = find(V.col, S.sel[S.view]);
   if (!rec) {
     const tips = {
-      criadores: ['Escolha um criador', 'Clique em um nome da lista para ver o perfil, escrever a sugestão de linha e acompanhar o andamento. As linhas marcadas em amarelo ainda estão sem sugestão.'],
-      pautas: ['Escolha uma pauta', 'Ou crie uma nova. Uma pauta pode ir direto para um criador ou ser oferecida como opção para ele escolher.'],
-      equipe: ['Escolha alguém', 'Cadastre quem faz roteiro e edição para poder ligar essas pessoas aos criadores.'],
-      nichos: ['Escolha um nicho', 'Renomear um nicho atualiza todos os criadores e pautas que usam ele.'],
-      pessoas: ['Escolha alguém', 'Aqui ficam as pessoas comuns que se cadastraram para falar com família, amigos e conhecidos.'],
-      producao: ['Escolha uma tarefa', 'Vídeos, artes e textos de divulgação da articulação. Quem tem acesso de equipe vê só as tarefas que estão com ela.'],
-      tarefas: ['Escolha uma tarefa', 'Clique numa tarefa para ver o briefing, mudar a etapa e colar o link da entrega.'],
-      materiais: ['Escolha um material', 'Cada material aparece no painel pessoal de quem participa, conforme o "aparece para".'],
+      criadores: 'Escolha um criador na lista.', pautas: 'Escolha uma pauta na lista.', equipe: 'Escolha alguém na lista.',
+      nichos: 'Escolha um nicho na lista.', pessoas: 'Escolha alguém na lista.', producao: 'Escolha uma tarefa na lista.',
+      tarefas: 'Escolha uma tarefa na lista.', materiais: 'Escolha um material na lista.', videos: 'Escolha um vídeo na lista.',
     }[S.view];
-    box.innerHTML = `<div class="empty-detail"><h2>${tips[0]}</h2><p>${tips[1]}</p></div>`;
+    box.innerHTML = `<div class="empty-detail"><p>${tips}</p></div>`;
     return;
   }
   const y = box.scrollTop;
@@ -742,13 +790,13 @@ function renderStats() {
   const c = S.creators;
   const semLinha = c.filter((x) => !x.sugestaoLinha?.trim()).length;
   const sugeridas = S.pautas.filter((p) => p.status === 'Sugerida').length;
-  const postaram = S.pessoas.filter((x) => (x.publicacoes || []).length).length + c.filter((x) => (x.publicacoes || []).length).length;
+  const postaram = S.videos.length;
   $('#stats').innerHTML = [
-    ['criadores', c.length], ['pessoas', S.pessoas.length], ['sem linha', semLinha, semLinha > 0], ['sugeridas', sugeridas, sugeridas > 0], ['gravaram', postaram],
+    ['criadores', c.length], ['pessoas', S.pessoas.length], ['sem linha', semLinha, semLinha > 0], ['sugeridas', sugeridas, sugeridas > 0], ['vídeos', postaram],
   ].map(([l, n, w]) => `<div class="${w ? 'warn' : ''}"><dt>${l}</dt><dd>${n}</dd></div>`).join('');
 }
 
-const ABAS_ADMIN = [['criadores', 'Criadores'], ['pessoas', 'Pessoas'], ['pautas', 'Pautas'], ['producao', 'Produção'], ['materiais', 'Materiais'], ['quadro', 'Quadro'], ['equipe', 'Equipe'], ['nichos', 'Nichos']];
+const ABAS_ADMIN = [['criadores', 'Criadores'], ['pessoas', 'Pessoas'], ['pautas', 'Pautas'], ['videos', 'Vídeos'], ['producao', 'Produção'], ['materiais', 'Materiais'], ['quadro', 'Quadro'], ['equipe', 'Equipe'], ['nichos', 'Nichos'], ['ajustes', 'Ajustes']];
 const ABAS_EQUIPE = [['tarefas', 'Minhas tarefas']];
 const abas = () => (ehAdmin() ? ABAS_ADMIN : ABAS_EQUIPE);
 
@@ -764,7 +812,7 @@ function renderMast() {
 function render() {
   renderStats();
   $$('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.view === S.view));
-  if (S.view === 'quadro') renderQuadro(); else renderSplit();
+  if (S.view === 'quadro') renderQuadro(); else if (S.view === 'ajustes') renderAjustes(); else renderSplit();
 }
 function go() { history.replaceState(null, '', '/admin#' + S.view); render(); }
 

@@ -3,37 +3,72 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Participe</title>
-  <meta name="description" content="Grave um vídeo e fale com quem você conhece. Criadores de conteúdo e pessoas comuns podem participar." />
+  <title>Articulação</title>
+  <meta name="description" content="Comunicação popular, criadores e sociedade civil conversando com quem pensa em não votar." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/publico.css" />
+  <script src="/icones.js"></script>
 </head>
 <body>
-<main class="wrap">
-  <!-- TEXTOS DA PÁGINA INICIAL: pode trocar à vontade -->
-  <p class="kicker">participe</p>
-  <h1>Fale com quem você conhece</h1>
-  <p class="lead">Uma conversa com a prima, um vídeo no status, um recado no grupo da família. Quem está perto escuta mais. Você pode participar tendo muitos seguidores ou nenhum.</p>
+<main class="wrap largo">
+  <!-- Textos da página inicial. Pode trocar à vontade. -->
+  <p class="kicker">articulação</p>
+  <h1>Fale com quem pensa em não votar</h1>
+  <p class="lead">A articulação junta comunicação popular, criadores de conteúdo e sociedade civil para combater a desinformação e chegar ao maior número possível de pessoas. Você escolhe uma pauta, grava um vídeo do seu jeito e manda o link pra gente.</p>
 
-  <div class="caminhos">
+  <div class="caminhos lado">
     <a class="caminho" href="/participar?tipo=pessoa">
       <strong>Não sou criador de conteúdo</strong>
-      <span>Quero gravar para minha família, meus amigos, meu status. Recebo sugestões do que falar.</span>
+      <span>Quero gravar para minha família, meus amigos, meu status.</span>
     </a>
     <a class="caminho" href="/participar?tipo=criador">
       <strong>Sou criador de conteúdo</strong>
-      <span>Tenho um perfil com público e quero receber pautas para os meus vídeos.</span>
+      <span>Tenho um perfil com público e quero usar meu alcance.</span>
     </a>
+  </div>
+  <p class="muted" style="margin-top:12px"><a href="/enviar-video" class="com-ico" data-ico="link">Já gravou? Mande o link do seu vídeo</a></p>
+
+  <h2>Por que</h2>
+  <div class="texto">
+    <p>Tem muita gente querendo fazer alguma coisa e sem saber o que falar. A equipe de escrita e pesquisa prepara pautas e sugestões de roteiro com informação checada, para ninguém precisar começar do zero.</p>
+    <p>E a conversa não pode ficar só entre influenciadores. Uma prima que não foi votar escuta mais quem é da família do que um perfil grande.</p>
   </div>
 
   <h2>Como funciona</h2>
-  <div class="item"><strong>1. Você se cadastra.</strong> Leva dois minutos.</div>
-  <div class="item"><strong>2. Recebe o seu link pessoal.</strong> Nele estão as pautas, as sugestões do que falar e os materiais da campanha.</div>
-  <div class="item"><strong>3. Grava do seu jeito e conta pra gente.</strong> Assim a equipe sabe quantas pessoas se mexeram.</div>
+  <ol class="passos">
+    <li><span class="n" data-ico="lista"></span><div><strong>Cadastro</strong>Preencha o formulário e escolha a pauta que quer gravar. Pode ser mais de uma.</div></li>
+    <li><span class="n" data-ico="conversa"></span><div><strong>Grupo</strong>Entre no grupo do WhatsApp. Lá você recebe o material com as sugestões de roteiro de cada pauta.</div></li>
+    <li><span class="n" data-ico="camera"></span><div><strong>Vídeo</strong>Grave e poste do seu jeito: no feed, nos stories, no status, no grupo da família.</div></li>
+    <li><span class="n" data-ico="link"></span><div><strong>Link</strong>Mande o link do vídeo pra gente acompanhar até onde a articulação chegou.</div></li>
+  </ol>
+
+  <h2>Quem está fazendo</h2>
+  <div class="equipe" id="equipe"><p class="muted">carregando…</p></div>
 
   <p class="rodape"><span>Já se cadastrou? Use o link pessoal que você recebeu.</span><a href="/admin">acesso da equipe</a></p>
 </main>
+<script>
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+document.querySelectorAll('[data-ico]').forEach((el) => { el.insertAdjacentHTML('afterbegin', ICONE[el.dataset.ico] || ''); });
+
+// o que cada função faz (texto curto embaixo do nome da função)
+const FUNCOES = [
+  ['Escrita e pesquisa', 'Monta o material com as pautas e as sugestões de roteiro.'],
+  ['Edição dos vídeos', 'Edita os vídeos que chamam pessoas e criadores para o movimento.'],
+  ['Design', 'Cria a identidade visual e o PDF com as pautas.'],
+  ['Marketing', 'Pensa as estratégias para espalhar a articulação.'],
+  ['Site', 'Cuida deste site e da base de dados.'],
+];
+fetch('/public/equipe').then((r) => r.json()).then((equipe) => {
+  const blocos = FUNCOES.map(([fn, desc]) => {
+    const nomes = equipe.filter((p) => (p.funcoes || []).includes(fn)).map((p) => p.nome);
+    if (!nomes.length) return '';
+    return `<section class="funcao"><header>${ICONE[ICONE_FUNCAO[fn]] || ''}<h3>${esc(fn)}</h3></header><p>${esc(desc)}</p><ul>${nomes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>`;
+  }).join('');
+  document.getElementById('equipe').innerHTML = blocos || '<p class="muted">Em breve.</p>';
+}).catch(() => { document.getElementById('equipe').innerHTML = ''; });
+</script>
 </body>
 </html>
