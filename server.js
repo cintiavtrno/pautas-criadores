@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const path = require('path');
 const db = require('./db');
 const seed = require('./seed');
@@ -13,7 +14,8 @@ app.use(express.json({ limit: '1mb' }));
 // Usuário pode ser qualquer um; só a senha é conferida.
 if (process.env.APP_PASSWORD) {
   app.use((req, res, next) => {
-    if (req.path === '/health') return next();
+    // a página onde o criador escolhe a pauta é aberta sem senha (o link já é secreto)
+    if (req.path === '/health' || req.path.startsWith('/escolha/') || req.path.startsWith('/public/') || req.path === '/escolha.css') return next();
     const h = req.headers.authorization || '';
     const [, b64] = h.split(' ');
     const pass = b64 ? Buffer.from(b64, 'base64').toString().split(':').slice(1).join(':') : '';
@@ -34,8 +36,47 @@ const wrap = (fn) => (req, res) => fn(req, res).catch((e) => {
 
 app.get('/api/:col', checkCol, wrap(async (req, res) => res.json(await db.list(req.params.col))));
 
-app.post('/api/:col', checkCol, wrap(async (req, res) =>
-  res.status(201).json(await db.insert(req.params.col, req.body || {}))));
+const newToken = () => crypto.randomBytes(9).toString('base64url');
+
+app.post('/api/:col', checkCol, wrap(async (req, res) => {
+  const data = { ...(req.body || {}) };
+  if (req.params.col === 'creators' && !data.token) data.token = newToken();
+  res.status(201).json(await db.insert(req.params.col, data));
+}));
+
+// ---------- página pública: o criador escolhe a pauta ----------
+async function creatorByToken(token) {
+  if (!token || token.length < 8) return null;
+  return (await db.list('creators')).find((c) => c.token === token) || null;
+}
+const publicPauta = (p) => ({ id: p.id, titulo: p.titulo, tema: p.tema || '', descricao: p.descricao || '', linhaSugerida: p.linhaSugerida || '', prazo: p.prazo || '' });
+
+app.get('/public/escolha/:token', wrap(async (req, res) => {
+  const c = await creatorByToken(req.params.token);
+  if (!c) return res.status(404).json({ error: 'Link inválido.' });
+  const pautas = await db.list('pautas');
+  const ids = c.pautasOpcoes || [];
+  const opcoes = pautas.filter((p) => ids.includes(p.id)).map(publicPauta);
+  res.json({
+    nome: c.nome, sugestaoLinha: c.sugestaoLinha || '', opcoes,
+    escolhida: c.pautaId || '', comentario: c.comentarioCriador || '', escolhidaEm: c.escolhidaEm || '',
+  });
+}));
+
+app.post('/public/escolha/:token', wrap(async (req, res) => {
+  const c = await creatorByToken(req.params.token);
+  if (!c) return res.status(404).json({ error: 'Link inválido.' });
+  const { pautaId, comentario } = req.body || {};
+  if (!(c.pautasOpcoes || []).includes(pautaId)) return res.status(400).json({ error: 'Escolha uma das pautas da lista.' });
+  const patch = { pautaId, comentarioCriador: String(comentario || '').slice(0, 2000), escolhidaEm: new Date().toISOString() };
+  if (!c.status || c.status === 'Mapeado' || c.status === 'Contatado') patch.status = 'Topou';
+  await db.update('creators', c.id, patch);
+  const p = await db.get('pautas', pautaId);
+  if (p) await db.update('pautas', p.id, { creatorId: c.id, status: !p.status || p.status === 'Livre' ? 'Reservada' : p.status });
+  res.json({ ok: true });
+}));
+
+app.get('/escolha/:token', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'escolha.html')));
 
 app.put('/api/:col/:id', checkCol, wrap(async (req, res) => {
   const r = await db.update(req.params.col, req.params.id, req.body || {});
@@ -107,5 +148,19 @@ app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.h
     seeded.add(c.handle);
   }
   await db.update('meta', meta.id, { seeded: [...seeded] });
+
+  // correções pontuais, uma vez só
+  const feitas = new Set(meta.correcoes || []);
+  const todos = await db.list('creators');
+  for (const fix of seed.correcoes || []) {
+    if (feitas.has(fix.id)) continue;
+    const c = todos.find((x) => x.handle === fix.handle);
+    if (c) await db.update('creators', c.id, fix.set);
+    feitas.add(fix.id);
+  }
+  await db.update('meta', meta.id, { correcoes: [...feitas] });
+
+  // todo criador ganha um link secreto de escolha
+  for (const c of await db.list('creators')) if (!c.token) await db.update('creators', c.id, { token: newToken() });
   app.listen(PORT, () => console.log(`Rodando na porta ${PORT} · armazenamento: ${db.kind}`));
 })();

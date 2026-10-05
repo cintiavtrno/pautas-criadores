@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Escolha sua pauta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --paper:#efeee9; --sheet:#fbfaf7; --ink:#151513; --ink-2:#5b5a54; --ink-3:#8d8b83; --rule:#d6d4cc; --marker:#ffe55c; --marker-soft:#fff6c4; --red:#d43a1a; --green:#22714a;
+      --sans:"Archivo","Arial Narrow",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; }
+    @media (prefers-color-scheme: dark) { :root { --paper:#121211; --sheet:#1a1a18; --ink:#ecebe6; --ink-2:#a9a79f; --ink-3:#74726b; --rule:#2f2e2b; --marker-soft:rgba(255,229,92,.1); --red:#ff7452; --green:#5ec48f; } }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:400 16px/1.5 var(--sans); -webkit-font-smoothing:antialiased; }
+    .wrap { max-width:720px; margin:0 auto; padding:36px 20px 80px; }
+    .kicker { font:500 11px var(--mono); text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); }
+    h1 { margin:8px 0 6px; font-weight:800; font-stretch:64%; font-size:48px; line-height:.92; text-transform:uppercase; border-bottom:2px solid var(--ink); padding-bottom:14px; }
+    .lead { color:var(--ink-2); font-size:17px; max-width:56ch; }
+    .linha { background:var(--marker-soft); border-top:3px solid var(--marker); padding:12px 14px; margin:22px 0 6px; }
+    .linha b { font:500 11px var(--mono); text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:4px; }
+    h2 { font:500 11px var(--mono); text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); border-bottom:1px solid var(--rule); padding-bottom:6px; margin:34px 0 0; }
+    .op { display:grid; grid-template-columns:22px 1fr; gap:12px; padding:16px 2px; border-bottom:1px solid var(--rule); cursor:pointer; }
+    .op:hover { background:var(--sheet); }
+    .op input { width:18px; height:18px; margin-top:4px; accent-color:var(--ink); }
+    .op strong { font-weight:700; font-stretch:80%; font-size:21px; line-height:1.15; display:block; }
+    .op .t { font:400 12px var(--mono); color:var(--ink-3); margin-top:2px; display:block; }
+    .op p { margin:8px 0 0; color:var(--ink-2); }
+    .op .ls { margin-top:8px; font-size:14.5px; border-left:3px solid var(--marker); padding-left:10px; }
+    .op.on { background:var(--sheet); outline:2px solid var(--ink); outline-offset:-2px; }
+    label.c { display:block; margin-top:28px; font-weight:600; font-size:14px; color:var(--ink-2); }
+    textarea { width:100%; min-height:100px; margin-top:6px; border:1px solid var(--rule); background:var(--sheet); padding:10px; font:inherit; color:inherit; resize:vertical; }
+    textarea:focus { outline:2px solid var(--ink); outline-offset:-1px; }
+    button { margin-top:18px; height:46px; padding:0 22px; border:1px solid var(--ink); background:var(--ink); color:var(--paper); font:600 16px var(--sans); cursor:pointer; }
+    button:disabled { opacity:.4; cursor:not-allowed; }
+    .msg { margin-top:16px; font-size:15px; }
+    .msg.ok { color:var(--green); }
+    .msg.err { color:var(--red); }
+    .done { border:2px solid var(--ink); padding:16px; margin-top:24px; background:var(--sheet); }
+    .done b { font:500 11px var(--mono); text-transform:uppercase; letter-spacing:.08em; color:var(--green); display:block; margin-bottom:4px; }
+    @media (max-width:520px) { h1 { font-size:38px; } }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app"><p class="kicker">carregando…</p></div>
+<script>
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const token = location.pathname.split('/').filter(Boolean).pop();
+const app = document.getElementById('app');
+const fmt = (d) => (d ? new Date(d.length === 10 ? d + 'T12:00' : d).toLocaleDateString('pt-BR') : '');
+
+async function load() {
+  const r = await fetch('/public/escolha/' + encodeURIComponent(token));
+  if (!r.ok) { app.innerHTML = '<p class="kicker">link inválido</p><h1>Esse link não funciona</h1><p class="lead">Confira com quem te mandou se o endereço está completo.</p>'; return; }
+  const d = await r.json();
+  const primeiro = d.nome.split(' ')[0];
+  if (!d.opcoes.length) {
+    app.innerHTML = `<p class="kicker">pautas</p><h1>Oi, ${esc(primeiro)}</h1><p class="lead">As opções de pauta ainda estão sendo separadas. Volte neste mesmo link daqui a pouco.</p>`;
+    return;
+  }
+  const escolhida = d.opcoes.find((o) => o.id === d.escolhida);
+  app.innerHTML = `
+    <p class="kicker">pautas para você</p>
+    <h1>Oi, ${esc(primeiro)}</h1>
+    <p class="lead">Separamos ${d.opcoes.length === 1 ? 'uma pauta' : d.opcoes.length + ' pautas'} pensando no seu conteúdo. Escolha a que mais combina com você. A linha sugerida é só um ponto de partida: o jeito de fazer é seu.</p>
+    ${d.sugestaoLinha ? `<div class="linha"><b>O que pensamos para você</b>${esc(d.sugestaoLinha)}</div>` : ''}
+    ${escolhida ? `<div class="done"><b>Você já escolheu${d.escolhidaEm ? ' em ' + fmt(d.escolhidaEm) : ''}</b>${esc(escolhida.titulo)}. Se quiser trocar, é só marcar outra e enviar de novo.</div>` : ''}
+    <h2>Opções</h2>
+    <form id="f">
+      ${d.opcoes.map((o) => `
+        <label class="op ${o.id === d.escolhida ? 'on' : ''}">
+          <input type="radio" name="p" value="${esc(o.id)}" ${o.id === d.escolhida ? 'checked' : ''} />
+          <span>
+            <strong>${esc(o.titulo)}</strong>
+            ${o.tema || o.prazo ? `<span class="t">${esc(o.tema)}${o.tema && o.prazo ? ' · ' : ''}${o.prazo ? 'até ' + fmt(o.prazo) : ''}</span>` : ''}
+            ${o.descricao ? `<p>${esc(o.descricao)}</p>` : ''}
+            ${o.linhaSugerida ? `<div class="ls">${esc(o.linhaSugerida)}</div>` : ''}
+          </span>
+        </label>`).join('')}
+      <label class="c">Quer contar como pensa em fazer, ou propor um ajuste? (opcional)
+        <textarea name="c" maxlength="2000">${esc(d.comentario)}</textarea>
+      </label>
+      <button type="submit" ${d.escolhida ? '' : 'disabled'}>Enviar escolha</button>
+      <div class="msg" id="msg" role="status"></div>
+    </form>`;
+  const f = document.getElementById('f');
+  f.addEventListener('change', () => {
+    const v = f.p.value;
+    document.querySelectorAll('.op').forEach((l) => l.classList.toggle('on', l.querySelector('input').value === v));
+    f.querySelector('button').disabled = !v;
+  });
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg'); const b = f.querySelector('button');
+    b.disabled = true; msg.className = 'msg'; msg.textContent = 'Enviando…';
+    const r = await fetch('/public/escolha/' + encodeURIComponent(token), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pautaId: f.p.value, comentario: f.c.value }),
+    });
+    if (r.ok) { msg.className = 'msg ok'; msg.textContent = 'Recebido. Obrigada! A equipe vai entrar em contato.'; setTimeout(load, 1800); }
+    else { msg.className = 'msg err'; msg.textContent = (await r.json().catch(() => ({}))).error || 'Não enviou. Tente de novo.'; b.disabled = false; }
+  });
+}
+load().catch(() => { app.innerHTML = '<h1>Não carregou</h1><p class="lead">Recarregue a página.</p>'; });
+</script>
+</body>
+</html>

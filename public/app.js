@@ -115,6 +115,16 @@ function bindFields(root, col, rec, onSaved = () => {}) {
   });
 }
 
+/* link que o criador abre para escolher a pauta (sem senha) */
+function linkEscolha(c) {
+  const url = c.token ? `${location.origin}/escolha/${c.token}` : '';
+  return `<div class="f full linkbox"><span>Link para ${esc(c.nome.split(' ')[0])} escolher</span>
+    ${url ? `<div class="copy"><input type="text" readonly value="${esc(url)}" /><button type="button" class="btn" data-copy="${esc(url)}">Copiar</button></div>
+    <small>Mande pelo WhatsApp. Abre sem senha e mostra só as opções marcadas acima. Quando ele escolher, a pauta aparece aqui e o status vira "Topou".</small>` : '<small>O link aparece depois que o servidor reiniciar.</small>'}
+    ${c.escolhidaEm ? `<div class="resposta"><b>Escolheu em ${fmtData(c.escolhidaEm)}</b>${esc(find('pautas', c.pautaId)?.titulo || '')}${c.comentarioCriador ? `<p>"${esc(c.comentarioCriador)}"</p>` : ''}</div>` : ''}
+  </div>`;
+}
+
 /* ---------- visões ---------- */
 const VIEWS = {};
 
@@ -149,7 +159,7 @@ VIEWS.criadores = {
   groupNote: 'Cada criador aparece no grupo do seu primeiro nicho.',
   row(c) {
     const linha = c.sugestaoLinha?.trim();
-    return `<span class="who"><span class="name">${esc(c.nome)}${c.observacoes ? '<span class="flag">atenção</span>' : ''}${c.nichoConfirmado ? '' : '<span class="flag" style="color:var(--amber)">conferir nicho</span>'}</span>
+    return `<span class="who"><span class="name">${esc(c.nome)}${c.nichoConfirmado ? '' : '<span class="flag" style="color:var(--amber)">conferir nicho</span>'}</span>
       <span class="muted">@${esc(c.handle)}${(c.nichos || []).length ? ' · ' + esc(c.nichos.join(', ')) : ''}</span></span>
       ${statusTag(c.status || 'Mapeado')}
       <span class="line ${linha ? 'ok' : 'empty'}">${linha ? 'linha ok' : 'sem linha'}</span>
@@ -174,7 +184,6 @@ VIEWS.criadores = {
       </div>
       <div class="dbody">
         <p class="about" data-h="resumo">${esc(c.resumo) || '<span style="color:var(--ink-3)">Sem descrição do perfil.</span>'}</p>
-        <div data-h="obs">${c.observacoes ? `<div class="alert"><b>Atenção</b>${esc(c.observacoes)}</div>` : ''}</div>
 
         ${field({ k: 'sugestaoLinha', type: 'marker', label: 'Sugestão de linha', who: 'Camilla / Yara', ph: 'Em branco. Escreva aqui a direção que sugerimos para esse criador. Ele continua livre para seguir o próprio jeito.' }, c)}
 
@@ -189,6 +198,7 @@ VIEWS.criadores = {
           ${field({ k: 'modoPauta', type: 'seg', label: 'Como a pauta chega', full: true, opts: () => [['atribuida', 'Nós definimos'], ['escolha', 'Criador escolhe']] }, { ...c, modoPauta: c.modoPauta || 'atribuida' })}
           ${escolha ? field({ k: 'pautasOpcoes', type: 'chips', label: 'Opções oferecidas', full: true, none: 'Nenhuma pauta cadastrada. Crie na aba Pautas.', opts: () => S.pautas.map((p) => ({ v: p.id, l: p.titulo, c: p.nicho ? corNicho(p.nicho) : '' })) }, c) : ''}
           ${field({ k: 'pautaId', type: 'select', label: escolha ? 'Pauta escolhida' : 'Pauta definida', full: true, opts: pautas, empty: S.pautas.length ? 'Nenhuma ainda' : 'Nenhuma pauta cadastrada' }, c)}
+          ${escolha ? linkEscolha(c) : ''}
         </div></section>
 
         <section class="fs"><h3>Perfil</h3><div class="grid2">
@@ -201,7 +211,7 @@ VIEWS.criadores = {
           } }, c)}
           ${field({ k: 'nichoConfirmado', type: 'bool', text: 'Nicho conferido no perfil', full: true }, c)}
           ${field({ k: 'resumo', type: 'textarea', label: 'Sobre o perfil', full: true }, c)}
-          ${field({ k: 'observacoes', type: 'textarea', label: 'Pontos de atenção', full: true, ph: 'Riscos, polêmicas, público fora do alvo…' }, c)}
+          ${field({ k: 'observacoes', type: 'textarea', label: 'Observações', full: true }, c)}
         </div></section>
 
         <div class="dfoot"><span>atualizado ${fmtData(c.updatedAt)}</span><button class="btn danger" data-del>Excluir criador</button></div>
@@ -210,7 +220,6 @@ VIEWS.criadores = {
   async onSaved(k, c) {
     if (k === 'nome') $('[data-h=nome]').textContent = c.nome;
     if (k === 'resumo') $('[data-h=resumo]').textContent = c.resumo;
-    if (k === 'observacoes') $('[data-h=obs]').innerHTML = c.observacoes ? `<div class="alert"><b>Atenção</b>${esc(c.observacoes)}</div>` : '';
     if (k === 'handle') {
       const h = c.handle.replace(/^@/, '').trim();
       await save('creators', c, { handle: h, url: h ? `https://www.instagram.com/${h}/` : '' });
@@ -417,6 +426,10 @@ function renderDetail() {
   box.innerHTML = V.detail(rec);
   box.scrollTop = y;
   bindFields(box, V.col, rec, (k, r) => V.onSaved && V.onSaved(k, r));
+  $$('[data-copy]', box).forEach((b) => (b.onclick = async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); toast('Link copiado'); }
+    catch { b.previousElementSibling.select(); toast('Selecione e copie'); }
+  }));
   const back = $('[data-back]', box);
   if (back) back.onclick = () => { S.open = false; $('.split').classList.remove('open'); };
   const del = $('[data-del]', box);

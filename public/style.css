@@ -178,6 +178,14 @@ main { height: calc(100vh - 78px); }
 .marker textarea:focus { outline: none; }
 .marker textarea::placeholder { color: var(--ink-3); }
 
+/* link de escolha do criador */
+.linkbox small { color: var(--ink-3); font-size: 12.5px; }
+.copy { display: flex; gap: 6px; }
+.copy input { flex: 1; min-width: 0; border: 1px solid var(--rule); background: var(--paper); padding: 0 9px; height: 32px; font: 400 12.5px var(--mono); }
+.resposta { margin-top: 8px; border-left: 3px solid var(--green); padding: 6px 10px; font-size: 14.5px; background: var(--paper); }
+.resposta b { display: block; font: 500 11px var(--mono); text-transform: uppercase; color: var(--green); letter-spacing: .05em; }
+.resposta p { margin: 4px 0 0; color: var(--ink-2); }
+
 /* segmentado e etiquetas clicáveis */
 .seg { display: flex; flex-wrap: wrap; border: 1px solid var(--ink); width: fit-content; max-width: 100%; }
 .seg button { border: 0; border-right: 1px solid var(--ink); background: none; padding: 6px 11px; cursor: pointer; font-size: 13.5px; font-weight: 500; }
