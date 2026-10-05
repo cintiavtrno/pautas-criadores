@@ -403,3 +403,54 @@ h1, .titulo-secao, .texto p.titulo-secao, .capa h1, .lateral h1, .folha > h1, .t
 .msg.err { color: #b3261e; }
 @media (max-width: 640px) { .conversa { box-shadow: 6px 6px 0 var(--menta); } }
 .funcao header { color: var(--verde); }
+
+/* =====================================================================
+   Caminhos como cédula: um quadrado que recebe um X. Sem caixa, sem seta.
+   ===================================================================== */
+.caminhos { gap: 0; }
+.caminhos.lado { gap: 0 36px; }
+.caminho, .capa .caminho, .faixa.escura .caminho, .faixa.vermelha .caminho {
+  border: 0; border-top: 1.5px solid currentColor; background: none !important;
+  padding: 26px 0 26px 66px; color: inherit;
+}
+.capa .caminho, .faixa.vermelha .caminho { color: var(--verde-tinta); }
+.faixa.escura .caminho { color: var(--branco); }
+.caminhos > .caminho:last-of-type, .capa-acoes > .caminho:last-of-type { border-bottom: 1.5px solid currentColor; }
+.caminhos.lado > .caminho { border-bottom: 1.5px solid currentColor; }
+.caminho::after { content: none; }
+.caminho::before {
+  content: ""; position: absolute; left: 0; top: 28px; width: 40px; height: 40px;
+  border: 2.5px solid currentColor; transition: background-size .18s ease;
+  background:
+    linear-gradient(45deg, transparent calc(50% - 2px), currentColor calc(50% - 2px), currentColor calc(50% + 2px), transparent calc(50% + 2px)) center / 0 0 no-repeat,
+    linear-gradient(-45deg, transparent calc(50% - 2px), currentColor calc(50% - 2px), currentColor calc(50% + 2px), transparent calc(50% + 2px)) center / 0 0 no-repeat;
+}
+.caminho:hover::before, .caminho:focus-visible::before, .caminho.on::before { background-size: 70% 70%, 70% 70%; }
+.caminho strong { font-size: clamp(26px, 2.4vw, 34px); line-height: 1; transition: transform .18s ease; }
+.caminho:hover strong { transform: translateX(4px); }
+.caminho span { font: 500 12.5px var(--mono); text-transform: uppercase; letter-spacing: .06em; opacity: .75; margin-top: 10px; }
+.caminho:hover, .caminho.on { color: inherit; }
+.caminho:focus-visible { outline: 2px dashed currentColor; outline-offset: 4px; }
+.caminho.on { color: var(--verde); border-color: var(--verde); }
+.caminho.mini { padding: 14px 0 14px 44px; border-width: 1.5px 0; }
+.caminho.mini::before { top: 14px; width: 26px; height: 26px; border-width: 2px; }
+.caminho.mini strong { font-size: 21px; }
+.capa-acoes .link-video { margin-top: 18px; }
+.faixa.escura .capa-acoes { gap: 0; }
+
+/* =====================================================================
+   Sugestão de conversa: escrita sobre papel pautado
+   ===================================================================== */
+.fala {
+  margin-top: 26px; padding: 0; border: 0; background: repeating-linear-gradient(to bottom, transparent 0 35px, var(--linha) 35px 36px);
+  font: italic 400 21px/36px var(--serif); color: var(--tinta); min-height: 144px;
+}
+.fala small { display: block; font: normal 500 11.5px/36px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--verde); margin: 0; }
+.fala.vazia { font-style: normal; font-size: 16px; color: var(--tinta-3); }
+
+/* sem faixa lateral em lugar nenhum */
+.marca { background: none; border-left: 0; border-top: 2px solid var(--verde); padding: 14px 0 0; }
+.consent, .consent.leve { background: none; border-left: 0; border-top: 1px dashed var(--linha); padding: 16px 0 0; }
+.op .roteiro { border-left: 0; background: none; padding: 10px 0 0; }
+.op.on { box-shadow: none; background: var(--rosa); }
+.capa-acoes > .caminho + .caminho { border-bottom: 1.5px solid currentColor; }

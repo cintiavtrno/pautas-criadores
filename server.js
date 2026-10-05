@@ -46,6 +46,7 @@ app.get('/health', (_req, res) => res.json({ ok: true, storage: db.kind }));
 /* =========================================================
    PÁGINAS
    ========================================================= */
+app.get('/favicon.ico', (_req, res) => res.redirect(301, '/favicon-32.png'));
 app.get('/admin', (_req, res) => res.sendFile(path.join(PUB, 'admin.html')));
 app.get('/participar', (_req, res) => res.sendFile(path.join(PUB, 'participar.html')));
 app.get('/p/:token', (_req, res) => res.sendFile(path.join(PUB, 'painel.html')));

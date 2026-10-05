@@ -362,3 +362,7 @@ main { height: calc(100vh - 150px); }
 .login h1 { color: var(--vermelho); text-transform: lowercase; font-weight: 800; letter-spacing: -.045em; border-bottom-color: var(--vermelho); }
 .login .btn.solid { font-family: var(--display); text-transform: none; font-weight: 700; }
 .marker { border-left-color: var(--vermelho); }
+/* sem faixa lateral */
+.marker { border-left: 0 !important; border-top: 3px solid var(--vermelho); }
+.resposta { border-left: 0; border-top: 1.5px solid var(--green); padding: 8px 0 4px; background: none; }
+.alert { border-left: 0; border-top: 2px solid var(--red); }
