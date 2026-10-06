@@ -486,11 +486,11 @@ window.GUIA = {
 },
 {
 "t": "MagBras aprovado no edital do Programa Mover (SENAI/Fundep), R$ 73 milhões, lançado em julho de 2025:",
-"url": "https://www.fiemg.com.br/fiemg/noticias/kick-off-reune-28-empresas-e-marca-o-inicio-deuma-iniciativa-nacional-com-investimento-de-r-73-milhoes-para-consolidar-a-cadeia-produtiva-de-imas-permanentes/"
+"url": "https://www.fiemg.com.br/fiemg/noticias/kick-off-reune-28-empresas-e-marca-o-inicio-de-uma-iniciativa-nacional-com-investimento-de-r-73-milhoes-para-consolidar-a-cadeia-produtiva-de-imas-permanentes/"
 },
 {
 "t": "Lei do Programa Mover (Lei 14.902/2024):",
-"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/l14902.html"
+"url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/l14902.htm"
 },
 {
 "t": "Terras raras: Livro Amarelo, p. 39. Programa de governo de Lula, p. 52.",
@@ -727,11 +727,11 @@ window.GUIA = {
 },
 {
 "t": "Retomada em março de 2023, R$ 170 bilhões e parcelas em 20 anos:",
-"url": "https://www.poder360.com.br/poder-governo/lula-assina-acordo-de-reparacao-dos-danosde-mariana/"
+"url": "https://www.poder360.com.br/poder-governo/lula-assina-acordo-de-reparacao-dos-danos-de-mariana/"
 },
 {
 "t": "\"Erro histórico\" do Zema sobre a Renova:",
-"url": "https://www.otempo.com.br/politica/governo/2024/10/25/na-assinatura-do-novo-acordo-de-mariana--zema-diz-que-criacao-da"
+"url": "https://diariodocomercio.com.br/legislacao/fim-fundacao-renova-correcao-erro-historico-zema/"
 },
 {
 "t": "Mais de R$ 81 bilhões pra Minas:",
@@ -739,7 +739,7 @@ window.GUIA = {
 },
 {
 "t": "Homologação no STF:",
-"url": "https://www.conjur.com.br/2024-nov-06/stf-homologa-acordo-de-reparacao-por-tragediaem-mariana-mg"
+"url": "https://www.conjur.com.br/2024-nov-06/stf-homologa-acordo-de-reparacao-por-tragedia-em-mariana-mg"
 }
 ],
 "autor": "Cíntia Vitorino",

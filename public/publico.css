@@ -728,3 +728,11 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
   .g-busca { margin: 0; flex: none; width: 100%; min-width: 0; }
   .g-links { order: 2; }
 }
+/* celular: Guia e Participar sempre visíveis na barra */
+@media (max-width: 860px) {
+  .barra nav a[href="/guia"] { display: inline-block !important; border-color: currentColor; }
+  .barra nav { gap: 6px; flex-wrap: nowrap; }
+  .barra nav a { padding: 8px 10px; font-size: 12px; }
+}
+@media (max-width: 360px) { .barra nav a { padding: 7px 8px; font-size: 11px; letter-spacing: .03em; } }
+@media (max-width: 860px) { .barra nav a[href="/guia"] { background: var(--verde); border-color: var(--verde); color: var(--branco) !important; } }
