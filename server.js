@@ -312,7 +312,8 @@ const limpaHandle = (h) => String(h || '').trim().replace(/^https?:\/\/(www\.)?i
 
 app.post('/public/inscricao', wrap(async (req, res) => {
   const ip = seg.ipOf(req);
-  if (!seg.limits.inscricao.hit(ip)) return seg.demais(res, 'Muitos envios seguidos deste aparelho. Tente de novo daqui a pouco.');
+  // conta só cadastro concluído: quem errou um campo e tentou de novo não gasta a vez
+  if (seg.limits.inscricao.count(ip) >= seg.limits.inscricao.max) return seg.demais(res, 'Muitos cadastros seguidos desta mesma conexão. Espere alguns minutos e tente de novo.');
   if (seg.limits.inscricaoTotal.count('site') >= seg.limits.inscricaoTotal.max) {
     return res.status(503).json({ error: 'Muitas inscrições chegando agora. Tente de novo em alguns minutos.' });
   }
@@ -332,6 +333,7 @@ app.post('/public/inscricao', wrap(async (req, res) => {
   if (!whats && !email) return res.status(400).json({ error: 'Deixe um WhatsApp ou um e-mail para a gente falar com você.' });
   if (!b.consentimento) return res.status(400).json({ error: 'Marque a autorização de contato para enviar.' });
   seg.limits.inscricaoTotal.hit('site');
+  seg.limits.inscricao.hit(ip);
 
   // pautas escolhidas já no cadastro (pode ser mais de uma)
   const pautasPublicas = (await db.list('pautas')).filter((p) => (tipo === 'criador' ? PARA_CRIADOR : PARA_PESSOA).includes(p.paraQuem) && !['Sugerida', 'Descartada'].includes(p.status));

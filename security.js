@@ -18,17 +18,28 @@ class Limiter {
 }
 
 const limits = {
-  geral: new Limiter(600, 5 * 60 * 1000),        // 600 requisições a cada 5 min por IP
-  publicoLeitura: new Limiter(60, 5 * 60 * 1000), // páginas públicas: 60 leituras a cada 5 min
-  inscricao: new Limiter(5, 10 * 60 * 1000),      // 5 inscrições a cada 10 min por IP
-  inscricaoTotal: new Limiter(300, 60 * 60 * 1000), // teto geral: 300 inscrições por hora no site todo
-  escolha: new Limiter(20, 10 * 60 * 1000),       // 20 envios de escolha a cada 10 min por IP
+  // Os limites por IP são folgados de propósito: no Brasil muita gente da mesma operadora de celular
+  // sai pela mesma internet (o mesmo IP), então um limite apertado bloqueia pessoas diferentes.
+  geral: new Limiter(3000, 5 * 60 * 1000),         // 3000 requisições a cada 5 min por IP
+  publicoLeitura: new Limiter(600, 5 * 60 * 1000), // páginas públicas: 600 leituras a cada 5 min por IP
+  inscricao: new Limiter(15, 10 * 60 * 1000),      // 15 cadastros concluídos a cada 10 min por IP
+  inscricaoTotal: new Limiter(2000, 60 * 60 * 1000), // teto geral: 2000 cadastros por hora no site todo
+  escolha: new Limiter(60, 10 * 60 * 1000),        // 60 envios de escolha a cada 10 min por IP
   senhaErrada: new Limiter(10, 15 * 60 * 1000),   // 10 senhas erradas = bloqueio de 15 min (por IP e por login)
-  painel: new Limiter(30, 10 * 60 * 1000),        // 30 ações no painel pessoal a cada 10 min
+  painel: new Limiter(120, 10 * 60 * 1000),        // 30 ações no painel pessoal a cada 10 min
 };
 setInterval(() => Object.values(limits).forEach((l) => l.sweep()), 5 * 60 * 1000).unref();
 
-const ipOf = (req) => req.ip || req.socket?.remoteAddress || 'desconhecido';
+// IP de quem acessa. O Render fica atrás da Cloudflare, então o IP que chega direto é o da
+// Cloudflare (o mesmo para muita gente). O IP real vem nos cabeçalhos abaixo.
+const ipOf = (req) => {
+  const h = req.headers || {};
+  const direto = h['cf-connecting-ip'] || h['true-client-ip'];
+  if (direto) return String(direto).trim();
+  const xff = h['x-forwarded-for'];
+  if (xff) return String(xff).split(',')[0].trim();
+  return req.ip || req.socket?.remoteAddress || 'desconhecido';
+};
 
 function demais(res, msg = 'Muitas requisições. Espere alguns minutos e tente de novo.') {
   res.set('Retry-After', '300');
