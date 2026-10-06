@@ -287,7 +287,7 @@ app.get('/public/config', wrap(async (_req, res) => {
 app.get('/public/equipe', wrap(async (_req, res) => {
   res.json((await db.list('team')).filter((t) => t.mostrarNoSite !== false).map((t) => ({
     id: t.id, nome: t.nome, funcoes: t.funcoes || (t.funcao ? [t.funcao] : []),
-    bio: txt(t.bio, 400), link: linkRede(t.link), idealizadora: !!t.idealizadora, foto: t.fotoV ? `/foto/${t.id}.jpg?v=${t.fotoV}` : '',
+    bio: txt(t.bio, 1500), link: linkRede(t.link), idealizadora: !!t.idealizadora, foto: t.fotoV ? `/foto/${t.id}.jpg?v=${t.fotoV}` : '',
   })));
 }));
 // pautas que dá para escolher já no cadastro
