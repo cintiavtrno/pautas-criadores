@@ -130,6 +130,21 @@ const admins = [
   { login: 'yara', nome: 'Yara Damasceno', nomeEquipe: 'Yara Damasceno' },
 ];
 
+// Acessos de equipe (veem só as próprias tarefas de produção). Mesma senha inicial, troca no primeiro login.
+const acessosEquipe = [
+  { login: 'maria', nomeEquipe: 'Maria Maia' },
+  { login: 'caldas', nomeEquipe: 'Gabriel Caldas' },
+  { login: 'ana', nomeEquipe: 'Ana Carolana' },
+  { login: 'kleyton', nomeEquipe: 'Kleyton William' },
+  { login: 'jefferson', nomeEquipe: 'Jefferson Farias' },
+  { login: 'diego', nomeEquipe: 'Diego Welerson' },
+  { login: 'ramires', nomeEquipe: 'Ramires Montenegro' },
+  { login: 'joao', nomeEquipe: 'João Bigon' },
+  { login: 'matheus', nomeEquipe: 'Matheus Pestana' },
+  { login: 'klismann', nomeEquipe: 'Klismann Schramm' },
+  { login: 'rahuany', nomeEquipe: 'Rahuany Velleda' },
+];
+
 // Etapas das tarefas de produção (vídeos e peças de divulgação da articulação)
 const ETAPAS = ['A fazer', 'Em andamento', 'Em revisão', 'Pronto', 'Publicado'];
 
@@ -142,4 +157,4 @@ const correcoesEquipe = [
   { id: '2026-10-05-cintia', nome: 'Cíntia Vitorino', set: { funcoes: ['Site', 'Escrita e pesquisa'] } },
 ];
 
-module.exports = { nichos, criadores, correcoes, equipe, admins, ETAPAS, COM_QUEM, correcoesEquipe };
+module.exports = { nichos, criadores, correcoes, equipe, admins, acessosEquipe, ETAPAS, COM_QUEM, correcoesEquipe };

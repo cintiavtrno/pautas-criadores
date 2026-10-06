@@ -19,7 +19,7 @@ O link do grupo do WhatsApp e o link do material das pautas são colados na aba 
 
 No controle interno, administradoras veem tudo. Quem tem acesso de **equipe** vê só as tarefas de produção que estão com ela.
 
-**Primeiro acesso:** os logins `cintia`, `camilla` e `yara` são criados sozinhos, com a senha que estiver em `APP_PASSWORD` no Render. Cada uma troca a senha no primeiro login. Acessos para o resto da equipe são criados na aba Equipe (o sistema gera uma senha provisória).
+**Primeiro acesso:** os logins `cintia`, `camilla` e `yara` são criados sozinhos, com a senha que estiver em `APP_PASSWORD` no Render. Cada uma troca a senha no primeiro login. Os acessos do resto da equipe já vêm criados (veja `acessosEquipe` no `seed.js`) e os novos são criados na aba Equipe. Todo mundo entra pela primeira vez com a mesma senha do `APP_PASSWORD` e cria a sua. "Redefinir senha" também volta para essa senha comum.
 - **Banco:** Postgres quando existe `DATABASE_URL`; sem ela, salva em `data/db.json` (só para testar no computador)
 
 Na primeira vez que o sistema sobe, ele já carrega os 20 criadores mapeados e os nichos. Se no futuro entrarem criadores novos no `seed.js`, eles são acrescentados no próximo deploy; quem vocês apagaram não volta. O campo **Sugestão de linha** vem em branco para a Camilla e a Yara preencherem direto na ficha (tudo salva sozinho).

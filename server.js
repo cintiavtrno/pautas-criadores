@@ -133,20 +133,22 @@ app.post('/api/usuarios', wrap(async (req, res) => {
   let n = 2; const base = login;
   while (todos.some((u) => u.login === login)) login = `${base}${n++}`;
   if (b.teamId && todos.some((u) => u.teamId === b.teamId)) return res.status(400).json({ error: 'Essa pessoa já tem acesso.' });
-  const senha = auth.senhaProvisoria();
+  const comum = !!process.env.APP_PASSWORD;
+  const senha = process.env.APP_PASSWORD || auth.senhaProvisoria();
   const u = await db.insert('usuarios', {
     nome, login, papel: b.papel === 'admin' ? 'admin' : 'equipe', teamId: txt(b.teamId, 80),
     senhaHash: auth.hashSenha(senha), trocarSenha: true, sessaoVersao: 0,
   });
-  res.status(201).json({ usuario: usuarioSemSenha(u), senhaProvisoria: senha });
+  res.status(201).json({ usuario: usuarioSemSenha(u), senhaComum: comum, senhaProvisoria: comum ? '' : senha });
 }));
 
 app.post('/api/usuarios/:id/redefinir', wrap(async (req, res) => {
   const u = await db.get('usuarios', req.params.id);
   if (!u) return res.status(404).json({ error: 'Não encontrado.' });
-  const senha = auth.senhaProvisoria();
+  const comum = !!process.env.APP_PASSWORD;
+  const senha = process.env.APP_PASSWORD || auth.senhaProvisoria();
   await db.update('usuarios', u.id, { senhaHash: auth.hashSenha(senha), trocarSenha: true, sessaoVersao: (u.sessaoVersao || 0) + 1 });
-  res.json({ senhaProvisoria: senha });
+  res.json({ senhaComum: comum, senhaProvisoria: comum ? '' : senha });
 }));
 
 app.put('/api/usuarios/:id', wrap(async (req, res) => {
@@ -557,6 +559,44 @@ app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
       await db.insert('usuarios', { nome: a.nome, login: a.login, papel: 'admin', teamId: t?.id || '', senhaHash: auth.hashSenha(senha), trocarSenha: true, sessaoVersao: 0 });
     }
     console.log(`Acessos criados: ${seed.admins.map((a) => a.login).join(', ')}. Senha inicial: ${process.env.APP_PASSWORD ? 'a mesma do APP_PASSWORD' : senha}. Cada uma troca no primeiro login.`);
+  }
+
+  // acessos de equipe pré-cadastrados (uma vez por login; quem for apagado não volta)
+  {
+    const meta2 = (await db.list('meta'))[0];
+    const feitos = new Set(meta2?.acessosCriados || []);
+    const usuarios = await db.list('usuarios');
+    const equipe = await db.list('team');
+    const senha = process.env.APP_PASSWORD;
+    const novos = [];
+    if (senha) for (const a of seed.acessosEquipe || []) {
+      if (feitos.has(a.login)) continue;
+      feitos.add(a.login);
+      const t = equipe.find((x) => x.nome.toLowerCase() === a.nomeEquipe.toLowerCase());
+      const ja = usuarios.find((u) => u.login === a.login || (t && u.teamId === t.id));
+      if (ja) {
+        // já tinha acesso criado no painel e a pessoa nunca entrou: passa a valer a senha inicial comum
+        if (ja.trocarSenha && !ja.desativado) {
+          await db.update('usuarios', ja.id, { senhaHash: auth.hashSenha(senha), sessaoVersao: (ja.sessaoVersao || 0) + 1 });
+          novos.push(`${ja.login} (senha inicial redefinida)`);
+        }
+        continue;
+      }
+      await db.insert('usuarios', { nome: t?.nome || a.nomeEquipe, login: a.login, papel: 'equipe', teamId: t?.id || '', senhaHash: auth.hashSenha(senha), trocarSenha: true, sessaoVersao: 0 });
+      novos.push(a.login);
+    }
+    // qualquer acesso que ainda não criou a própria senha passa a usar a senha comum (uma vez por acesso)
+    const comuns = new Set(meta2?.senhaComumFeita || []);
+    if (senha) for (const u of await db.list('usuarios')) {
+      if (comuns.has(u.id)) continue;
+      comuns.add(u.id);
+      if (!u.trocarSenha || u.desativado || novos.some((n) => n.startsWith(u.login))) continue;
+      if (auth.confereSenha(senha, u.senhaHash)) continue;
+      await db.update('usuarios', u.id, { senhaHash: auth.hashSenha(senha), sessaoVersao: (u.sessaoVersao || 0) + 1 });
+      novos.push(`${u.login} (senha inicial redefinida)`);
+    }
+    if (meta2) await db.update('meta', meta2.id, { acessosCriados: [...feitos], senhaComumFeita: [...comuns] });
+    if (novos.length) console.log(`Acessos de equipe criados: ${novos.join(', ')}. Senha inicial: a mesma do APP_PASSWORD.`);
   }
 
   app.listen(PORT, () => console.log(`Rodando na porta ${PORT} · armazenamento: ${db.kind}`));

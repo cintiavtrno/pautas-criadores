@@ -655,9 +655,9 @@ function acessoHtml(t) {
     </div>
     <div id="senha-nova"></div>`;
 }
-function mostraSenha(login, senha) {
-  $('#senha-nova').innerHTML = `<div class="alert" style="margin-top:14px;border-left-color:var(--green);background:var(--paper)"><b style="color:var(--green)">Senha provisória (aparece só agora)</b>
-    Login <strong style="font-family:var(--mono)">${esc(login)}</strong> · senha <strong style="font-family:var(--mono)">${esc(senha)}</strong><br>
+function mostraSenha(login, senha, comum) {
+  $('#senha-nova').innerHTML = `<div style="margin-top:14px;padding-top:12px;border-top:2px solid var(--green)"><b style="color:var(--green)">${comum ? 'Acesso pronto' : 'Senha provisória (aparece só agora)'}</b><br>
+    Login <strong style="font-family:var(--mono)">${esc(login)}</strong> · senha ${comum ? '<strong>a senha comum da equipe</strong>' : `<strong style="font-family:var(--mono)">${esc(senha)}</strong>`}. A pessoa cria a dela no primeiro acesso.<br>
     <span style="font-size:13px;color:var(--ink-2)">Endereço: ${esc(location.origin)}/admin</span></div>`;
 }
 function bindAcesso(box, t) {
@@ -667,11 +667,11 @@ function bindAcesso(box, t) {
     try {
       if (acao.startsWith('criar')) {
         const out = await api.post('/api/usuarios', { nome: t.nome, teamId: t.id, papel: acao === 'criar-admin' ? 'admin' : 'equipe' });
-        S.usuarios.push(out.usuario); renderDetail(); renderRows(); mostraSenha(out.usuario.login, out.senhaProvisoria);
+        S.usuarios.push(out.usuario); renderDetail(); renderRows(); mostraSenha(out.usuario.login, out.senhaProvisoria, out.senhaComum);
       } else if (acao === 'redefinir') {
         if (!confirm('Gerar uma senha nova? A atual deixa de funcionar.')) return;
         const out = await api.post(`/api/usuarios/${u.id}/redefinir`);
-        u.trocarSenha = true; renderDetail(); mostraSenha(u.login, out.senhaProvisoria);
+        u.trocarSenha = true; renderDetail(); mostraSenha(u.login, out.senhaProvisoria, out.senhaComum);
       } else if (acao === 'papel') {
         Object.assign(u, await api.save('usuarios', { id: u.id, papel: u.papel === 'admin' ? 'equipe' : 'admin' })); renderDetail(); renderRows();
       } else if (acao === 'remover') {
