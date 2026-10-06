@@ -279,10 +279,15 @@ app.get('/public/config', wrap(async (_req, res) => {
   const c = await config();
   res.json({
     turnstile: seg.turnstileAtivo() ? process.env.TURNSTILE_SITE_KEY : '',
-    grupoWhatsapp: urlOk(c.grupoWhatsapp) ? c.grupoWhatsapp : '',
     materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
   });
 }));
+// grupo do WhatsApp: pessoas comuns recebem o da sociedade civil logo no cadastro;
+// criador só vê o grupo de criadores depois que a equipe libera na ficha dele
+const grupoPara = (c, tipo, r) => {
+  if (tipo === 'pessoa') return urlOk(c.grupoWhatsapp) ? c.grupoWhatsapp : '';
+  return r && r.grupoLiberado && urlOk(c.grupoWhatsappCriadores) ? c.grupoWhatsappCriadores : '';
+};
 // equipe que aparece na página inicial (só nome e função)
 app.get('/public/equipe', wrap(async (_req, res) => {
   res.json((await db.list('team')).filter((t) => t.mostrarNoSite !== false).map((t) => ({
@@ -343,7 +348,7 @@ app.post('/public/inscricao', wrap(async (req, res) => {
       publicacoes: [], observacoes: '', responsavel: '', token: newToken(),
     });
     await ideia({ pessoaId: p.id, nicho: '' });
-    return res.json({ ok: true, token: p.token });
+    return res.json({ ok: true, token: p.token, grupo: grupoPara(await config(), 'pessoa', p) });
   }
 
   const validos = new Set((await db.list('nichos')).map((n) => n.nome));
@@ -421,7 +426,7 @@ app.get('/public/painel/:token', wrap(async (req, res) => {
     .map((p) => ({ titulo: p.titulo, status: p.status === 'Sugerida' ? 'em análise' : p.status === 'Descartada' ? 'não seguiu' : 'aprovada' }));
   const c = await config();
   res.json({
-    grupoWhatsapp: urlOk(c.grupoWhatsapp) ? c.grupoWhatsapp : '', materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
+    grupoWhatsapp: grupoPara(c, tipo, r), grupoPendente: tipo === 'criador' && !grupoPara(c, tipo, r), materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
     tipo, nome: r.nome, mostrar: !!r.mostrarNaComunidade, sugestaoLinha: tipo === 'criador' ? r.sugestaoLinha || '' : '',
     pautas: (await pautasVisiveis(q)).map(pautaPublica),
     escolhidas: (r.pautaIds && r.pautaIds.length ? r.pautaIds : r.pautaId ? [r.pautaId] : []), comentario: (tipo === 'criador' ? r.comentarioCriador : r.comentario) || '', escolhidaEm: r.escolhidaEm || '',

@@ -562,3 +562,4 @@ h1, .titulo-secao, .texto p.titulo-secao, .capa h1, .lateral h1, .folha > h1, .t
   .pessoa-eq.grande h3 { font-size: 28px; }
   .pessoa-eq.grande .bio { font-size: 15px; }
 }
+.atalhos .aguarda { display: inline-flex; gap: 10px; align-items: center; padding: 12px 0; font: 500 13px var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--verde-tinta); opacity: .8; }
