@@ -646,5 +646,18 @@ app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
     if (novos.length) console.log(`Acessos de equipe criados: ${novos.join(', ')}. Senha inicial: a mesma do APP_PASSWORD.`);
   }
 
+  // links dos grupos de WhatsApp (uma vez; depois disso valem os que estiverem em Ajustes)
+  {
+    const m = (await db.list('meta'))[0];
+    if (m && !m.gruposDefinidos) {
+      const cfg = (await db.list('config'))[0] || (await db.insert('config', {}));
+      await db.update('config', cfg.id, {
+        grupoWhatsapp: 'https://chat.whatsapp.com/HrwbrJ3rB7e6d9LtYQiwni',
+        grupoWhatsappCriadores: 'https://chat.whatsapp.com/EdAastgNhQi3h9kLWKF5mm',
+      });
+      await db.update('meta', m.id, { gruposDefinidos: true });
+    }
+  }
+
   app.listen(PORT, () => console.log(`Rodando na porta ${PORT} · armazenamento: ${db.kind}`));
 })();
