@@ -31,5 +31,26 @@
     els.forEach((e) => io.observe(e));
   };
 
-  document.addEventListener('DOMContentLoaded', () => { poeIcones(); observaRevela(); });
+
+  // a bandeira da capa: o centro do losango olha para onde está o ponteiro
+  function bandeira() {
+    const el = document.getElementById('bandeira');
+    if (!el || reduzir) return;
+    let alvo = null, ocioso;
+    const olha = (x, y) => { const c = el.querySelector('.l-c'); if (c) c.style.transform = `translate(${(x * 72).toFixed(1)}px, ${(y * 30).toFixed(1)}px)`; };
+    const passeia = () => { const a = Math.random() * Math.PI * 2; olha(Math.cos(a) * .8, Math.sin(a) * .8); ocioso = setTimeout(passeia, 2200 + Math.random() * 1800); };
+    window.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      clearTimeout(ocioso);
+      if (!alvo) alvo = el.querySelector('.losango');
+      const r = alvo.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+      const d = Math.hypot(dx, dy) || 1, f = Math.min(1, d / 420);
+      olha((dx / d) * f, (dy / d) * f);
+      ocioso = setTimeout(passeia, 4000);
+    }, { passive: true });
+    ocioso = setTimeout(passeia, 1500);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => { poeIcones(); observaRevela(); bandeira(); });
 })();

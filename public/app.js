@@ -828,7 +828,7 @@ function telaLogin(msg = '') {
   $('#mast').hidden = true;
   $('#view').innerHTML = `<form class="login" id="fl">
     <p class="kicker-l">controle interno</p>
-    <h1>seu voto <b>decide</b></h1>
+    <div class="login-marca"><div class="login-los" data-marca="losango"></div><h1 class="logo-login" data-marca="logo"></h1></div>
     <label class="f"><span>Login</span><input name="login" autocomplete="username" autocapitalize="off" required /></label>
     <label class="f"><span>Senha</span><input name="senha" type="password" autocomplete="current-password" required /></label>
     <button class="btn solid" type="submit">Entrar</button>

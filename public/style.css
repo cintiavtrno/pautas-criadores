@@ -366,3 +366,17 @@ main { height: calc(100vh - 150px); }
 .marker { border-left: 0 !important; border-top: 3px solid var(--vermelho); }
 .resposta { border-left: 0; border-top: 1.5px solid var(--green); padding: 8px 0 4px; background: none; }
 .alert { border-left: 0; border-top: 2px solid var(--red); }
+
+/* marca (losango e logo empilhado) */
+.losango { display: block; width: 100%; height: auto; }
+.losango .l-f { fill: var(--los-fundo, #2a6049); }
+.losango .l-c { fill: var(--los-centro, #61bf99); }
+.logo-svd { display: block; width: 100%; height: auto; }
+.logo-svd .l-a { fill: #61bf99; }
+.logo-svd .l-b { fill: #2a6049; }
+.mast h1.logo-mast { margin: 0 0 12px; font-size: 0; line-height: 0; }
+.mast h1.logo-mast a { display: block; width: 92px; }
+.login-marca { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; border-bottom: 2px solid #2a6049; padding-bottom: 18px; margin-bottom: 8px; }
+.login h1.logo-login { width: 200px; margin: 0; border: 0; padding: 0; font-size: 0; line-height: 0; }
+.login-los { width: 110px; margin-bottom: 6px; }
+@media (max-width: 760px) { .mast h1.logo-mast a { width: 64px; } }

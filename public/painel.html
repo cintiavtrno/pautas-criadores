@@ -7,15 +7,16 @@
   <meta name="robots" content="noindex" />
   <meta name="referrer" content="no-referrer" />
   <title>Meu painel · seu voto decide</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2" />
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=2" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/publico.css" />
   <script src="/icones.js"></script>
+  <script src="/marca.js"></script>
   <script src="/site.js"></script>
 </head>
 <body class="painel">
@@ -62,7 +63,7 @@ async function carregar() {
 function topo() {
   const primeiro = esc(D.nome.split(' ')[0]);
   const n = (D.escolhidas || []).length;
-  return `<header class="barra sobre-vermelho"><div class="miolo"><a class="marca-site" href="/"><span>seu voto</span> <b>decide</b></a><nav><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav></div></header>
+  return `<header class="barra sobre-vermelho"><div class="miolo"><a class="marca-site" href="/" aria-label="seu voto decide, início"></a><nav><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav></div></header>
   <section class="topo"><div class="topo-in cabeca">
     <div class="topo-l">
       <p class="kicker">seu painel</p>

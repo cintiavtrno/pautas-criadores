@@ -6,22 +6,30 @@
   <title>seu voto decide</title>
   <meta name="description" content="Comunicação popular, criadores de conteúdo e sociedade civil para converter abstenções e votos brancos e nulos e conseguir uma virada no 2º turno." />
   <meta name="theme-color" content="#61bf99" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2" />
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=2" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="seu voto decide" />
+  <meta property="og:description" content="Comunicação popular, criadores de conteúdo e sociedade civil para converter abstenções e votos brancos e nulos e conseguir uma virada no 2º turno." />
+  <meta property="og:image" content="https://seuvotodecide.com.br/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=3" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/publico.css" />
   <script src="/icones.js"></script>
+  <script src="/marca.js"></script>
   <script src="/site.js"></script>
 </head>
 <body>
 <!-- Os textos desta página podem ser trocados à vontade. -->
 <header class="barra sobre-vermelho">
   <div class="miolo">
-    <a class="marca-site" href="/"><span>seu voto</span> <b>decide</b></a>
+    <a class="marca-site" href="/" aria-label="seu voto decide, início"></a>
     <nav>
       <a href="#como">Como funciona</a>
       <a href="#equipe">Quem faz</a>
@@ -43,6 +51,7 @@
       </div>
     </div>
     <div class="capa-acoes">
+      <div class="bandeira" data-marca="losango" id="bandeira"></div>
       <a class="caminho" href="/participar?tipo=pessoa"><strong>Não sou criador de conteúdo</strong><span>Quero gravar para minha família, meus amigos, meu status.</span></a>
       <a class="caminho" href="/participar?tipo=criador"><strong>Sou criador de conteúdo</strong><span>Tenho perfil com público e quero usar meu alcance.</span></a>
       <a class="link-video" href="/enviar-video" data-ico="link">Já gravou? Mande o link</a>
@@ -108,8 +117,8 @@
 <section class="faixa escura">
   <div class="miolo dois" style="align-items:end">
     <div class="revela">
-      <p class="kicker">seu lugar</p>
-      <p class="titulo-secao">Entre pelo caminho que é seu</p>
+      <div class="logo-grande" data-marca="logo"></div>
+      <p class="chamada">Entre pelo caminho que é seu.</p>
     </div>
     <div class="capa-acoes revela">
       <a class="caminho" href="/participar?tipo=pessoa"><strong>Não sou criador de conteúdo</strong></a>
@@ -119,7 +128,7 @@
 </section>
 
 <footer class="rodape-site">
-  <div class="miolo"><span>Já se cadastrou? Use o link pessoal que você recebeu.</span><a href="/admin">acesso da equipe</a></div>
+  <div class="miolo"><span class="assina"><i data-marca="losango"></i>Já se cadastrou? Use o link pessoal que você recebeu.</span><a href="/admin">acesso da equipe</a></div>
 </footer>
 
 <script>

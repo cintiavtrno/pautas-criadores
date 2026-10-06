@@ -459,3 +459,51 @@ h1, .titulo-secao, .texto p.titulo-secao, .capa h1, .lateral h1, .folha > h1, .t
 .faixa.escura .caminho, .faixa.escura .caminho:hover, .faixa.escura .caminho:focus-visible { color: var(--branco) !important; }
 .capa .caminho:hover, .capa .caminho:focus-visible, .faixa.vermelha .caminho:hover { color: var(--branco) !important; }
 .folha .caminho:hover { color: var(--verde) !important; }
+
+/* =====================================================================
+   Marca: losango (bandeira) e logo empilhado
+   ===================================================================== */
+.losango { display: block; width: 100%; height: auto; overflow: visible; }
+.losango .l-f { fill: var(--los-fundo, var(--verde)); }
+.losango .l-c { fill: var(--los-centro, var(--menta)); transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+.logo-svd { display: block; width: 100%; height: auto; }
+.logo-svd .l-a { fill: var(--logo-a, var(--menta)); }
+.logo-svd .l-b { fill: var(--logo-b, var(--verde)); }
+
+/* barra: losango pequeno antes do nome */
+.marca-site .losango.mini { width: 36px; margin-right: 11px; flex: none; }
+.barra.sobre-vermelho .marca-site, .topo .marca-site { --los-centro: var(--branco); }
+.barra.clara .marca-site { --los-centro: var(--menta); }
+
+/* capa: a bandeira grande, com o centro acompanhando o ponteiro */
+.capa .miolo { align-items: stretch; }
+.capa-acoes { justify-content: flex-end; }
+.bandeira { --los-centro: var(--branco); width: 100%; max-width: 540px; margin: 0 0 auto auto; padding-bottom: clamp(36px, 5vw, 72px); }
+@media (max-width: 900px) {
+  .bandeira { order: -1; max-width: 300px; margin: 0 0 8px; padding-bottom: 28px; }
+}
+
+/* faixa escura: logo empilhado grande */
+.logo-grande { --logo-a: var(--menta); --logo-b: var(--branco); width: min(100%, 520px); }
+.chamada { font: italic 400 clamp(20px, 1.8vw, 26px)/1.4 var(--serif); color: rgba(255, 255, 255, .88); margin: 28px 0 0; }
+
+/* formulários: losango no topo da lateral */
+.los-lateral { --los-centro: var(--branco); width: 92px; margin-bottom: 28px; }
+
+/* rodapé */
+.rodape-site .assina { display: inline-flex; align-items: center; gap: 12px; }
+.rodape-site .assina i { --los-fundo: var(--menta); --los-centro: var(--verde-2); width: 30px; display: inline-block; flex: none; }
+.marca-site { white-space: nowrap; }
+@media (max-width: 640px) {
+  .marca-site .losango.mini { width: 28px; margin-right: 8px; }
+  .marca-site { font-size: 22px; }
+  .bandeira { max-width: 240px; }
+}
+
+/* barra: o logo é só o losango */
+.marca-site { gap: 0; transition: transform .2s ease; }
+.marca-site span, .marca-site b { display: none; }
+.marca-site .losango.mini { width: 58px; margin-right: 0; }
+.marca-site:hover { transform: scale(1.06); }
+.marca-site:focus-visible { outline: 2px dashed currentColor; outline-offset: 6px; }
+@media (max-width: 640px) { .marca-site .losango.mini { width: 46px; margin-right: 0; } }
