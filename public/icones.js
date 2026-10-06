@@ -21,5 +21,5 @@
     copiar: svg('<rect x="8" y="8" width="12" height="12" rx="1"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>'),
     check: svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
   };
-  window.ICONE_FUNCAO = { 'Escrita e pesquisa': 'escrita', 'Edição dos vídeos': 'edicao', Design: 'design', Marketing: 'marketing', Site: 'site' };
+  window.ICONE_FUNCAO = { 'Escrita e pesquisa': 'escrita', 'Edição dos vídeos': 'edicao', Audiovisual: 'edicao', Design: 'design', Marketing: 'marketing', Site: 'site' };
 })();

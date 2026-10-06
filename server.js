@@ -33,6 +33,8 @@ const txt = (v, max = 300) => String(v || '').trim().slice(0, max);
 const newToken = () => crypto.randomBytes(12).toString('base64url');
 const agora = () => new Date().toISOString();
 const urlOk = (u) => /^https?:\/\/[^\s]{3,}$/i.test(String(u || '').trim());
+// como as funções aparecem no site público (no controle continuam com o nome interno)
+const ROTULO_PUBLICO = { 'Edição dos vídeos': 'Audiovisual' };
 // link de rede social: aceita URL, endereço sem https ou @perfil (vira Instagram)
 const linkRede = (v) => {
   let u = String(v || '').trim();
@@ -291,7 +293,7 @@ const grupoPara = (c, tipo) => {
 // equipe que aparece na página inicial (só nome e função)
 app.get('/public/equipe', wrap(async (_req, res) => {
   res.json((await db.list('team')).filter((t) => t.mostrarNoSite !== false).map((t) => ({
-    id: t.id, nome: t.nome, funcoes: t.funcoes || (t.funcao ? [t.funcao] : []),
+    id: t.id, nome: t.nome, funcoes: (t.funcoes || (t.funcao ? [t.funcao] : [])).map((f) => ROTULO_PUBLICO[f] || f),
     bio: txt(t.bio, 1500), link: linkRede(t.link), idealizadora: !!t.idealizadora, foto: t.fotoV ? `/foto/${t.id}.jpg?v=${t.fotoV}` : '',
   })));
 }));
