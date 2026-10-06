@@ -143,7 +143,7 @@ window.GUIA = {
 "No momento, o que está pela frente são 4 anos, ou quem sabe até mais, se tratando do filho de um homem condenado por tentativa de golpe de estado, de entreguismo aos Estados Unidos, de escala 7x0, de volta das bets.",
 "Então mesmo não gostando de nenhum dos dois, me responde: é esse o futuro que você quer pro seu país? Pras você, pras pessoas que você ama?",
 "“Ah, mas que diferença faz se o PL já dominou o senado?”, nada disso. Quem você quer nos próximos 4 anos administrando recursos públicos, executando políticas públicas, escolhendo os Ministros da Saúde, da Educação?",
-"Você lembra quem foram os ministros da saúde no governo Bolsonaro quando morreram 700 milhões de pessoas e ele dizia que não era coveiro? Um ministro indicado por Flávio Bolsonaro pode permanecer na corte até os 75 anos.",
+"Você lembra quem foram os ministros da saúde no governo Bolsonaro quando morreram cerca de 700 mil pessoas e ele dizia que não era coveiro? Um ministro indicado por Flávio Bolsonaro pode permanecer na corte até os 75 anos.",
 "Olha o tamanho da decisão, pense bem, e lembre que no dia 25 de outubro, seu voto decide. Vote 13 nas urnas!"
 ]
 },
@@ -408,6 +408,19 @@ window.GUIA = {
 "4- Os dois querem que a lei de salário igual entre mulheres e homens saia do papel, com fiscalização. Flavio Bolsonaro não suporta a igualdade, ou seja ELE NÃO.",
 "5- O Cury pensa em cooperativas grandes em vários setores e Lula da prioridade as cooperativas populares e a economia solidária.",
 "Ou seja, se você votou em Augusto Cury, o candidato ideal pra você é o Lula e o seu voto é muito importante. Em nada Flavio Bolsonaro combina com Augusto Cury. Então já sabe: no dia 25 de outubro, seu voto decide. Vote 13 nas urnas!"
+]
+},
+{
+"n": 5,
+"titulo": "Augusto Cury, assim como Lula, valoriza a arte e a cultura!",
+"refs": [],
+"autor": "Diego Welerson",
+"roteiro": [
+"Você sabia que o livro mais famoso do Augusto Cury virou um filme de grande sucesso no cinema e na Netflix?",
+"Em 2016, a obra ‘O Vendedor de Sonhos’, de Augusto Cury, chegou aos cinemas de todo o país e emocionou milhões de pessoas ao falar sobre saúde mental, empatia e sentido da vida.",
+"Cury sempre defendeu que o teatro, o cinema e a literatura são fundamentais para formar seres humanos emocionalmente saudáveis. Mas, para que histórias transformadoras como essa continuem chegando às telas, o país precisa de leis de incentivo fortes e de investimento contínuo na produção audiovisual.",
+"O projeto do Lula garante o fortalecimento da Lei Rouanet e da Lei Aldir Blanc para financiar o audiovisual, enquanto a proposta do Flávio Bolsonaro reduz a presença do Estado nesse setor.",
+"Então se você quer mais arte que inspira e ajuda na manutenção da nossa saúde mental, já sabe: no dia 25 de outubro, seu voto decide. Vote 13 nas urnas!"
 ]
 }
 ],
@@ -888,7 +901,7 @@ window.GUIA = {
 "campos": [
 [
 "comunicar",
-"O Marco Legal dos Games foi sancionado no governo Lula e reconhece o desenvolvimento de jogos como setor econômico e cultural, abrindo caminho pra incentivo e fomento a estúdios brasileiros."
+"O Marco Legal dos Games foi sancionado no governo Lula e reconhece o desenvolvimento de jogos como setor econômico e cultural, abrindo caminho para incentivo e fomento a estúdios brasileiros. Flávio Bolsonaro não possui nenhum projeto voltado para a indústria ou fortalecimento dos games."
 ],
 [
 "gancho",
@@ -906,6 +919,49 @@ window.GUIA = {
 [
 "gancho",
 "\"Você conhece alguém que perdeu tudo no tigrinho?\""
+]
+]
+},
+{
+"titulo": "“Buff” na internet do bairro e escolas conectadas",
+"campos": [
+[
+"comunicar",
+"Internet rápida e de qualidade é a ferramenta básica para estudar, trabalhar e ter acesso a oportunidades. O projeto do Lula já levou conectividade com parâmetros adequados para 75% das escolas públicas e tem como meta universalizar o acesso com fibra óptica e 5g em todas as periferias e áreas rurais, além de abrir 111 novos Institutos Federais. O plano de Flávio Bolsonaro, por sua vez, foca na distribuição de bônus de internet e em parcerias com o setor privado. A decisão na urna é entre transformar a internet em direito público no seu bairro ou depender de vales e cupons."
+],
+[
+"gancho",
+"\"Por que o 5G roda liso no centro, mas no seu bairro não carrega nem uma vídeo aula?\""
+]
+]
+},
+{
+"titulo": "Não sejamos só consumidores de IA gringa: tecnologia soberana no Brasil!",
+"campos": [
+[
+"comunicar",
+"O Brasil tem talentos de sobra em programação, design e tecnologia, mas durante anos o país só importou soluções prontas do exterior. O plano de Lula coloca a transformação digital como eixo de desenvolvimento, investindo na criação de supercomputadores nacionais, inteligência artificial soberana e fomento à produção de software e games brasileiros. Já o plano de Flávio Bolsonaro aposta na atração de capital estrangeiro e na desregulamentação para patentes privadas. Valorizar a tecnologia nacional é garantir que nossos jovens talentos trabalhem com tecnologia de ponta sem precisar sair do Brasil."
+],
+[
+"gancho",
+"\"Você prefere que o Brasil só compre tecnologia dos EUA e da China ou que crie suas próprias inteligências artificiais e empregos de TI?”"
+]
+]
+},
+{
+"titulo": "Em quem seu personagem favorito dos jogos votaria?",
+"campos": [
+[
+"comunicar",
+"Quem jogou Red Dead Redemption 2 conhece a fundo a jornada do Arthur Morgan. Ele passou a vida enfrentando grandes magnatas gananciosos, como o bilionário Leviticus Cornwall, e fugindo dos Pinkertons, a grande força de repressão que só servia para proteger os interesses dos mais ricos e esmagar quem estivesse por baixo. A grande virada da vida do Arthur é quando ele percebe que o dinheiro fácil e a violência não constroem nada, e que a verdadeira redenção está em ajudar as famílias endividadas, proteger os vulneráveis e garantir que a comunidade viva com dignidade. Durante a história do jogo o personagem apoia populações indígenas e luta para recuperar suas terras, apoia as mulheres e pautas feministas, aniquila membros da KKK e sempre fica do lado de minorias. Se o Arthur vivesse no Brasil de hoje, ele jamais ficaria do lado de projetos que cortam investimentos do Estado na saúde e na educação para favorecer o setor privado, nem de quem defende a exaustiva escala 6x1. Ele estaria do lado do projeto de Lula, que defende o fortalecimento do SUS, a garantia de direitos trabalhistas, o apoio aos jovens da periferia e a proteção dos mais vulneráveis."
+],
+[
+"gancho",
+"\"Se o Arthur Morgan vivesse no Brasil de hoje, de que lado da história ele estaria no dia 25 de outubro?\""
+],
+[
+"gancho",
+"\"Você jogou Red Dead 2 até o fim e não percebeu que o Arthur Morgan odeia o discurso de quem defende os mais ricos?\""
 ]
 ]
 }
@@ -1070,7 +1126,7 @@ window.GUIA = {
 },
 {
 "nome": "Literatura",
-"dica": "Sabemos que pode não sei seu foco e preferência, mas lembre que nossa intenção é virar votos, então vamos focar no que eles gostam para criar uma conexão. Os livros de autoajuda, fé, finanças e desenvolvimento pessoal são os mais vendidos do Brasil e têm muito leitor de direita e centro. Não é pra criticar o livro nem quem lê. A ideia é partir de um valor que o leitor já admira (disciplina, prosperidade, família, fé, equilíbrio emocional) e mostrar que ele também está em jogo no dia 25.",
+"dica": "Sabemos que pode não ser seu foco e preferência, mas lembre que nossa intenção é virar votos, então vamos focar no que eles gostam para criar uma conexão. Os livros de autoajuda, fé, finanças e desenvolvimento pessoal são os mais vendidos do Brasil e têm muito leitor de direita e centro. Não é pra criticar o livro nem quem lê. A ideia é partir de um valor que o leitor já admira (disciplina, prosperidade, família, fé, equilíbrio emocional) e mostrar que ele também está em jogo no dia 25.",
 "ideias": [
 {
 "titulo": "Café com Deus Pai: fé que vira cuidado com o próximo",
