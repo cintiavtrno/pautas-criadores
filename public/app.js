@@ -346,7 +346,8 @@ VIEWS.pautas = {
 /* Equipe */
 VIEWS.equipe = {
   col: 'team',
-  bar: () => `<span class="sp"></span><button class="btn solid" data-new>Nova pessoa</button>`,
+  bar: () => `<span class="sp"></span><label class="btn ghost" title="Escolha várias fotos de uma vez. O nome do arquivo precisa ter o nome da pessoa (ex.: maria.jpg, gabriel-caldas.png).">Enviar várias fotos<input type="file" accept="image/*" multiple hidden data-fotos-lote /></label><button class="btn solid" data-new>Nova pessoa</button>`,
+  bindBar(bar) { const inp = $('[data-fotos-lote]', bar); if (inp) inp.onchange = () => { fotosEmLote([...inp.files]); inp.value = ''; }; },
   filtered: () => S.team,
   groups(list) {
     const out = FUNCOES.map((fn) => ({ title: fn, items: list.filter((t) => funcoesDe(t)[0] === fn) }));
@@ -357,7 +358,7 @@ VIEWS.equipe = {
   row(t) {
     const n = S.creators.filter((c) => c.roteiristaId === t.id || c.editorId === t.id).length;
     const u = S.usuarios.find((x) => x.teamId === t.id && !x.desativado);
-    return `<span class="who"><span class="name">${esc(t.nome)}${u ? `<span class="flag" style="color:var(--ink-2)">${u.papel === 'admin' ? 'admin' : 'tem acesso'}</span>` : ''}</span><span class="muted">${esc(t.contato || 'sem contato')}</span></span>
+    return `<span class="who">${t.fotoV ? `<img class="mini-foto" src="/foto/${esc(t.id)}.jpg?v=${esc(t.fotoV)}" alt="" loading="lazy" />` : ''}<span class="name">${esc(t.nome)}${u ? `<span class="flag" style="color:var(--ink-2)">${u.papel === 'admin' ? 'admin' : 'tem acesso'}</span>` : ''}</span><span class="muted">${esc(t.contato || 'sem contato')}</span></span>
       <span class="tag">${esc(funcoesDe(t).join(', ') || 'sem função')}</span><span class="line ok">${n} criador${n === 1 ? '' : 'es'}</span><span></span>`;
   },
   async create() { return api.save('team', { nome: 'Nova pessoa', funcoes: [], contato: '', obs: '' }); },
@@ -375,9 +376,23 @@ VIEWS.equipe = {
             const sel = funcoesDe(t);
             return [...sel, ...FUNCOES.filter((f) => !sel.includes(f))].map((f) => ({ v: f, l: f }));
           } }, { ...t, funcoes: funcoesDe(t) })}
-          ${field({ k: 'mostrarNoSite', type: 'bool', text: 'Aparece na página inicial, em "Quem está fazendo"', full: true }, { ...t, mostrarNoSite: t.mostrarNoSite !== false })}
-          ${field({ k: 'obs', type: 'textarea', label: 'Observações', full: true }, t)}
+          ${field({ k: 'obs', type: 'textarea', label: 'Observações (interno)', full: true }, t)}
         </div></section>
+        <section class="fs"><h3>Na página inicial</h3>
+          <div class="foto-eq" data-foto-alvo>
+            <div class="foto-prev">${t.fotoV ? `<img src="/foto/${esc(t.id)}.jpg?v=${esc(t.fotoV)}" alt="Foto de ${esc(t.nome)}" />` : `<span>${esc(iniciaisNome(t.nome))}</span>`}</div>
+            <div class="foto-acoes">
+              <label class="btn ghost">${t.fotoV ? 'Trocar foto' : 'Escolher foto'}<input type="file" accept="image/*" hidden data-foto-arq /></label>
+              ${t.fotoV ? '<button class="btn ghost" type="button" data-foto-del>Remover</button>' : ''}
+              <p class="foto-dica">Ou arraste a foto para cá. Pode mandar no tamanho original: o site reduz sem perder a nitidez.</p>
+            </div>
+          </div>
+          <div class="grid2" style="margin-top:18px">
+            ${field({ k: 'bio', type: 'textarea', label: 'Mini bio (quem é e o que faz)', full: true, ph: 'Ex.: Designer e ilustradora de Salvador. Fez a identidade visual do seu voto decide.' }, t)}
+            ${field({ k: 'link', label: 'Rede social', full: true, ph: 'https://instagram.com/perfil ou @perfil', lazy: true }, t)}
+            ${field({ k: 'mostrarNoSite', type: 'bool', text: 'Aparece na página inicial, em "Quem está fazendo"', full: true }, { ...t, mostrarNoSite: t.mostrarNoSite !== false })}
+          </div>
+        </section>
         <section class="fs"><h3>Acesso ao controle</h3>${acessoHtml(t)}</section>
         <section class="fs"><h3>Com quem está trabalhando</h3>
           <div style="font-size:15px">${com.map((c) => `${esc(c.nome)} <span style="font:400 12px var(--mono);color:var(--ink-3)">${c.roteiristaId === t.id && c.editorId === t.id ? 'escrita e edição' : c.roteiristaId === t.id ? 'escrita e pesquisa' : 'edição do vídeo'}</span>`).join('<br>') || '<span style="color:var(--ink-3)">ninguém ainda</span>'}</div>
@@ -386,8 +401,69 @@ VIEWS.equipe = {
       </div>`;
   },
   onSaved(k, t) { if (k === 'nome') $('[data-h=nome]').textContent = t.nome; if (k === 'funcoes') renderDetail(); },
-  bind(box, t) { bindAcesso(box, t); },
+  bind(box, t) {
+    bindAcesso(box, t);
+    const alvo = $('[data-foto-alvo]', box);
+    const arq = $('[data-foto-arq]', box);
+    if (arq) arq.onchange = () => { if (arq.files[0]) enviaFoto(t, arq.files[0]); };
+    const del = $('[data-foto-del]', box);
+    if (del) del.onclick = async () => {
+      if (!confirm(`Remover a foto de ${t.nome}?`)) return;
+      try { Object.assign(t, await req(`/api/team/${t.id}/foto`, { method: 'DELETE' })); renderDetail(); renderRows(); toast('Foto removida'); } catch (e) { toast(e.message); }
+    };
+    if (alvo) {
+      alvo.ondragover = (e) => { e.preventDefault(); alvo.classList.add('arrastando'); };
+      alvo.ondragleave = () => alvo.classList.remove('arrastando');
+      alvo.ondrop = (e) => { e.preventDefault(); alvo.classList.remove('arrastando'); const f = [...e.dataTransfer.files].find((x) => x.type.startsWith('image/')); if (f) enviaFoto(t, f); };
+    }
+  },
 };
+
+/* fotos da equipe: o navegador reduz para no máximo 1200 px e manda em JPEG */
+const iniciaisNome = (n) => String(n || '').split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+async function reduzFoto(file) {
+  let img;
+  try { img = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+  catch {
+    img = await new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = URL.createObjectURL(file); })
+      .catch(() => { throw new Error(/heic|heif/i.test(file.name + file.type) ? `${file.name}: foto de iPhone (HEIC) não abre no navegador. Salve como JPG e mande de novo.` : `${file.name}: não consegui abrir essa imagem.`); });
+  }
+  const w = img.width, h = img.height, k = Math.min(1, 1200 / Math.max(w, h));
+  const c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+  const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.86);
+}
+async function enviaFoto(t, file, silencioso) {
+  try {
+    if (!silencioso) toast('Enviando foto…');
+    const foto = await reduzFoto(file);
+    Object.assign(t, await req(`/api/team/${t.id}/foto`, { method: 'POST', body: JSON.stringify({ foto }) }));
+    if (!silencioso) { renderDetail(); renderRows(); toast('Foto salva'); }
+    return true;
+  } catch (e) { toast(e.message); return false; }
+}
+const normaliza = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+async function fotosEmLote(files) {
+  if (!files.length) return;
+  const ligados = [], sobraram = [];
+  for (const f of files) {
+    const partes = normaliza(f.name.replace(/\.[^.]+$/, '')).split(/[^a-z0-9]+/).filter((x) => x.length > 1);
+    let melhor = null, pontos = 0, empate = false;
+    for (const t of S.team) {
+      const login = S.usuarios.find((u) => u.teamId === t.id)?.login;
+      const nomes = [...normaliza(t.nome).split(/\s+/), login].filter(Boolean);
+      const p = nomes.filter((n) => partes.includes(n)).length;
+      if (p > pontos) { melhor = t; pontos = p; empate = false; } else if (p && p === pontos) empate = true;
+    }
+    if (melhor && !empate) ligados.push([melhor, f]); else sobraram.push(f.name);
+  }
+  let ok = 0;
+  for (const [i, [t, f]] of ligados.entries()) { toast(`Enviando ${i + 1} de ${ligados.length}…`); if (await enviaFoto(t, f, true)) ok++; }
+  renderRows(); renderDetail();
+  const msg = `${ok} foto${ok === 1 ? '' : 's'} salva${ok === 1 ? '' : 's'}.` + (sobraram.length ? `\n\nNão reconheci de quem são: ${sobraram.join(', ')}.\nRenomeie com o nome da pessoa ou envie pela ficha dela.` : '');
+  alert(msg);
+}
 
 /* Pessoas comuns */
 VIEWS.pessoas = {
@@ -700,6 +776,7 @@ function renderSplit() {
     renderStats(); renderRows();
     const first = $('#detail input[data-k]'); if (first) { first.focus(); first.select(); }
   };
+  if (V.bindBar) V.bindBar(bar);
   renderRows(); renderDetail();
 }
 

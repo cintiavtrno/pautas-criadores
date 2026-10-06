@@ -507,3 +507,41 @@ h1, .titulo-secao, .texto p.titulo-secao, .capa h1, .lateral h1, .folha > h1, .t
 .marca-site:hover { transform: scale(1.06); }
 .marca-site:focus-visible { outline: 2px dashed currentColor; outline-offset: 6px; }
 @media (max-width: 640px) { .marca-site .losango.mini { width: 46px; margin-right: 0; } }
+
+/* =====================================================================
+   Equipe: retratos em duotone verde, cor ao passar o mouse
+   ===================================================================== */
+.filtro-eq { display: flex; flex-wrap: wrap; gap: 8px; margin: 40px 0 0; }
+.filtro-eq button {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font: 500 12.5px var(--mono); text-transform: uppercase; letter-spacing: .06em;
+  padding: 10px 14px; background: none; color: var(--verde-tinta); border: 1.5px solid var(--verde-tinta); border-radius: 0;
+  transition: background .15s, color .15s;
+}
+.filtro-eq button .ico { width: 17px; height: 17px; }
+.filtro-eq button i { font-style: normal; opacity: .6; }
+.filtro-eq button:hover { background: rgba(97, 191, 153, .18); }
+.filtro-eq button.on { background: var(--verde); border-color: var(--verde); color: var(--branco); }
+.filtro-eq button:focus-visible { outline: 2px dashed var(--verde); outline-offset: 3px; }
+.desc-funcao { font: italic 400 19px/1.5 var(--serif); color: var(--tinta-2); min-height: 1.5em; margin: 18px 0 0; }
+
+.gente-eq { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 48px clamp(20px, 2.6vw, 40px); margin-top: 28px; }
+.gente-eq > .muted { grid-column: 1 / -1; }
+.pessoa-eq { transition: opacity .3s ease, filter .3s ease; }
+.gente-eq.filtrando .pessoa-eq:not(.dentro) { opacity: .22; filter: grayscale(1); }
+.retrato { margin: 0 0 16px; aspect-ratio: 4 / 5; background: var(--menta); position: relative; overflow: hidden; }
+.retrato img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center 25%; display: block;
+  filter: grayscale(1) contrast(1.08) brightness(1.04); mix-blend-mode: multiply;
+  transition: filter .45s ease, transform .6s cubic-bezier(.2, .8, .2, 1);
+}
+.retrato .ini { position: absolute; inset: 0; display: grid; place-items: center; font: 800 clamp(48px, 5vw, 76px)/1 var(--display); letter-spacing: -.05em; color: var(--branco); }
+.pessoa-eq:hover .retrato img, .pessoa-eq:focus-within .retrato img, .pessoa-eq.cor .retrato img { filter: none; mix-blend-mode: normal; transform: scale(1.03); }
+.pessoa-eq h3 { font: 800 clamp(22px, 1.8vw, 27px)/1.05 var(--display); letter-spacing: -.035em; margin: 0; color: var(--tinta); }
+.pessoa-eq .func { font: 500 11.5px var(--mono); text-transform: uppercase; letter-spacing: .07em; color: var(--verde); margin: 8px 0 0; }
+.pessoa-eq .bio { font-size: 16px; line-height: 1.5; color: var(--tinta-2); margin: 12px 0 0; }
+.pessoa-eq .rede { display: inline-block; margin-top: 12px; font: 500 12.5px var(--mono); color: var(--verde); text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.pessoa-eq .rede:hover { color: var(--verde-tinta); text-decoration-color: var(--menta); }
+@media (max-width: 1100px) { .gente-eq { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .gente-eq { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 16px; } .pessoa-eq .bio { font-size: 15px; } }
+@media (prefers-reduced-motion: reduce) { .retrato img, .pessoa-eq { transition: none; } }

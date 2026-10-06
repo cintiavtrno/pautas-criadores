@@ -19,7 +19,10 @@ app.disable('x-powered-by');
 app.set('trust proxy', 1); // o Render fica na frente: assim o IP real de quem acessa é o que conta
 app.use(seg.headers);
 app.use(seg.geral);
-app.use(express.json({ limit: '200kb' }));
+const jsonPadrao = express.json({ limit: '200kb' });
+const jsonFoto = express.json({ limit: '4mb' });
+const ROTA_FOTO = /^\/api\/team\/[^/]+\/foto$/;
+app.use((req, res, next) => (ROTA_FOTO.test(req.path) ? jsonFoto : jsonPadrao)(req, res, next));
 app.use(auth.sessao(db));
 
 const wrap = (fn) => (req, res, next) => fn(req, res, next).catch((e) => {
@@ -30,6 +33,14 @@ const txt = (v, max = 300) => String(v || '').trim().slice(0, max);
 const newToken = () => crypto.randomBytes(12).toString('base64url');
 const agora = () => new Date().toISOString();
 const urlOk = (u) => /^https?:\/\/[^\s]{3,}$/i.test(String(u || '').trim());
+// link de rede social: aceita URL, endereço sem https ou @perfil (vira Instagram)
+const linkRede = (v) => {
+  let u = String(v || '').trim();
+  if (!u) return '';
+  if (/^@[^\s/]{1,40}$/.test(u)) u = `https://instagram.com/${u.slice(1)}`;
+  else if (!/^https?:\/\//i.test(u)) u = `https://${u}`;
+  return /^https?:\/\/[^\s<>"']{3,300}$/i.test(u) ? u : '';
+};
 const slug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '');
 
 // ações que mudam dados precisam vir do próprio site (proteção contra CSRF)
@@ -51,6 +62,14 @@ app.get('/admin', (_req, res) => res.sendFile(path.join(PUB, 'admin.html')));
 app.get('/participar', (_req, res) => res.sendFile(path.join(PUB, 'participar.html')));
 app.get('/p/:token', (_req, res) => res.sendFile(path.join(PUB, 'painel.html')));
 app.get('/enviar-video', (_req, res) => res.sendFile(path.join(PUB, 'enviar-video.html')));
+// foto da equipe (fica no banco, porque o disco do Render é apagado a cada deploy)
+app.get('/foto/:id.jpg', wrap(async (req, res) => {
+  const f = await db.get('fotos', `foto-${req.params.id}`);
+  if (!f) return res.status(404).end();
+  res.set('Content-Type', 'image/jpeg');
+  res.set('Cache-Control', req.query.v ? 'public, max-age=31536000, immutable' : 'public, max-age=300');
+  res.send(Buffer.from(f.data, 'base64'));
+}));
 app.get('/escolha/:token', (req, res) => res.redirect(301, `/p/${encodeURIComponent(req.params.token)}`));
 
 /* =========================================================
@@ -118,6 +137,25 @@ app.put('/api/minhas-tarefas/:id', wrap(async (req, res) => {
 
 /* ---- daqui pra baixo, só administradoras ---- */
 app.use('/api', soAdmin);
+
+/* foto da equipe: chega já reduzida pelo navegador, em JPEG */
+app.post('/api/team/:id/foto', wrap(async (req, res) => {
+  const t = await db.get('team', req.params.id);
+  if (!t) return res.status(404).json({ error: 'Pessoa não encontrada.' });
+  const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(req.body?.foto || ''));
+  if (!m) return res.status(400).json({ error: 'Foto inválida.' });
+  const buf = Buffer.from(m[1], 'base64');
+  if (buf.length < 500 || buf.length > 2.5 * 1024 * 1024 || buf[0] !== 0xff || buf[1] !== 0xd8) return res.status(400).json({ error: 'Foto inválida ou grande demais.' });
+  const fid = `foto-${t.id}`;
+  if (await db.get('fotos', fid)) await db.update('fotos', fid, { data: m[1] }); else await db.insert('fotos', { id: fid, teamId: t.id, data: m[1] });
+  res.json(await db.update('team', t.id, { fotoV: Date.now().toString(36) }));
+}));
+app.delete('/api/team/:id/foto', wrap(async (req, res) => {
+  const t = await db.get('team', req.params.id);
+  if (!t) return res.status(404).json({ error: 'Pessoa não encontrada.' });
+  await db.remove('fotos', `foto-${t.id}`);
+  res.json(await db.update('team', t.id, { fotoV: '' }));
+}));
 
 /* acessos (usuários do controle interno) */
 const usuarioSemSenha = ({ senhaHash, ...u }) => u;
@@ -211,6 +249,7 @@ app.delete('/api/:col/:id', colecaoOk, wrap(async (req, res) => {
     });
     await limpa('producao', (t) => ((t.responsaveis || []).includes(id) ? { responsaveis: t.responsaveis.filter((x) => x !== id) } : null));
     await limpa('usuarios', (u) => (u.teamId === id ? { teamId: '', desativado: true } : null));
+    await db.remove('fotos', `foto-${id}`);
   }
   res.json({ ok: true });
 }));
@@ -246,7 +285,10 @@ app.get('/public/config', wrap(async (_req, res) => {
 }));
 // equipe que aparece na página inicial (só nome e função)
 app.get('/public/equipe', wrap(async (_req, res) => {
-  res.json((await db.list('team')).filter((t) => t.mostrarNoSite !== false).map((t) => ({ nome: t.nome, funcoes: t.funcoes || (t.funcao ? [t.funcao] : []) })));
+  res.json((await db.list('team')).filter((t) => t.mostrarNoSite !== false).map((t) => ({
+    id: t.id, nome: t.nome, funcoes: t.funcoes || (t.funcao ? [t.funcao] : []),
+    bio: txt(t.bio, 400), link: linkRede(t.link), foto: t.fotoV ? `/foto/${t.id}.jpg?v=${t.fotoV}` : '',
+  })));
 }));
 // pautas que dá para escolher já no cadastro
 app.get('/public/pautas', wrap(async (req, res) => {
