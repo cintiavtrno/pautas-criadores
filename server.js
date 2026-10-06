@@ -283,8 +283,14 @@ app.get('/public/config', wrap(async (_req, res) => {
   res.json({
     turnstile: seg.turnstileAtivo() ? process.env.TURNSTILE_SITE_KEY : '',
     materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
+    apoiadores: apoiadoresDe(c),
   });
 }));
+// apoiadores: em Ajustes, um por linha, "Nome | link"
+const apoiadoresDe = (c) => String(c.apoiadores || '').split('\n').map((l) => {
+  const [nome, link] = l.split('|').map((x) => (x || '').trim());
+  return nome ? { nome: txt(nome, 120), link: linkRede(link) } : null;
+}).filter(Boolean).slice(0, 60);
 // grupo do WhatsApp: pessoa comum recebe o da sociedade civil; criador recebe o dos criadores,
 // que é fechado (a equipe aprova cada entrada no próprio WhatsApp)
 const grupoPara = (c, tipo) => {
@@ -661,6 +667,12 @@ app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
         grupoWhatsappCriadores: 'https://chat.whatsapp.com/EdAastgNhQi3h9kLWKF5mm',
       });
       await db.update('meta', m.id, { gruposDefinidos: true });
+    }
+    const m2 = (await db.list('meta'))[0];
+    if (m2 && !m2.apoiadoresDefinidos) {
+      const cfg = (await db.list('config'))[0] || (await db.insert('config', {}));
+      if (!cfg.apoiadores) await db.update('config', cfg.id, { apoiadores: 'Iara Lee | https://www.instagram.com/iaralee.explores.brazil/' });
+      await db.update('meta', m2.id, { apoiadoresDefinidos: true });
     }
   }
 

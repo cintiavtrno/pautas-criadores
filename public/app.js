@@ -690,6 +690,9 @@ async function renderAjustes() {
       ${field({ k: 'grupoWhatsappCriadores', type: 'url', label: 'Grupo do WhatsApp dos criadores (aparece para quem se cadastra como criador; deixe a aprovação de entrada ligada no WhatsApp)', full: true, ph: 'https://chat.whatsapp.com/…' }, c)}
       ${field({ k: 'materialPautas', type: 'url', label: 'Link do material com as pautas e roteiros (PDF no Drive, por exemplo)', full: true, ph: 'https://' }, c)}
     </div></section>
+    <section class="fs"><h3>Apoiadores (aparecem no fim da página inicial)</h3><div class="grid2">
+      ${field({ k: 'apoiadores', type: 'textarea', label: 'Um por linha, no formato: Nome | link (o link é opcional)', full: true, ph: 'Iara Lee | https://www.instagram.com/iaralee.explores.brazil/' }, c)}
+    </div></section>
     <section class="fs"><h3>Contagem de participantes</h3><div class="grid2">
       ${field({ k: 'participantesExtra', label: 'Pessoas participando fora do site', ph: 'ex.: 15' }, c)}
       <div class="f"><span>Como o site conta</span><div style="font-size:14.5px;color:var(--ink-2)">equipe (${S.team.length}) + cadastros (${S.pessoas.length + S.creators.filter((x) => x.inscreveuSe || ANDAMENTO.includes(x.status)).length}) + este número</div></div>

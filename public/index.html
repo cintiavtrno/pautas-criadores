@@ -140,12 +140,33 @@
   </div>
 </section>
 
+<section class="faixa apoio" id="apoiadores" hidden>
+  <div class="miolo apoio-in">
+    <div class="revela">
+      <p class="kicker">apoiadores</p>
+      <p class="titulo-secao">Quem apoia o seu voto decide</p>
+      <p class="apoio-txt">Doações e apoio que ajudam a articulação a chegar mais longe.</p>
+    </div>
+    <ul class="apoio-lista revela" id="lista-apoio"></ul>
+  </div>
+</section>
+
 <footer class="rodape-site">
   <div class="miolo"><span class="assina"><i data-marca="losango"></i>Já se cadastrou? Use o link pessoal que você recebeu.</span><a href="/admin">acesso da equipe</a></div>
 </footer>
 
 <script>
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// apoiadores (editados em Ajustes, no controle)
+fetch('/public/config').then((r) => r.json()).then((c) => {
+  const lista = c.apoiadores || [];
+  if (!lista.length) return;
+  const handle = (u) => { try { const p = new URL(u).pathname.split('/').filter(Boolean)[0]; return /instagram\.com/.test(u) && p ? '@' + p : u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''); } catch { return ''; } };
+  document.getElementById('lista-apoio').innerHTML = lista.map((a) => `<li>${ICONE.losango || ''}<div><strong>${esc(a.nome)}</strong>${a.link ? `<a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(handle(a.link))}</a>` : ''}</div></li>`).join('');
+  document.getElementById('apoiadores').hidden = false;
+  observaRevela(document.getElementById('apoiadores'));
+}).catch(() => {});
 
 // números da capa
 fetch('/public/numeros').then((r) => r.json()).then((n) => {

@@ -736,3 +736,14 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 }
 @media (max-width: 360px) { .barra nav a { padding: 7px 8px; font-size: 11px; letter-spacing: .03em; } }
 @media (max-width: 860px) { .barra nav a[href="/guia"] { background: var(--verde); border-color: var(--verde); color: var(--branco) !important; } }
+
+/* apoiadores (fim da página inicial) */
+.faixa.apoio { background: var(--papel); border-top: 2px solid var(--verde-tinta); }
+.apoio-in { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 80px); align-items: end; }
+.apoio-txt { font-size: 18px; color: var(--tinta-2); max-width: 46ch; margin: 18px 0 0; }
+.apoio-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 28px; border-top: 2px solid var(--verde-tinta); }
+.apoio-lista li { display: flex; gap: 14px; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--linha); }
+.apoio-lista li .ico { width: 34px; height: 34px; color: var(--verde); flex: none; }
+.apoio-lista strong { display: block; font: 800 26px/1.05 var(--display); letter-spacing: -.035em; color: var(--tinta); }
+.apoio-lista a { font: 500 13px var(--mono); color: var(--verde); text-underline-offset: 4px; }
+@media (max-width: 900px) { .apoio-in { grid-template-columns: 1fr; } }
