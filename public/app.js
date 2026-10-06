@@ -346,8 +346,11 @@ VIEWS.pautas = {
 /* Equipe */
 VIEWS.equipe = {
   col: 'team',
-  bar: () => `<span class="sp"></span><label class="btn ghost" title="Escolha várias fotos de uma vez. O nome do arquivo precisa ter o nome da pessoa (ex.: maria.jpg, gabriel-caldas.png).">Enviar várias fotos<input type="file" accept="image/*" multiple hidden data-fotos-lote /></label><button class="btn solid" data-new>Nova pessoa</button>`,
-  bindBar(bar) { const inp = $('[data-fotos-lote]', bar); if (inp) inp.onchange = () => { fotosEmLote([...inp.files]); inp.value = ''; }; },
+  bar: () => `<span class="sp"></span><label class="btn ghost" title="Escolha várias fotos de uma vez. O nome do arquivo precisa ter o nome da pessoa (ex.: maria.jpg, gabriel-caldas.png).">Enviar várias fotos<input type="file" accept="image/*" multiple hidden data-fotos-lote /></label><button class="btn ghost" type="button" data-fotos-baixar>Baixar fotos</button><button class="btn solid" data-new>Nova pessoa</button>`,
+  bindBar(bar) {
+    const inp = $('[data-fotos-lote]', bar); if (inp) inp.onchange = () => { fotosEmLote([...inp.files]); inp.value = ''; };
+    const bx = $('[data-fotos-baixar]', bar); if (bx) bx.onclick = baixaFotos;
+  },
   filtered: () => S.team,
   groups(list) {
     const out = FUNCOES.map((fn) => ({ title: fn, items: list.filter((t) => funcoesDe(t)[0] === fn) }));
@@ -419,6 +422,22 @@ VIEWS.equipe = {
     }
   },
 };
+
+/* baixa todas as fotos da equipe, uma por pessoa, com o nome no arquivo */
+async function baixaFotos() {
+  const com = S.team.filter((t) => t.fotoV);
+  if (!com.length) return toast('Ninguém tem foto ainda.');
+  for (const [i, t] of com.entries()) {
+    toast(`Baixando ${i + 1} de ${com.length}…`);
+    const b = await fetch(`/foto/${t.id}.jpg?v=${t.fotoV}`).then((r) => r.blob());
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = `svd-equipe-${normaliza(t.nome).trim().replace(/[^a-z0-9]+/g, '-')}.jpg`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  toast(`${com.length} fotos baixadas`);
+}
 
 /* fotos da equipe: o navegador reduz para no máximo 1200 px e manda em JPEG */
 const iniciaisNome = (n) => String(n || '').split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
