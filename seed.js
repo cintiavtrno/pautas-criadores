@@ -116,9 +116,9 @@ const equipe = [
   { nome: 'Ramires Montenegro', funcoes: ['Edição dos vídeos'] },
   { nome: 'João Bigon', funcoes: ['Escrita e pesquisa'] },
   { nome: 'Matheus Pestana', funcoes: ['Escrita e pesquisa'] },
-  { nome: 'Camilla Apresentação', funcoes: ['Escrita e pesquisa'] },
-  { nome: 'Cíntia Vitorino', funcoes: ['Site', 'Escrita e pesquisa'] },
-  { nome: 'Yara Damasceno', funcoes: ['Escrita e pesquisa'] },
+  { nome: 'Camilla Apresentação', funcoes: ['Escrita e pesquisa'], idealizadora: true },
+  { nome: 'Cíntia Vitorino', funcoes: ['Site', 'Escrita e pesquisa'], idealizadora: true },
+  { nome: 'Yara Damasceno', funcoes: ['Escrita e pesquisa'], idealizadora: true },
   { nome: 'Klismann Schramm', funcoes: ['Edição dos vídeos'] },
   { nome: 'Rahuany Velleda', funcoes: ['Design'] },
 ];
@@ -153,8 +153,11 @@ const COM_QUEM = ['Família', 'Amigos', 'Colegas de trabalho ou escola', 'Storie
 
 // Correções na equipe (rodam uma vez, antes de semear)
 const correcoesEquipe = [
-  { id: '2026-10-05-camilla', nome: 'Camilla', set: { nome: 'Camilla Apresentação', funcoes: ['Escrita e pesquisa'] } },
+  { id: '2026-10-05-camilla', nome: 'Camilla', set: { nome: 'Camilla Apresentação', funcoes: ['Escrita e pesquisa'], idealizadora: true } },
   { id: '2026-10-05-cintia', nome: 'Cíntia Vitorino', set: { funcoes: ['Site', 'Escrita e pesquisa'] } },
+  { id: '2026-10-06-ideia-cintia', nome: 'Cíntia Vitorino', set: { idealizadora: true } },
+  { id: '2026-10-06-ideia-camilla', nome: 'Camilla Apresentação', set: { idealizadora: true } },
+  { id: '2026-10-06-ideia-yara', nome: 'Yara Damasceno', set: { idealizadora: true } },
 ];
 
 module.exports = { nichos, criadores, correcoes, equipe, admins, acessosEquipe, ETAPAS, COM_QUEM, correcoesEquipe };

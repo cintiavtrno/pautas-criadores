@@ -545,3 +545,20 @@ h1, .titulo-secao, .texto p.titulo-secao, .capa h1, .lateral h1, .folha > h1, .t
 @media (max-width: 1100px) { .gente-eq { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .gente-eq { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 16px; } .pessoa-eq .bio { font-size: 15px; } }
 @media (prefers-reduced-motion: reduce) { .retrato img, .pessoa-eq { transition: none; } }
+
+/* quem idealizou: retratos maiores, antes da equipe por função */
+.ideia { margin-bottom: clamp(72px, 9vw, 128px); }
+.ideia-cab { display: block; }
+.ideia-gente { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 3vw, 48px); margin-top: 36px; border-top: 2px solid var(--verde-tinta); padding-top: 28px; }
+.pessoa-eq.grande .retrato { aspect-ratio: 4 / 5; margin-bottom: 18px; }
+.pessoa-eq.grande .func { margin: 0 0 8px; }
+.pessoa-eq.grande h3 { font-size: clamp(30px, 3vw, 46px); letter-spacing: -.045em; line-height: .95; }
+.pessoa-eq.grande .bio { font-size: 17.5px; max-width: 34ch; }
+.pessoa-eq .func b { font-weight: 500; background: var(--menta); color: var(--branco); padding: 1px 5px; margin-right: 2px; }
+@media (max-width: 760px) {
+  .ideia-gente { grid-template-columns: 1fr; gap: 40px; }
+  .pessoa-eq.grande { display: grid; grid-template-columns: 42% 1fr; gap: 0 16px; align-items: start; }
+  .pessoa-eq.grande .retrato { grid-row: span 4; margin: 0; }
+  .pessoa-eq.grande h3 { font-size: 28px; }
+  .pessoa-eq.grande .bio { font-size: 15px; }
+}

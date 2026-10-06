@@ -7,6 +7,7 @@
     edicao: svg('<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M10 9l5 3-5 3z"/>'),
     design: svg('<rect x="3.5" y="9.5" width="10.5" height="10.5"/><circle cx="15" cy="9" r="5.5"/>'),
     marketing: svg('<circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="M8.3 10.8l7.4-4.1M8.3 13.2l7.4 4.1"/>'),
+    losango: svg('<path d="M12 5.5l9.5 6.5-9.5 6.5L2.5 12z"/><circle cx="12" cy="12" r="2.6"/>'),
     site: svg('<path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/><path d="M13.5 5l-3 14"/>'),
     pessoa: svg('<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-3.5 3.8-5.5 7-5.5s6 2 7 5.5"/>'),
     camera: svg('<path d="M3 8a1 1 0 0 1 1-1h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><circle cx="12" cy="13" r="3.5"/>'),

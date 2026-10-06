@@ -358,7 +358,7 @@ VIEWS.equipe = {
   row(t) {
     const n = S.creators.filter((c) => c.roteiristaId === t.id || c.editorId === t.id).length;
     const u = S.usuarios.find((x) => x.teamId === t.id && !x.desativado);
-    return `<span class="who">${t.fotoV ? `<img class="mini-foto" src="/foto/${esc(t.id)}.jpg?v=${esc(t.fotoV)}" alt="" loading="lazy" />` : ''}<span class="name">${esc(t.nome)}${u ? `<span class="flag" style="color:var(--ink-2)">${u.papel === 'admin' ? 'admin' : 'tem acesso'}</span>` : ''}</span><span class="muted">${esc(t.contato || 'sem contato')}</span></span>
+    return `<span class="who" ${t.idealizadora ? 'title="idealizadora"' : ''}>${t.fotoV ? `<img class="mini-foto" src="/foto/${esc(t.id)}.jpg?v=${esc(t.fotoV)}" alt="" loading="lazy" />` : ''}<span class="name">${esc(t.nome)}${u ? `<span class="flag" style="color:var(--ink-2)">${u.papel === 'admin' ? 'admin' : 'tem acesso'}</span>` : ''}</span><span class="muted">${esc(t.contato || 'sem contato')}</span></span>
       <span class="tag">${esc(funcoesDe(t).join(', ') || 'sem função')}</span><span class="line ok">${n} criador${n === 1 ? '' : 'es'}</span><span></span>`;
   },
   async create() { return api.save('team', { nome: 'Nova pessoa', funcoes: [], contato: '', obs: '' }); },
@@ -391,6 +391,7 @@ VIEWS.equipe = {
             ${field({ k: 'bio', type: 'textarea', label: 'Mini bio (quem é e o que faz)', full: true, ph: 'Ex.: Designer e ilustradora de Salvador. Fez a identidade visual do seu voto decide.' }, t)}
             ${field({ k: 'link', label: 'Rede social', full: true, ph: 'https://instagram.com/perfil ou @perfil', lazy: true }, t)}
             ${field({ k: 'mostrarNoSite', type: 'bool', text: 'Aparece na página inicial, em "Quem está fazendo"', full: true }, { ...t, mostrarNoSite: t.mostrarNoSite !== false })}
+            ${field({ k: 'idealizadora', type: 'bool', text: 'Idealizou o seu voto decide (aparece também em destaque, em "Quem idealizou")', full: true }, t)}
           </div>
         </section>
         <section class="fs"><h3>Acesso ao controle</h3>${acessoHtml(t)}</section>
