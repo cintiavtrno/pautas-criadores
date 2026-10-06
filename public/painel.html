@@ -86,7 +86,7 @@ function topo() {
     </dl>
   </div>
   <div class="topo-in atalhos">
-    ${D.grupoWhatsapp ? `<a href="${esc(D.grupoWhatsapp)}" target="_blank" rel="noopener noreferrer">${ICONE.conversa} Grupo do WhatsApp</a>` : D.grupoPendente ? `<span class="aguarda">${ICONE.conversa} Grupo dos criadores: liberado depois que a equipe conferir seu perfil</span>` : ''}
+    ${D.grupoWhatsapp ? `<a href="${esc(D.grupoWhatsapp)}" target="_blank" rel="noopener noreferrer" ${D.tipo === 'criador' ? 'title="Grupo fechado: a equipe aprova a entrada"' : ''}>${ICONE.conversa} ${D.tipo === 'criador' ? 'Grupo dos criadores' : 'Grupo do WhatsApp'}</a>` : ''}
     ${D.materialPautas ? `<a href="${esc(D.materialPautas)}" target="_blank" rel="noopener noreferrer">${ICONE.documento} Material das pautas</a>` : ''}
   </div></section>
   <nav class="abas-p"><div class="topo-in">

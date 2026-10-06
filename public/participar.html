@@ -180,8 +180,7 @@ f.addEventListener('change', (e) => {
 function sucesso(nome, out) {
   const primeiro = esc(nome.split(' ')[0]);
   const app = document.getElementById('app');
-  const grupo = out.grupo ? `<a class="grupo" href="${esc(out.grupo)}" target="_blank" rel="noopener noreferrer">${ICONE.conversa}<div><strong>Entrar no grupo do WhatsApp</strong><span>Lá chegam o material com as sugestões de roteiro e os avisos.</span></div></a>`
-    : tipo === 'criador' ? `<p class="lead" style="margin-top:22px">O grupo dos criadores é fechado. Depois que a equipe conferir seu perfil, o link do grupo aparece no seu painel.</p>` : '';
+  const grupo = !out.grupo ? '' : `<a class="grupo" href="${esc(out.grupo)}" target="_blank" rel="noopener noreferrer">${ICONE.conversa}<div><strong>${tipo === 'criador' ? 'Pedir para entrar no grupo dos criadores' : 'Entrar no grupo do WhatsApp'}</strong><span>${tipo === 'criador' ? 'O grupo é fechado: a equipe confere seu perfil e aprova a entrada.' : 'Lá chegam o material com as sugestões de roteiro e os avisos.'}</span></div></a>`;
   const material = cfg.materialPautas ? `<a class="grupo contorno" href="${esc(cfg.materialPautas)}" target="_blank" rel="noopener noreferrer">${ICONE.documento}<div><strong>Abrir o material das pautas</strong><span>Pautas e sugestões de roteiro.</span></div></a>` : '';
   if (out.token) {
     const link = `${location.origin}/p/${out.token}`;

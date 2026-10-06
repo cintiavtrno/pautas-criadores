@@ -282,11 +282,11 @@ app.get('/public/config', wrap(async (_req, res) => {
     materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
   });
 }));
-// grupo do WhatsApp: pessoas comuns recebem o da sociedade civil logo no cadastro;
-// criador só vê o grupo de criadores depois que a equipe libera na ficha dele
-const grupoPara = (c, tipo, r) => {
-  if (tipo === 'pessoa') return urlOk(c.grupoWhatsapp) ? c.grupoWhatsapp : '';
-  return r && r.grupoLiberado && urlOk(c.grupoWhatsappCriadores) ? c.grupoWhatsappCriadores : '';
+// grupo do WhatsApp: pessoa comum recebe o da sociedade civil; criador recebe o dos criadores,
+// que é fechado (a equipe aprova cada entrada no próprio WhatsApp)
+const grupoPara = (c, tipo) => {
+  const u = tipo === 'pessoa' ? c.grupoWhatsapp : c.grupoWhatsappCriadores;
+  return urlOk(u) ? u : '';
 };
 // equipe que aparece na página inicial (só nome e função)
 app.get('/public/equipe', wrap(async (_req, res) => {
@@ -348,7 +348,7 @@ app.post('/public/inscricao', wrap(async (req, res) => {
       publicacoes: [], observacoes: '', responsavel: '', token: newToken(),
     });
     await ideia({ pessoaId: p.id, nicho: '' });
-    return res.json({ ok: true, token: p.token, grupo: grupoPara(await config(), 'pessoa', p) });
+    return res.json({ ok: true, token: p.token, grupo: grupoPara(await config(), 'pessoa') });
   }
 
   const validos = new Set((await db.list('nichos')).map((n) => n.nome));
@@ -367,7 +367,7 @@ app.post('/public/inscricao', wrap(async (req, res) => {
     if (pautaIds.length && !(criador.pautaIds || []).length && !criador.pautaId) Object.assign(patch, escolha);
     await db.update('creators', criador.id, patch);
     await ideia({ creatorId: criador.id, nicho: nichos[0] || '' });
-    return res.json({ ok: true, existente: true });
+    return res.json({ ok: true, existente: true, grupo: grupoPara(await config(), 'criador') });
   }
   criador = await db.insert('creators', {
     nome, handle, url: `https://www.instagram.com/${handle}/`, nichos, nichoConfirmado: false,
@@ -379,7 +379,7 @@ app.post('/public/inscricao', wrap(async (req, res) => {
     await db.update('pautas', p.id, { creatorId: criador.id, status: (p.status || 'Livre') === 'Livre' ? 'Reservada' : p.status });
   }
   await ideia({ creatorId: criador.id, nicho: nichos[0] || '' });
-  res.json({ ok: true, token: criador.token });
+  res.json({ ok: true, token: criador.token, grupo: grupoPara(await config(), 'criador') });
 }));
 
 /* ---- painel pessoal (/p/:token) ---- */
@@ -426,7 +426,7 @@ app.get('/public/painel/:token', wrap(async (req, res) => {
     .map((p) => ({ titulo: p.titulo, status: p.status === 'Sugerida' ? 'em análise' : p.status === 'Descartada' ? 'não seguiu' : 'aprovada' }));
   const c = await config();
   res.json({
-    grupoWhatsapp: grupoPara(c, tipo, r), grupoPendente: tipo === 'criador' && !grupoPara(c, tipo, r), materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
+    grupoWhatsapp: grupoPara(c, tipo), materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
     tipo, nome: r.nome, mostrar: !!r.mostrarNaComunidade, sugestaoLinha: tipo === 'criador' ? r.sugestaoLinha || '' : '',
     pautas: (await pautasVisiveis(q)).map(pautaPublica),
     escolhidas: (r.pautaIds && r.pautaIds.length ? r.pautaIds : r.pautaId ? [r.pautaId] : []), comentario: (tipo === 'criador' ? r.comentarioCriador : r.comentario) || '', escolhidaEm: r.escolhidaEm || '',

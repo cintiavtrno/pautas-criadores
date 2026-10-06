@@ -212,7 +212,6 @@ VIEWS.criadores = {
 
         <section class="fs"><h3>Andamento</h3><div class="grid2">
           ${field({ k: 'status', type: 'select', label: 'Status', opts: () => STATUS }, { ...c, status: c.status || 'Mapeado' })}
-          ${field({ k: 'grupoLiberado', type: 'bool', text: 'Liberar o link do grupo de criadores no painel dele (perfil conferido)', full: true }, c)}
           ${field({ k: 'responsavel', type: 'seg', label: 'Quem faz o contato', opts: () => RESP, clear: true }, c)}
           ${field({ k: 'roteiristaId', type: 'select', label: 'Escrita e pesquisa', opts: equipePor('Escrita e pesquisa'), empty: S.team.length ? 'Ninguém ainda' : 'Cadastre a equipe na aba Equipe' }, c)}
           ${field({ k: 'editorId', type: 'select', label: 'Edição do vídeo', opts: equipePor('Edição dos vídeos'), empty: S.team.length ? 'Ninguém ainda' : 'Cadastre a equipe na aba Equipe' }, c)}
@@ -688,7 +687,7 @@ async function renderAjustes() {
   $('#view').innerHTML = `<div class="ajustes"><div class="dhead"><div class="kicker"><span>ajustes</span><span class="sp"></span><span class="saved">salvo</span></div><h2>Links do site</h2></div>
     <div class="dbody"><section class="fs"><h3>Aparecem para quem se cadastra</h3><div class="grid2">
       ${field({ k: 'grupoWhatsapp', type: 'url', label: 'Grupo do WhatsApp da sociedade civil (pessoas comuns recebem logo depois do cadastro)', full: true, ph: 'https://chat.whatsapp.com/…' }, c)}
-      ${field({ k: 'grupoWhatsappCriadores', type: 'url', label: 'Grupo do WhatsApp dos criadores (só aparece para o criador que vocês liberarem na ficha dele)', full: true, ph: 'https://chat.whatsapp.com/…' }, c)}
+      ${field({ k: 'grupoWhatsappCriadores', type: 'url', label: 'Grupo do WhatsApp dos criadores (aparece para quem se cadastra como criador; deixe a aprovação de entrada ligada no WhatsApp)', full: true, ph: 'https://chat.whatsapp.com/…' }, c)}
       ${field({ k: 'materialPautas', type: 'url', label: 'Link do material com as pautas e roteiros (PDF no Drive, por exemplo)', full: true, ph: 'https://' }, c)}
     </div></section>
     <section class="fs"><h3>Contagem de participantes</h3><div class="grid2">
