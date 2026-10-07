@@ -22,7 +22,7 @@ const TIPOS_MATERIAL = ['Arte', 'Vídeo', 'Texto', 'Roteiro', 'Outro'];
 
 const S = {
   me: null,
-  creators: [], pessoas: [], pautas: [], team: [], nichos: [], materiais: [], producao: [], usuarios: [], videos: [], config: [], 'minhas-tarefas': [],
+  creators: [], pessoas: [], pautas: [], team: [], nichos: [], materiais: [], producao: [], usuarios: [], videos: [], config: [], juridico: [], 'minhas-tarefas': [],
   view: 'criadores',
   sel: {},
   f: { q: '', nicho: '', status: '', linha: '', resp: '', origem: '' },
@@ -68,7 +68,7 @@ const api = {
 
 async function loadAll() {
   if (!ehAdmin()) { S['minhas-tarefas'] = await api.list('minhas-tarefas'); return; }
-  const cols = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'usuarios', 'videos', 'config'];
+  const cols = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'usuarios', 'videos', 'config', 'juridico'];
   (await Promise.all(cols.map(api.list))).forEach((lista, i) => { S[cols[i]] = lista; });
 }
 async function save(col, rec, patch) {
@@ -680,6 +680,51 @@ VIEWS.videos = {
   onSaved(k) { if (k === 'conferido') renderRows(); },
 };
 
+/* Jurídico: pedidos de orientação e gente da área oferecendo ajuda */
+const SITUACAO_JUR = ['Novo', 'Em atendimento', 'Resolvido', 'Arquivado'];
+VIEWS.juridico = {
+  col: 'juridico',
+  bar: () => `<span class="sp"></span><button class="btn ghost" data-copy="${esc(location.origin + '/juridico')}">Copiar link da página jurídica</button><a class="btn ghost" href="/export/juridico.csv">Exportar CSV</a>`,
+  filtered: () => S.juridico.slice().sort((a, b) => String(b.em).localeCompare(String(a.em))),
+  groups(list) {
+    const pedidos = list.filter((j) => j.tipo !== 'ajudar');
+    return [
+      { title: 'Pedidos novos', items: pedidos.filter((j) => (j.situacao || 'Novo') === 'Novo') },
+      { title: 'Em atendimento', items: pedidos.filter((j) => j.situacao === 'Em atendimento') },
+      { title: 'Querem ajudar (área do direito)', items: list.filter((j) => j.tipo === 'ajudar' && !['Resolvido', 'Arquivado'].includes(j.situacao)) },
+      { title: 'Resolvidos e arquivados', items: list.filter((j) => ['Resolvido', 'Arquivado'].includes(j.situacao)) },
+    ];
+  },
+  empty: 'Nenhum pedido ainda.',
+  row(j) {
+    return `<span class="who"><span class="name">${esc(j.nome)}${j.tipo === 'ajudar' ? '<span class="flag" style="color:var(--blue)">quer ajudar</span>' : ''}</span><span class="muted">${esc(j.assunto || j.oab || j.perfil || j.contato)}</span></span>
+      <span class="line ok">${esc(j.situacao || 'Novo')}</span><span class="line ok">${fmtData(j.em)}</span><span class="resp">${esc(j.responsavel || '')}</span>`;
+  },
+  detail(j) {
+    const ajuda = j.tipo === 'ajudar';
+    return `
+      <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
+        <div class="kicker"><span>${ajuda ? 'quer ajudar' : 'pedido de orientação'}</span><span>${fmtData(j.em)}</span><span class="sp"></span><span class="saved">salvo</span></div>
+        <h2>${esc(j.nome)}</h2>
+      </div>
+      <div class="dbody">
+        <p class="about" style="white-space:pre-line">${esc(j.mensagem)}</p>
+        <section class="fs"><h3>Dados</h3><div class="grid2">
+          <div class="f"><span>Contato</span><div>${esc(j.contato || '—')}</div></div>
+          <div class="f"><span>@ / perfil</span><div>${esc(j.perfil || '—')}</div></div>
+          ${ajuda ? `<div class="f"><span>OAB</span><div>${esc(j.oab || '—')}</div></div>` : `<div class="f"><span>Assunto</span><div>${esc(j.assunto || '—')}</div></div>`}
+        </div></section>
+        <section class="fs"><h3>Acompanhamento</h3><div class="grid2">
+          ${field({ k: 'situacao', type: 'select', label: 'Situação', opts: () => SITUACAO_JUR }, j)}
+          ${field({ k: 'responsavel', label: ajuda ? 'Quem fez o contato' : 'Advogada responsável', ph: 'nome' }, j)}
+          ${field({ k: 'notas', type: 'textarea', label: 'Notas internas (não cole aqui o contrato)', full: true }, j)}
+        </div></section>
+        <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>
+      </div>`;
+  },
+  onSaved(k) { if (['situacao', 'responsavel'].includes(k)) renderRows(); },
+};
+
 /* Ajustes: link do grupo e do material */
 async function renderAjustes() {
   let c = S.config[0];
@@ -692,6 +737,9 @@ async function renderAjustes() {
     </div></section>
     <section class="fs"><h3>Apoiadores (aparecem no fim da página inicial)</h3><div class="grid2">
       ${field({ k: 'apoiadores', type: 'textarea', label: 'Um por linha, no formato: Nome | link (o link é opcional)', full: true, ph: 'Iara Lee | https://www.instagram.com/iaralee.explores.brazil/' }, c)}
+    </div></section>
+    <section class="fs"><h3>Rede jurídica (aparece na página /juridico)</h3><div class="grid2">
+      ${field({ k: 'advogadas', type: 'textarea', label: 'Uma por linha, no formato: Nome | OAB nº/UF | link do perfil (OAB e link são opcionais)', full: true, ph: 'Nome Sobrenome | OAB 12345/BA | https://www.instagram.com/perfil/' }, c)}
     </div></section>
     <section class="fs"><h3>Contagem de participantes</h3><div class="grid2">
       ${field({ k: 'participantesExtra', label: 'Pessoas participando fora do site', ph: 'ex.: 15' }, c)}
@@ -834,7 +882,7 @@ function renderDetail() {
     const tips = {
       criadores: 'Escolha um criador na lista.', pautas: 'Escolha uma pauta na lista.', equipe: 'Escolha alguém na lista.',
       nichos: 'Escolha um nicho na lista.', pessoas: 'Escolha alguém na lista.', producao: 'Escolha uma tarefa na lista.',
-      tarefas: 'Escolha uma tarefa na lista.', materiais: 'Escolha um material na lista.', videos: 'Escolha um vídeo na lista.',
+      tarefas: 'Escolha uma tarefa na lista.', materiais: 'Escolha um material na lista.', videos: 'Escolha um vídeo na lista.', juridico: 'Escolha um pedido na lista.',
     }[S.view];
     box.innerHTML = `<div class="empty-detail"><p>${tips}</p></div>`;
     return;
@@ -904,7 +952,7 @@ function renderStats() {
   ].map(([l, n, w]) => `<div class="${w ? 'warn' : ''}"><dt>${l}</dt><dd>${n}</dd></div>`).join('');
 }
 
-const ABAS_ADMIN = [['criadores', 'Criadores'], ['pessoas', 'Pessoas'], ['pautas', 'Pautas'], ['videos', 'Vídeos'], ['producao', 'Produção'], ['materiais', 'Materiais'], ['quadro', 'Quadro'], ['equipe', 'Equipe'], ['nichos', 'Nichos'], ['ajustes', 'Ajustes']];
+const ABAS_ADMIN = [['criadores', 'Criadores'], ['pessoas', 'Pessoas'], ['pautas', 'Pautas'], ['videos', 'Vídeos'], ['juridico', 'Jurídico'], ['producao', 'Produção'], ['materiais', 'Materiais'], ['quadro', 'Quadro'], ['equipe', 'Equipe'], ['nichos', 'Nichos'], ['ajustes', 'Ajustes']];
 const ABAS_EQUIPE = [['tarefas', 'Minhas tarefas']];
 const abas = () => (ehAdmin() ? ABAS_ADMIN : ABAS_EQUIPE);
 

@@ -747,3 +747,37 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 .apoio-lista strong { display: block; font: 800 26px/1.05 var(--display); letter-spacing: -.035em; color: var(--tinta); }
 .apoio-lista a { font: 500 13px var(--mono); color: var(--verde); text-underline-offset: 4px; }
 @media (max-width: 900px) { .apoio-in { grid-template-columns: 1fr; } }
+
+/* página jurídica */
+.j-dois { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: clamp(32px, 6vw, 110px); align-items: start; }
+.j-intro { font-size: clamp(18px, 1.4vw, 21px); line-height: 1.55; color: var(--tinta-2); max-width: 44ch; margin: 22px 0 0; }
+.j-clausula { margin: 0; padding: 26px 0 28px; border-top: 2px solid var(--verde-tinta); border-bottom: 2px solid var(--verde-tinta); }
+.j-clausula p { font: italic 400 clamp(19px, 1.6vw, 23px)/1.55 var(--serif); margin: 12px 0 0; color: var(--tinta); }
+.j-le { display: grid; grid-template-columns: 1fr 1fr; gap: 0 clamp(20px, 3vw, 44px); margin-top: 30px; }
+.j-le h3 { font: 800 24px/1.05 var(--display); letter-spacing: -.035em; margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1.5px solid var(--linha); }
+.j-le section:last-child h3 { color: var(--verde); }
+.j-le ul { margin: 0; padding-left: 20px; }
+.j-le li { font-size: 17px; line-height: 1.5; margin-bottom: 8px; }
+.j-nota { font: 600 clamp(19px, 1.6vw, 23px)/1.45 var(--serif); margin: 30px 0 0; color: var(--verde-tinta); }
+.j-ref { font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--tinta-3); margin: 14px 0 0; }
+.j-passos { list-style: none; padding: 0; margin: 34px 0 0; border-top: 2px solid var(--verde-tinta); }
+.j-passos li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--linha); font-size: 17px; line-height: 1.5; color: var(--tinta-2); }
+.j-passos b { font: 800 40px/.9 var(--display); color: var(--menta); letter-spacing: -.05em; }
+.j-passos strong { display: block; font: 800 22px/1.1 var(--display); letter-spacing: -.03em; color: var(--tinta); margin-bottom: 6px; }
+.faixa.escura .j-adv { border-top-color: var(--branco); }
+.faixa.escura .j-adv li { border-bottom-color: rgba(255, 255, 255, .25); }
+.faixa.escura .j-adv strong { color: var(--branco); }
+.faixa.escura .j-adv a, .faixa.escura .j-adv .ico { color: var(--menta); }
+.j-adv { margin-top: 36px; }
+.j-oab { display: block; font: 500 12px var(--mono); letter-spacing: .06em; color: rgba(255, 255, 255, .75); margin: 4px 0 2px; }
+#pedir form .g-quem button { font-size: 16px; padding: 12px 18px; }
+#pedir select { width: 100%; }
+.j-aviso { padding: 40px 0; }
+.j-aviso p { font-size: 16px; line-height: 1.55; color: var(--tinta-2); max-width: 70ch; margin: 0; }
+.j-chamada { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: end; }
+.j-chamada .caminho { min-width: 320px; }
+@media (max-width: 900px) {
+  .j-dois, .j-le, .j-chamada { grid-template-columns: 1fr; }
+  .j-chamada .caminho { min-width: 0; }
+}
+@media (max-width: 860px) { .barra nav a[href="/juridico"] { display: inline-block !important; border-color: currentColor; } }

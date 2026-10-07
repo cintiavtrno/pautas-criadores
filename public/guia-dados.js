@@ -1473,6 +1473,77 @@ window.GUIA = {
 ]
 }
 ]
+},
+{
+"nome": "Saúde",
+"dica": "",
+"ideias": [
+{
+"titulo": "O trauma da pandemia, a vacina e a importância de investir em ciência e saúde",
+"campos": [
+[
+"comunicar",
+"O Brasil enfrentou a perda de 700 mil vidas na pandemia e o impacto da falta de coordenação federal de vacinação, que provocou a queda da imunização infantil. A reconstrução trazida pelo governo Lula recuperou a cobertura em 15 das 16 principais vacinas infantis, com avanço reconhecido pela UNICEF."
+],
+[
+"gancho",
+"“Você lembra quem atrasou a vacina quando o país mais precisava?”"
+]
+]
+},
+{
+"titulo": "Fila de especialista e exame: Solução Real vs Promessa de Aplicativo",
+"campos": [
+[
+"comunicar",
+"A proposta de Flávio Bolsonaro foca o combate às filas no agendamento por aplicativo e inteligência artificial. Já o governo Lula enfrentou a raiz do problema com o programa ‘Agora Tem Especialistas’, abrindo o terceiro turno nos postos, financiando carretas de saúde e bateu recorde histórico com 15 milhões de cirurgias no SUS."
+],
+[
+"gancho",
+"“Do que adianta o governo mandar você agendar exame pelo celular se não tiver médico nem equipamento no posto?”"
+]
+]
+},
+{
+"titulo": "Remédio de graça no bairro vs Pagar do próprio bolso",
+"campos": [
+[
+"comunicar",
+"O projeto de Flávio Bolsonaro foca em propostas de entregas por aplicativo e parcerias privadas. O plano de Lula reconstruiu o ‘Farmácia Popular’, garantindo 41 medicamentos 100% gratuitos para mais de 27 milhões de brasileiros, além de distribuir fraldas geriátricas e absorventes gratuitos pelo programa Dignidade Menstrual."
+],
+[
+"gancho",
+"“Você já teve que tirar dinheiro do mercado para conseguir comprar o remédio de uso contínuo?”"
+]
+]
+},
+{
+"titulo": "Saúde Mental: O cansaço da escala 6x1 e os atendimentos no SUS",
+"campos": [
+[
+"comunicar",
+"Mente saudável exige tempo livre e dignidade. O projeto de Flávio Bolsonaro opõe-se ao fim da escala 6x1 e defende cortes de gastos. O plano do Lula defende o fim da escala 6x1 sem redução salarial e expandiu a Rede de Atenção Psicossocial, construindo 336 novos CAPS pelo PAC para oferecer atendimento psicológico gratuito."
+],
+[
+"gancho",
+"“Como ter saúde mental trabalhando de segunda a sábado sem tempo para a própria família?”"
+]
+]
+},
+{
+"titulo": "Dente tratado é dignidade!",
+"campos": [
+[
+"comunicar",
+"Tratar os dentes e ter acesso a exames de saúde é essencial para manutenção da autoestima e qualidade de vida. O programa ‘Brasil Sorridente’ expandiu a presença de quase 35 mil equipes de saúde bucal nos postos de saúde e colocou nas ruas mais de 1,3 mil Unidades Odontológicas Móveis, integrando o esforço do governo Lula com as ‘Carretas da Saúde’ para levar consultas, exames e cirurgias até onde a população mora. Em contrapartida, o projeto de Flávio Bolsonaro propõe o enxugamento dos gastos do Estado e a contratação de horários ociosos na rede privada, o que coloca em risco a continuidade da expansão da estrutura pública e gratuita de atendimentos odontológicos contínuos nos bairros periféricos."
+],
+[
+"gancho",
+"“Você já teve que aguentar uma dor de dente insuportável só porque não tinha dinheiro para pagar um dentista particular?”"
+]
+]
+}
+]
 }
 ],
 "nichosIntro": [
