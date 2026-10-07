@@ -13,7 +13,7 @@ const PUB = path.join(__dirname, 'public');
 // coleções que só as admins mexem pela API genérica
 const PARA_CRIADOR = ['Criadores', 'Todos'];
 const PARA_PESSOA = ['Pessoas comuns', 'Todos'];
-const COLECOES = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'videos', 'config'];
+const COLECOES = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'videos', 'config', 'juridico'];
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // o Render fica na frente: assim o IP real de quem acessa é o que conta
@@ -65,6 +65,7 @@ app.get('/participar', (_req, res) => res.sendFile(path.join(PUB, 'participar.ht
 app.get('/p/:token', (_req, res) => res.sendFile(path.join(PUB, 'painel.html')));
 app.get('/enviar-video', (_req, res) => res.sendFile(path.join(PUB, 'enviar-video.html')));
 app.get('/guia', (_req, res) => res.sendFile(path.join(PUB, 'guia.html')));
+app.get('/juridico', (_req, res) => res.sendFile(path.join(PUB, 'juridico.html')));
 // foto da equipe (fica no banco, porque o disco do Render é apagado a cada deploy)
 app.get('/foto/:id.jpg', wrap(async (req, res) => {
   const f = await db.get('fotos', `foto-${req.params.id}`);
@@ -284,6 +285,7 @@ app.get('/public/config', wrap(async (_req, res) => {
     turnstile: seg.turnstileAtivo() ? process.env.TURNSTILE_SITE_KEY : '',
     materialPautas: urlOk(c.materialPautas) ? c.materialPautas : '',
     apoiadores: apoiadoresDe(c),
+    advogadas: advogadasDe(c),
   });
 }));
 // apoiadores: em Ajustes, um por linha, "Nome | link"
@@ -291,6 +293,11 @@ const apoiadoresDe = (c) => String(c.apoiadores || '').split('\n').map((l) => {
   const [nome, link] = l.split('|').map((x) => (x || '').trim());
   return nome ? { nome: txt(nome, 120), link: linkRede(link) } : null;
 }).filter(Boolean).slice(0, 60);
+// rede jurídica: em Ajustes, uma por linha, "Nome | OAB | link"
+const advogadasDe = (c) => String(c.advogadas || '').split('\n').map((l) => {
+  const [nome, oab, link] = l.split('|').map((x) => (x || '').trim());
+  return nome ? { nome: txt(nome, 120), oab: txt(oab, 40), link: linkRede(link) } : null;
+}).filter(Boolean).slice(0, 30);
 // grupo do WhatsApp: pessoa comum recebe o da sociedade civil; criador recebe o dos criadores,
 // que é fechado (a equipe aprova cada entrada no próprio WhatsApp)
 const grupoPara = (c, tipo) => {
@@ -548,6 +555,26 @@ app.post('/public/video', painelLimite, wrap(async (req, res) => {
   const publicas = (await db.list('pautas')).filter((p) => [...PARA_PESSOA, ...PARA_CRIADOR].includes(p.paraQuem));
   const pautaIds = (Array.isArray(b.pautaIds) ? b.pautaIds : []).filter((id) => publicas.some((p) => p.id === id)).slice(0, 10);
   await db.insert('videos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), pautaIds, origem: 'formulario', tipo: '', em: agora(), conferido: false, mostrarNome: !!b.mostrar });
+  res.json({ ok: true });
+}));
+
+/* ---- rede jurídica: pedido de orientação ou oferta de ajuda ---- */
+app.post('/public/juridico', painelLimite, wrap(async (req, res) => {
+  const b = req.body || {};
+  if (b.site || Number(b.t) < 2500) return res.json({ ok: true }); // robô
+  if (!(await seg.turnstileOk(b.turnstile, seg.ipOf(req)))) return res.status(400).json({ error: 'Não conseguimos confirmar que você não é um robô. Recarregue a página e tente de novo.' });
+  const tipo = b.tipo === 'ajudar' ? 'ajudar' : 'orientacao';
+  const nome = txt(b.nome, 120);
+  const contato = txt(b.contato, 160);
+  const mensagem = txt(b.mensagem, 3000);
+  if (!nome) return res.status(400).json({ error: 'Preencha seu nome.' });
+  if (!contato) return res.status(400).json({ error: 'Deixe um WhatsApp ou e-mail para a gente responder.' });
+  if (!mensagem) return res.status(400).json({ error: tipo === 'ajudar' ? 'Conte um pouco de como você pode ajudar.' : 'Conte em poucas linhas o que está acontecendo.' });
+  if (!b.consentimento) return res.status(400).json({ error: 'Marque a autorização de contato para enviar.' });
+  await db.insert('juridico', {
+    tipo, nome, contato, perfil: txt(b.perfil, 160), oab: tipo === 'ajudar' ? txt(b.oab, 60) : '',
+    assunto: tipo === 'orientacao' ? txt(b.assunto, 80) : '', mensagem, em: agora(), situacao: 'Novo', responsavel: '', notas: '',
+  });
   res.json({ ok: true });
 }));
 
