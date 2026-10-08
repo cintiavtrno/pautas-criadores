@@ -29,7 +29,7 @@
 <header class="barra clara">
   <div class="miolo">
     <a class="marca-site" href="/" aria-label="seu voto decide, início"></a>
-    <nav><a href="/guia">Guia</a><a href="/juridico">Jurídico</a><a href="/#como">Como funciona</a><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav>
+    <nav><a href="/guia">Guia</a><a href="/jogos">Jogos</a><a href="/juridico">Jurídico</a><a href="/#como">Como funciona</a><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav>
   </div>
 </header>
 <div class="dupla">
@@ -71,12 +71,21 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const f = document.getElementById('f');
 const msg = document.getElementById('msg');
 const abertoEm = Date.now();
+const campanha = new URLSearchParams(location.search).get('campanha') === 'no-meu-tempo' ? 'no-meu-tempo' : '';
+if (campanha) {
+  document.querySelector('.lateral .kicker').textContent = 'campanha · no meu tempo';
+  document.querySelector('.lateral h1').textContent = 'No meu tempo…';
+  document.querySelector('.lateral .lead').innerHTML = 'Mande o link do depoimento. O ideal é 20 segundos, no máximo 1 minuto. Postou no seu perfil? Cole o link. Não quer postar? Suba no Google Drive com o link aberto. <strong>Só mande com a autorização de quem aparece.</strong>';
+  document.querySelector('legend').textContent = 'Seu depoimento';
+  document.querySelector('label.f textarea[name=comentario]').closest('label').firstChild.textContent = 'Quem fala e do que fala ';
+  document.getElementById('bloco-pautas').remove();
+}
 let turnstileToken = '';
 document.getElementById('enviar').innerHTML = ICONE.link + ' Enviar link';
 
 Promise.all(['pessoa', 'criador'].map((t) => fetch('/public/pautas?tipo=' + t).then((r) => r.json()).catch(() => []))).then(([a, b]) => {
   const vistas = new Set(); const lista = [...a, ...b].filter((p) => !vistas.has(p.id) && vistas.add(p.id));
-  document.getElementById('bloco-pautas').hidden = !lista.length;
+  const bp = document.getElementById('bloco-pautas'); if (!bp) return; bp.hidden = !lista.length;
   document.getElementById('pautas').innerHTML = lista.map((p) => `<label class="op"><input type="checkbox" name="pautaIds" value="${esc(p.id)}" /><span><strong>${esc(p.titulo)}</strong></span></label>`).join('');
 });
 f.addEventListener('change', (e) => { if (e.target.name === 'pautaIds') e.target.closest('.op').classList.toggle('on', e.target.checked); });
@@ -93,7 +102,7 @@ f.addEventListener('submit', async (e) => {
   e.preventDefault();
   const v = (n) => (f.elements[n]?.value || '').trim();
   const d = { link: v('link'), nome: v('nome'), contato: v('contato'), comentario: v('comentario'), site: v('site'), mostrar: f.mostrar.checked,
-    pautaIds: [...f.querySelectorAll('input[name=pautaIds]:checked')].map((x) => x.value), t: Date.now() - abertoEm, turnstile: turnstileToken };
+    pautaIds: [...f.querySelectorAll('input[name=pautaIds]:checked')].map((x) => x.value), campanha, t: Date.now() - abertoEm, turnstile: turnstileToken };
   msg.className = 'msg err';
   if (!/^https?:\/\//i.test(d.link)) { msg.textContent = 'Cole o link do vídeo, começando com https://'; return; }
   if (!d.nome) { msg.textContent = 'Preencha seu nome.'; return; }

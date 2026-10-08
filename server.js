@@ -66,6 +66,7 @@ app.get('/p/:token', (_req, res) => res.sendFile(path.join(PUB, 'painel.html')))
 app.get('/enviar-video', (_req, res) => res.sendFile(path.join(PUB, 'enviar-video.html')));
 app.get('/guia', (_req, res) => res.sendFile(path.join(PUB, 'guia.html')));
 app.get('/juridico', (_req, res) => res.sendFile(path.join(PUB, 'juridico.html')));
+app.get('/jogos', (_req, res) => res.sendFile(path.join(PUB, 'jogos.html')));
 // foto da equipe (fica no banco, porque o disco do Render é apagado a cada deploy)
 app.get('/foto/:id.jpg', wrap(async (req, res) => {
   const f = await db.get('fotos', `foto-${req.params.id}`);
@@ -554,7 +555,7 @@ app.post('/public/video', painelLimite, wrap(async (req, res) => {
   if (!urlOk(link)) return res.status(400).json({ error: 'Cole o link do vídeo (começando com http:// ou https://).' });
   const publicas = (await db.list('pautas')).filter((p) => [...PARA_PESSOA, ...PARA_CRIADOR].includes(p.paraQuem));
   const pautaIds = (Array.isArray(b.pautaIds) ? b.pautaIds : []).filter((id) => publicas.some((p) => p.id === id)).slice(0, 10);
-  await db.insert('videos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), pautaIds, origem: 'formulario', tipo: '', em: agora(), conferido: false, mostrarNome: !!b.mostrar });
+  await db.insert('videos', { nome, contato: txt(b.contato, 160), link, campanha: b.campanha === 'no-meu-tempo' ? 'No meu tempo' : '', comentario: txt(b.comentario, 1000), pautaIds, origem: 'formulario', tipo: '', em: agora(), conferido: false, mostrarNome: !!b.mostrar });
   res.json({ ok: true });
 }));
 

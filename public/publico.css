@@ -781,3 +781,89 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
   .j-chamada .caminho { min-width: 0; }
 }
 @media (max-width: 860px) { .barra nav a[href="/juridico"] { display: inline-block !important; border-color: currentColor; } }
+
+/* jogos */
+.jg-capa .miolo { display: block; padding-bottom: clamp(70px, 8vw, 120px); }
+.jg-capa h1 { font-size: clamp(56px, 8vw, 128px); margin: 14px 0 18px; }
+.jg-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding-top: 30px; padding-bottom: 90px; }
+.jg-cartao { position: relative; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--tinta); border: 2px solid var(--verde-tinta); padding: 26px 26px 24px; min-height: 210px; background: var(--branco); transition: background .15s, color .15s; }
+.jg-cartao:hover, .jg-cartao:focus-visible { background: var(--verde-tinta); color: var(--branco); }
+.jg-cartao:hover .kicker, .jg-cartao:focus-visible .kicker { color: var(--menta); }
+.jg-cartao strong { font: 800 clamp(28px, 2.6vw, 40px)/1 var(--display); letter-spacing: -.04em; margin-top: auto; }
+.jg-cartao .kicker { color: var(--verde); }
+.jg-n { position: absolute; right: 22px; top: 18px; font: 800 44px/1 var(--display); color: var(--menta); letter-spacing: -.05em; }
+.jg-meta { font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; opacity: .7; }
+.jg-palco { background: var(--menta); min-height: calc(100vh - 76px); padding: clamp(18px, 4vw, 56px) var(--respiro) 70px; }
+.jg-caixa { max-width: 760px; margin: 0 auto; }
+.jg-topo { display: flex; align-items: center; gap: 14px; }
+.jg-topo .kicker { color: var(--verde-tinta); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jg-sair { display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border: 1.5px solid var(--verde-tinta); color: var(--verde-tinta); flex: none; }
+.jg-sair .ico { width: 20px; height: 20px; }
+.jg-prog { display: flex; gap: 5px; flex: none; }
+.jg-prog i { width: 18px; height: 6px; background: rgba(18, 53, 42, .2); }
+.jg-prog i.f { background: var(--verde-tinta); }
+.jg-prog i.a { background: var(--branco); }
+.jg-tipo { font: 500 13px var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--verde); margin: clamp(28px, 5vw, 56px) 0 10px; }
+.jg-q { font: 800 clamp(30px, 4.4vw, 54px)/1.04 var(--display); letter-spacing: -.04em; color: var(--verde-tinta); margin: 0; }
+.jg-ops { display: grid; gap: 12px; margin-top: 30px; }
+.jg-ops.vf { grid-template-columns: 1fr 1fr; }
+.jg-ops.quatro { grid-template-columns: 1fr 1fr; }
+.jg-ops button { font: 700 clamp(19px, 2vw, 24px)/1.15 var(--display); letter-spacing: -.02em; text-align: left; padding: 20px 22px; min-height: 72px; border: 2px solid var(--verde-tinta); background: var(--branco); color: var(--verde-tinta); cursor: pointer; transition: background .12s, color .12s, transform .12s; }
+.jg-ops.vf button { text-align: center; font-size: clamp(24px, 3vw, 34px); min-height: 96px; }
+.jg-ops button:hover:not(:disabled) { background: var(--verde-tinta); color: var(--branco); }
+.jg-ops button:active:not(:disabled) { transform: scale(.98); }
+.jg-ops button:disabled { cursor: default; opacity: .45; }
+.jg-ops button.certo { background: var(--verde-tinta); color: var(--branco); opacity: 1; }
+.jg-ops button.errado { background: transparent; text-decoration: line-through; opacity: .8; }
+.jg-rev { margin-top: 26px; background: var(--branco); border: 2px solid var(--verde-tinta); padding: 22px 24px 24px; animation: jg-sobe .25s ease-out; }
+@keyframes jg-sobe { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.jg-res { font: 900 clamp(28px, 3.4vw, 40px)/1 var(--display); letter-spacing: -.04em; margin: 0; }
+.jg-res.ok { color: var(--verde); }
+.jg-res.nao { color: var(--verde-tinta); }
+.jg-r { font-size: clamp(18px, 1.6vw, 21px); line-height: 1.5; margin: 10px 0 0; color: var(--tinta); }
+.jg-fonte { font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 0; color: var(--tinta-3); }
+.jg-fonte a { color: var(--verde); }
+.jg-prox { margin-top: 18px; width: 100%; }
+.jg-fim .jg-caixa { padding-top: clamp(10px, 3vw, 30px); }
+.jg-fim .kicker { color: var(--verde-tinta); }
+.jg-placar { display: flex; align-items: baseline; gap: 14px; margin: 18px 0 10px; color: var(--verde-tinta); }
+.jg-placar b { font: 900 clamp(110px, 18vw, 200px)/.8 var(--display); letter-spacing: -.06em; }
+.jg-placar span { font: 700 clamp(24px, 3vw, 36px) var(--display); }
+.jg-fim .jg-r { color: var(--verde-tinta); max-width: 40ch; }
+.jg-dia { font: 600 clamp(19px, 1.8vw, 23px)/1.4 var(--serif); color: var(--verde-tinta); margin: 18px 0 0; }
+.jg-acoes { display: grid; gap: 10px; margin-top: 26px; }
+.jg-acoes .btn { margin-top: 0; width: 100%; font-size: 19px; }
+.jg-acoes .btn.ghost { border-color: var(--verde-tinta); color: var(--verde-tinta); }
+.jg-acoes .btn.ghost:hover { background: var(--verde-tinta); color: var(--branco); }
+.jg-mais { margin-top: 40px !important; }
+.jg-outros { display: grid; gap: 8px; margin-top: 10px; }
+.jg-outros a { display: block; text-decoration: none; color: var(--verde-tinta); border-top: 1.5px solid var(--verde-tinta); padding: 12px 0; }
+.jg-outros strong { display: block; font: 800 22px/1.1 var(--display); letter-spacing: -.03em; }
+.jg-outros span { font-size: 15px; opacity: .8; }
+@media (max-width: 700px) {
+  .jg-lista { grid-template-columns: 1fr; }
+  .jg-cartao { min-height: 170px; }
+  .jg-ops.quatro { grid-template-columns: 1fr; }
+  .jg-ops button { min-height: 60px; padding: 16px 18px; }
+  .jg-prog i { width: 10px; }
+}
+
+/* campanha "No meu tempo" (página inicial) */
+.nmt { background: var(--papel); border-top: 2px solid var(--verde-tinta); border-bottom: 2px solid var(--verde-tinta); }
+.nmt-in { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: clamp(30px, 5vw, 90px); align-items: start; }
+.nmt .titulo-secao { max-width: 12ch; }
+.nmt-selo { display: inline-block; font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .1em; background: var(--verde-tinta); color: var(--branco); padding: 6px 10px; }
+.nmt-passos { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--verde-tinta); }
+.nmt-passos li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--linha); font-size: 17px; line-height: 1.5; color: var(--tinta-2); }
+.nmt-passos b { font: 800 36px/.9 var(--display); color: var(--menta); letter-spacing: -.05em; }
+.nmt-passos strong { display: block; font: 800 21px/1.1 var(--display); letter-spacing: -.03em; color: var(--tinta); margin-bottom: 4px; }
+.nmt-temas { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+.nmt-temas li { font: 500 12.5px var(--mono); letter-spacing: .03em; border: 1.5px solid var(--verde-tinta); padding: 6px 10px; color: var(--verde-tinta); background: var(--branco); }
+.nmt .caminho { margin-top: 26px; }
+.jogos-faixa { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: end; }
+.jogos-faixa .caminho { min-width: 320px; }
+@media (max-width: 900px) {
+  .nmt-in, .jogos-faixa { grid-template-columns: 1fr; }
+  .jogos-faixa .caminho { min-width: 0; }
+}
+.jg-q { text-transform: none; border: 0; padding: 0; }

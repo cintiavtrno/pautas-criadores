@@ -654,7 +654,7 @@ VIEWS.videos = {
   empty: 'Nenhum vídeo ainda.',
   row(v) {
     const pts = titulosPautas(v.pautaIds);
-    return `<span class="who"><span class="name">${esc(v.nome)}${v.tipo === 'criador' ? '<span class="flag" style="color:var(--blue)">criador</span>' : ''}</span><span class="muted">${esc(v.link)}</span></span>
+    return `<span class="who"><span class="name">${esc(v.nome)}${v.tipo === 'criador' ? '<span class="flag" style="color:var(--blue)">criador</span>' : ''}${v.campanha ? `<span class="flag">${esc(v.campanha)}</span>` : ''}</span><span class="muted">${esc(v.link)}</span></span>
       <span class="line ok">${esc(pts[0] ? pts[0].slice(0, 16) : 'sem pauta')}</span><span class="line ok">${fmtData(v.em)}</span><span class="resp">${v.origem === 'formulario' ? 'form' : 'painel'}</span>`;
   },
   detail(v) {
@@ -669,6 +669,7 @@ VIEWS.videos = {
         ${v.comentario ? `<p class="about">${esc(v.comentario)}</p>` : ''}
         <section class="fs"><h3>Dados</h3><div class="grid2">
           <div class="f"><span>Contato</span><div>${esc(v.contato || '—')}</div></div>
+          ${v.campanha ? `<div class="f"><span>Campanha</span><div>${esc(v.campanha)}</div></div>` : ''}
           <div class="f"><span>Pautas</span><div>${esc(titulosPautas(v.pautaIds).join(' · ') || '—')}</div></div>
           <div class="f"><span>Nome no mural</span><div>${v.mostrarNome ? 'pode mostrar' : 'aparece como "Participante"'}</div></div>
           ${field({ k: 'conferido', type: 'bool', text: 'Conferido: entra no mural de quem participa', full: true }, v)}
