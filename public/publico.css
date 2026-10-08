@@ -943,3 +943,26 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 .jg-lado-lista p { margin: 6px 0 0; font-size: 16.5px; line-height: 1.45; color: var(--verde-tinta); }
 .jg-lado-lista b { display: inline-block; min-width: 74px; margin-right: 4px; font: 800 15px var(--display); text-transform: uppercase; letter-spacing: .02em; }
 .jg-lado-lista span { font: 500 11.5px var(--mono); color: var(--tinta-3); white-space: nowrap; }
+
+/* celular: Jogos também em destaque na barra; cartões dos jogos mais compactos */
+@media (max-width: 860px) {
+  .barra nav a[href="/jogos"] { display: inline-block !important; background: var(--verde); border-color: var(--verde); color: var(--branco) !important; }
+  .barra nav a[href="/juridico"] { border-color: currentColor; }
+  .barra .miolo { gap: 10px; }
+  .barra nav { gap: 5px; }
+  .barra nav a { padding: 7px 8px; font-size: 11px; letter-spacing: .03em; }
+}
+@media (max-width: 380px) {
+  .barra nav a { padding: 6px 6px; font-size: 10px; letter-spacing: .01em; }
+  .barra .marca-site { flex: none; }
+}
+.jg-n { position: static; display: block; order: -1; font-size: 40px; line-height: .9; }
+.jg-cartao { gap: 8px; }
+@media (max-width: 700px) {
+  .jg-lista { gap: 12px; }
+  .jg-cartao { min-height: 0; padding: 18px 18px 20px; display: grid; grid-template-columns: auto 1fr; grid-template-areas: "n k" "n t" "n m"; column-gap: 16px; row-gap: 6px; align-items: start; }
+  .jg-cartao .jg-n { grid-area: n; font-size: 34px; }
+  .jg-cartao .kicker { grid-area: k; font-size: 11px; letter-spacing: .06em; line-height: 1.4; }
+  .jg-cartao strong { grid-area: t; font-size: 25px; line-height: 1.05; margin-top: 2px; }
+  .jg-cartao .jg-meta { grid-area: m; }
+}
