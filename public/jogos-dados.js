@@ -73,3 +73,57 @@ window.JOGOS = [
     fim: { t: 'O dinheiro de Mariana entra em parcelas por 20 anos.', s: 'Quem estiver na Presidência vai ter que cobrar cada uma.' },
   },
 ];
+
+// Desafios com outras mecânicas (para todo mundo)
+window.DESAFIOS = {
+  // teste cego: escolhe a proposta sem saber de quem é (fonte: nicho Saúde do guia)
+  cego: {
+    id: 'teste-cego',
+    titulo: 'Teste cego',
+    chamada: 'Escolha sem saber de quem é',
+    rodadas: [
+      { tema: 'Fila de exame', l: 'Mais especialistas: terceiro turno nos postos, carretas da saúde e recorde de cirurgias no SUS', f: 'Agendamento de exame por aplicativo e inteligência artificial' },
+      { tema: 'Remédio', l: '41 remédios 100% de graça na Farmácia Popular do bairro', f: 'Entrega de remédio por aplicativo e parcerias privadas' },
+      { tema: 'Dentista', l: 'Equipes de saúde bucal nos postos e consultórios móveis nos bairros', f: 'Enxugar gastos e contratar horários vagos em clínicas particulares' },
+      { tema: 'Trabalho', l: 'Fim da escala 6x1, sem redução de salário', f: 'Manter a escala 6x1' },
+    ],
+    guia: 'ganchos',
+  },
+  // seu dia: toca em cada hora do dia e descobre onde o governo federal está
+  dia: {
+    id: 'seu-dia',
+    titulo: 'Seu dia com a política',
+    chamada: 'Toque em cada hora do seu dia',
+    momentos: [
+      { h: '6h', o: 'Café da manhã', r: 'O preço do que está na mesa passa pela política de alimentos e de combustível.' },
+      { h: '7h', o: 'Ônibus ou moto', r: 'O preço da gasolina passa pela política da Petrobras.' },
+      { h: '8h', o: 'Trabalho', r: 'O salário mínimo é definido todo ano pelo governo federal.' },
+      { h: '12h', o: 'Merenda do filho', r: 'O programa de merenda escolar é federal.' },
+      { h: '15h', o: 'Posto de saúde', r: 'O SUS é financiado e coordenado pelo governo federal.' },
+      { h: '18h', o: 'Farmácia', r: 'O remédio de pressão pode sair de graça pela Farmácia Popular.' },
+    ],
+    guia: 'tema-1-7',
+  },
+  // calculadora: quanto de quem faltou precisa votar pra virar
+  calc: {
+    id: 'calculadora',
+    titulo: 'Quanto vale quem faltou?',
+    chamada: 'Arraste até virar a eleição',
+    faltaram: 33000000,
+    diferenca: 2000000,
+    guia: 'tema-1-5',
+  },
+  // plano de voto: monta o plano e gera o card
+  plano: {
+    id: 'meu-plano',
+    titulo: 'Meu plano pro dia 25',
+    chamada: 'Monte seu plano em 30 segundos',
+    passos: [
+      { q: 'Você já sabe onde vota?', o: ['Sei, sim', 'Vou ver agora'], ajuda: { 1: 'Consulte no app e-Título ou no site do TSE, com seu nome ou CPF.' } },
+      { q: 'Que horas você vai?', o: ['Logo cedo', 'Antes do almoço', 'Depois do almoço'] },
+      { q: 'Vai com quem?', o: ['Sozinho', 'Com a família', 'Com amigos', 'Vou levar alguém'] },
+      { q: 'Documento com foto separado?', o: ['Já separei', 'Vou separar'], ajuda: { 1: 'RG, CNH, carteira de trabalho ou o e-Título com foto. O título de papel não é obrigatório.' } },
+    ],
+    guia: 'tema-1-12',
+  },
+};

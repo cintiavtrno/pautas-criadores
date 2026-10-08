@@ -75,7 +75,7 @@ const campanha = new URLSearchParams(location.search).get('campanha') === 'no-me
 if (campanha) {
   document.querySelector('.lateral .kicker').textContent = 'campanha · no meu tempo';
   document.querySelector('.lateral h1').textContent = 'No meu tempo…';
-  document.querySelector('.lateral .lead').innerHTML = 'Mande o link do depoimento. O ideal é 20 segundos, no máximo 1 minuto. Postou no seu perfil? Cole o link. Não quer postar? Suba no Google Drive com o link aberto. <strong>Só mande com a autorização de quem aparece.</strong>';
+  document.querySelector('.lateral .lead').innerHTML = 'Mande o link do depoimento. O ideal é 20 segundos, no máximo 1 minuto. Postou no seu perfil? Cole o link. Não quer postar? Suba no Google Drive e deixe o link aberto pra qualquer pessoa ver. A gente edita e junta os depoimentos. <strong>Só mande com a autorização de quem aparece.</strong>';
   document.querySelector('legend').textContent = 'Seu depoimento';
   document.querySelector('label.f textarea[name=comentario]').closest('label').firstChild.textContent = 'Quem fala e do que fala ';
   document.getElementById('bloco-pautas').remove();
