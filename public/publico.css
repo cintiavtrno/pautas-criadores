@@ -918,3 +918,28 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 }
 .nmt-temas li b { display: block; font: 800 16px/1.1 var(--display); letter-spacing: -.02em; text-transform: none; margin-bottom: 2px; }
 .nmt-temas li { text-transform: lowercase; }
+/* jogos: entenda + conversa */
+.jg-entenda { margin-top: 28px; background: var(--branco); border: 2px solid var(--verde-tinta); padding: 20px 22px 18px; }
+.jg-entenda .kicker { color: var(--verde); }
+.jg-entenda ul { margin: 12px 0 0; padding: 0; list-style: none; }
+.jg-entenda li { position: relative; padding: 10px 0 10px 26px; border-top: 1px solid var(--linha); font-size: 17.5px; line-height: 1.45; color: var(--tinta); }
+.jg-entenda li:first-child { border-top: 0; }
+.jg-entenda li::before { content: ""; position: absolute; left: 2px; top: 17px; width: 12px; height: 12px; background: var(--menta); transform: rotate(45deg); }
+.jg-conversa { margin-top: 12px; border: 2px solid var(--verde-tinta); background: rgba(248, 250, 246, .55); }
+.jg-conversa summary { cursor: pointer; padding: 16px 22px; font: 800 19px/1.2 var(--display); letter-spacing: -.02em; color: var(--verde-tinta); list-style: none; position: relative; padding-right: 52px; }
+.jg-conversa summary::-webkit-details-marker { display: none; }
+.jg-conversa summary::after { content: "+"; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font: 800 28px/1 var(--display); }
+.jg-conversa[open] summary::after { content: "−"; }
+.jg-conversa dl { margin: 0; padding: 0 22px; }
+.jg-conversa dt { font: 500 13px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .04em; color: var(--verde); padding-top: 14px; border-top: 1px solid rgba(18, 53, 42, .2); }
+.jg-conversa dd { margin: 6px 0 14px; font-size: 17.5px; line-height: 1.5; color: var(--verde-tinta); }
+.jg-puxa { margin: 0 22px; padding: 14px 0; border-top: 1.5px solid var(--verde-tinta); font: 800 21px/1.25 var(--display); letter-spacing: -.02em; color: var(--verde-tinta); }
+.jg-puxa .kicker { display: block; margin-bottom: 6px; color: var(--verde); font-size: 11.5px; }
+.jg-dica { margin: 0 22px 18px; font-size: 15.5px; line-height: 1.5; color: var(--tinta-2); }
+.jg-lado { margin-top: 22px; }
+.jg-lado-lista { padding: 0 22px 10px; }
+.jg-lado-lista > div { border-top: 1px solid rgba(18, 53, 42, .2); padding: 14px 0; }
+.jg-lado-lista .kicker { color: var(--verde); font-size: 11.5px; margin: 0 0 6px; }
+.jg-lado-lista p { margin: 6px 0 0; font-size: 16.5px; line-height: 1.45; color: var(--verde-tinta); }
+.jg-lado-lista b { display: inline-block; min-width: 74px; margin-right: 4px; font: 800 15px var(--display); text-transform: uppercase; letter-spacing: .02em; }
+.jg-lado-lista span { font: 500 11.5px var(--mono); color: var(--tinta-3); white-space: nowrap; }

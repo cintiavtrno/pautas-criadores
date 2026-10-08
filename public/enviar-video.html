@@ -75,10 +75,12 @@ const campanha = new URLSearchParams(location.search).get('campanha') === 'no-me
 if (campanha) {
   document.querySelector('.lateral .kicker').textContent = 'campanha · no meu tempo';
   document.querySelector('.lateral h1').textContent = 'No meu tempo…';
-  document.querySelector('.lateral .lead').innerHTML = 'Mande o link do depoimento. O ideal é 20 segundos, no máximo 1 minuto. Postou no seu perfil? Cole o link. Não quer postar? Suba no Google Drive e deixe o link aberto pra qualquer pessoa ver. A gente edita e junta os depoimentos. <strong>Só mande com a autorização de quem aparece.</strong>';
+  document.querySelector('.lateral .lead').innerHTML = 'Suba o vídeo no Google Drive, deixe o link aberto pra qualquer pessoa ver e cole aqui. O ideal é 20 segundos, no máximo 1 minuto. A gente baixa, edita e junta os depoimentos. <strong>Só mande com a autorização de quem aparece.</strong>';
   document.querySelector('legend').textContent = 'Seu depoimento';
   document.querySelector('label.f textarea[name=comentario]').closest('label').firstChild.textContent = 'Quem fala e do que fala ';
   document.getElementById('bloco-pautas').remove();
+  const lk = f.elements.link; lk.placeholder = 'https://drive.google.com/…';
+  lk.closest('label').firstChild.textContent = 'Link do Google Drive';
 }
 let turnstileToken = '';
 document.getElementById('enviar').innerHTML = ICONE.link + ' Enviar link';
@@ -105,6 +107,7 @@ f.addEventListener('submit', async (e) => {
     pautaIds: [...f.querySelectorAll('input[name=pautaIds]:checked')].map((x) => x.value), campanha, t: Date.now() - abertoEm, turnstile: turnstileToken };
   msg.className = 'msg err';
   if (!/^https?:\/\//i.test(d.link)) { msg.textContent = 'Cole o link do vídeo, começando com https://'; return; }
+  if (campanha && !/drive\.google\.com/i.test(d.link)) { msg.textContent = 'Cole o link do Google Drive (drive.google.com), com acesso aberto pra qualquer pessoa com o link.'; return; }
   if (!d.nome) { msg.textContent = 'Preencha seu nome.'; return; }
   const b = document.getElementById('enviar'); b.disabled = true; msg.className = 'msg'; msg.textContent = 'Enviando…';
   try {

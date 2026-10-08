@@ -58,23 +58,32 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   }
   // bloco final comum: card + WhatsApp + jogar de novo + outros
-  function finais({ id, cardDados, zapTxt, guia, denovo }) {
+  function finais({ id, cardDados, zapTxt, guia }) {
+    const A = (window.ARGUMENTOS || {})[id];
     const zap = `https://wa.me/?text=${encodeURIComponent(zapTxt + ' ' + location.origin + '/jogos#' + id)}`;
     const outros = [...Object.values(D), ...J].filter((g) => g.id !== id).slice(0, 4);
     return {
       html: `
+        ${A ? `<section class="jg-entenda">
+          <p class="kicker">entenda o que isso significa</p>
+          <ul>${A.entenda.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+        </section>
+        <details class="jg-conversa">
+          <summary>Vai conversar com alguém? Respostas rápidas</summary>
+          <dl>${A.conversa.map(([q, r]) => `<dt>Se ouvir: "${esc(q)}"</dt><dd>${esc(r)}</dd>`).join('')}</dl>
+          <p class="jg-puxa"><span class="kicker">pergunta pra puxar a conversa</span>"${esc(A.pergunta)}"</p>
+          <p class="jg-dica">Escute antes de responder. Uma resposta curta e uma pergunta de volta funcionam melhor do que um textão, no corpo a corpo ou na DM.</p>
+        </details>` : ''}
         <p class="jg-dia">No dia 25 de outubro, seu voto decide.</p>
         <div class="jg-acoes">
           <button type="button" class="btn" id="b-card">Baixar card pro story</button>
           <a class="btn ghost" href="${zap}" target="_blank" rel="noopener">Mandar no WhatsApp</a>
-          <button type="button" class="btn ghost" id="b-denovo">Jogar com outra pessoa</button>
           ${guia ? `<a class="btn ghost" href="/guia#${esc(guia)}">Ver no guia</a>` : ''}
         </div>
         <p class="kicker jg-mais">outros jogos</p>
         <div class="jg-outros">${outros.map((g) => `<a href="#${esc(g.id)}"><strong>${esc(g.titulo)}</strong><span>${esc(g.para || g.chamada)}</span></a>`).join('')}</div>`,
       liga() {
         document.getElementById('b-card').addEventListener('click', () => compartilhaCard(cardDados, `svd-${id}`));
-        document.getElementById('b-denovo').addEventListener('click', denovo);
       },
     };
   }
@@ -104,7 +113,7 @@
       const c = jogo.cartas[i];
       const ops = c.t === 'vf' ? [['v', 'Verdade'], ['m', 'Mito']] : c.o.map((o, k) => [String(k), o]);
       el.innerHTML = palco(jogo.titulo, barra(jogo.cartas.length, i), `
-        <p class="jg-tipo">${c.t === 'vf' ? 'mito ou verdade?' : `pergunta ${i + 1}`}</p>
+        <p class="jg-tipo">${c.h ? esc(c.h) : c.t === 'vf' ? 'mito ou verdade?' : `pergunta ${i + 1}`}</p>
         <h2 class="jg-q">${esc(c.q)}</h2>
         <div class="jg-ops ${ops.length > 3 ? 'quatro' : ''} ${c.t === 'vf' ? 'vf' : ''}">${ops.map(([v, l]) => `<button type="button" data-v="${v}">${esc(l)}</button>`).join('')}</div>
         <div class="jg-rev" id="rev" hidden></div>`);
@@ -132,7 +141,7 @@
     };
     const fim = () => {
       const n = jogo.cartas.length;
-      const f = finais({ id: jogo.id, guia: jogo.eixo, denovo: () => quiz(jogo),
+      const f = finais({ id: jogo.id, guia: jogo.eixo,
         cardDados: { kicker: jogo.titulo, grande: `Acertei ${pontos} de ${n}`, texto: `${jogo.fim.t} Duvido você acertar mais.` },
         zapTxt: `Acertei ${pontos} de ${n} no "${jogo.titulo}". Duvido você acertar mais:` });
       el.innerHTML = palco(jogo.titulo, '', `
@@ -161,16 +170,17 @@
       topo();
     };
     const escolhe = (k) => {
+      const r = rodadas[i];
       if (k === 'l') lula++;
       el.querySelectorAll('.jg-cego button').forEach((b) => {
         b.disabled = true;
         b.classList.add(b.dataset.k === k ? 'esc' : 'nesc');
-        b.insertAdjacentHTML('beforeend', `<span class="jg-dono">${b.dataset.k === 'l' ? 'Plano do Lula' : 'Plano do Flávio'}</span>`);
+        b.insertAdjacentHTML('beforeend', `<span class="jg-dono">${b.dataset.k === 'l' ? `Programa do Lula · p. ${esc(r.pl)}` : `Plano do Flávio · p. ${esc(r.pf)}`}</span>`);
       });
       const ult = i === rodadas.length - 1;
       const rev = document.getElementById('rev');
       rev.innerHTML = `<p class="jg-res ${k === 'l' ? 'ok' : 'nao'}">Você escolheu o plano ${k === 'l' ? 'do Lula' : 'do Flávio'}</p>
-        <p class="jg-fonte"><a href="/guia#ganchos" target="_blank" rel="noopener">de onde vem: guia, ganchos de saúde</a></p>
+        <p class="jg-fonte">fonte: planos de governo registrados no TSE</p>
         <button type="button" class="btn jg-prox">${ult ? 'Ver resultado' : 'Próxima'}</button>`;
       rev.hidden = false;
       rev.querySelector('.jg-prox').addEventListener('click', () => { if (ult) fim(); else { i++; rodada(); } });
@@ -179,43 +189,21 @@
     const fim = () => {
       const n = rodadas.length;
       const msg = lula === n ? 'Sem saber de quem era, você escolheu tudo do Lula.' : lula > n / 2 ? 'Sem saber de quem era, você escolheu mais o plano do Lula.' : lula ? 'Agora você sabe de quem é cada proposta.' : 'Você ficou com o plano do Flávio. Pelo menos agora sabe de quem é cada proposta.';
-      const f = finais({ id: d.id, guia: d.guia, denovo: () => cego(d),
+      const f = finais({ id: d.id, guia: d.guia,
         cardDados: { kicker: 'teste cego', grande: `Escolhi ${lula} de ${n} do Lula`, texto: 'Sem saber de quem era cada proposta. Faz o teste e vê o seu.' },
         zapTxt: `Fiz o teste cego e escolhi ${lula} de ${n} propostas do Lula sem saber de quem eram. Faz o seu:` });
       el.innerHTML = palco(d.titulo, '', `
         <p class="jg-placar"><b>${lula}</b><span>de ${n} do Lula</span></p>
         <h2 class="jg-q">${esc(msg)}</h2>
-        <p class="jg-r">No dia 25, você não escolhe uma pessoa perfeita. Escolhe qual desses planos vai valer pros próximos 4 anos.</p>${f.html}`);
+        <p class="jg-r">No dia 25, você não escolhe uma pessoa perfeita. Escolhe qual desses planos vai valer pros próximos 4 anos.</p>
+        <details class="jg-conversa jg-lado">
+          <summary>Ver as ${n} propostas lado a lado</summary>
+          <div class="jg-lado-lista">${rodadas.map((r) => `<div><p class="kicker">${esc(r.tema)}</p><p><b>Lula</b>${esc(r.l)} <span>p. ${esc(r.pl)}</span></p><p><b>Flávio</b>${esc(r.f)} <span>p. ${esc(r.pf)}</span></p></div>`).join('')}</div>
+        </details>${f.html}`);
       el.querySelector('.jg-palco').classList.add('jg-fim');
       ligaSair(); f.liga(); topo();
     };
     rodada();
-  }
-
-  /* ---------- seu dia ---------- */
-  function dia(d) {
-    const vistos = new Set();
-    el.innerHTML = palco(d.titulo, '', `
-      <p class="jg-tipo">toque em cada hora</p>
-      <h2 class="jg-q">"Política não muda a minha vida."</h2>
-      <p class="jg-cont" id="cont">Política no seu dia: <b>0</b> de ${d.momentos.length}</p>
-      <ol class="jg-dia-lista">${d.momentos.map((m, k) => `<li><button type="button" data-k="${k}"><span class="jg-h">${esc(m.h)}</span><span class="jg-o">${esc(m.o)}</span><span class="jg-mais-i" aria-hidden="true">+</span></button><p class="jg-dia-r" hidden>${esc(m.r)}</p></li>`).join('')}</ol>
-      <div id="fim-dia"></div>`);
-    ligaSair(); topo();
-    el.querySelectorAll('.jg-dia-lista button').forEach((b) => b.addEventListener('click', () => {
-      const k = +b.dataset.k; if (vistos.has(k)) return; vistos.add(k);
-      b.classList.add('on'); b.nextElementSibling.hidden = false;
-      document.querySelector('#cont b').textContent = vistos.size;
-      if (vistos.size === d.momentos.length) {
-        const f = finais({ id: d.id, guia: d.guia, denovo: () => dia(d),
-          cardDados: { kicker: 'seu dia com a política', grande: `${d.momentos.length} de ${d.momentos.length}`, texto: 'A política estava em todas as horas do meu dia. Quem decide isso é quem a gente elege.' },
-          zapTxt: 'Achei que política não mudava minha vida. Ela estava em todas as horas do meu dia. Testa o seu:' });
-        const box = document.getElementById('fim-dia');
-        box.innerHTML = `<div class="jg-rev"><p class="jg-res ok">${d.momentos.length} de ${d.momentos.length}.</p><p class="jg-r">Você pode não pensar em política, mas ela está com você o dia inteiro. A diferença é se você escolhe quem decide tudo isso ou se deixa outra pessoa escolher por você.</p></div>${f.html}`;
-        f.liga();
-        setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-      }
-    }));
   }
 
   /* ---------- calculadora ---------- */
@@ -258,7 +246,7 @@
       document.getElementById('menos').addEventListener('click', () => { n = Math.max(1, n - 1); v.textContent = n; });
       document.getElementById('mais').addEventListener('click', () => { n = Math.min(30, n + 1); v.textContent = n; });
       document.getElementById('ok-levo').addEventListener('click', () => {
-        const f = finais({ id: d.id, guia: d.guia, denovo: () => calc(d),
+        const f = finais({ id: d.id, guia: d.guia,
           cardDados: { kicker: 'meu compromisso', grande: `Vou levar ${n} ${n === 1 ? 'pessoa' : 'pessoas'} pra votar`, texto: `Bastam ${Math.ceil(meta)} em cada 100 que faltaram no 1º turno pra virar. Quantas você leva?` },
           zapTxt: `Bastam ${Math.ceil(meta)} em cada 100 que faltaram no 1º turno pra virar a eleição. Eu vou levar ${n} ${n === 1 ? 'pessoa' : 'pessoas'} pra votar dia 25. E você?` });
         box.innerHTML = `<div class="jg-rev"><p class="jg-res ok">Vou levar ${n} ${n === 1 ? 'pessoa' : 'pessoas'}.</p><p class="jg-r">Combina com elas agora: horário, documento com foto e quem vai junto.</p></div>${f.html}`;
@@ -294,7 +282,7 @@
       const quando = resp[1].toLowerCase(); const com = resp[2];
       const comTxt = com === 'Sozinho' ? 'sozinho' : com === 'Vou levar alguém' ? 'levando alguém comigo' : com.toLowerCase();
       const frase = `Dia 25 eu voto ${quando}, ${comTxt}.`;
-      const f = finais({ id: d.id, guia: d.guia, denovo: () => plano(d),
+      const f = finais({ id: d.id, guia: d.guia,
         cardDados: { kicker: 'meu plano pro dia 25', grande: frase, texto: 'Documento com foto separado. Já sei onde voto. E você, qual é o seu plano?' },
         zapTxt: `Meu plano pro dia 25: voto ${quando}, ${comTxt}. Monta o seu em 30 segundos:` });
       el.innerHTML = palco(d.titulo, '', `
@@ -306,7 +294,7 @@
           <li>Companhia: ${esc(comTxt)}</li>
           <li>Documento com foto: ${resp[3] === 'Já separei' ? 'separado' : 'separar até o dia 24'}</li>
         </ul>
-        <p class="jg-r">Quem decide antes como, quando e com quem vai votar tem muito mais chance de ir. Manda o seu plano pra alguém e pede o dela.</p>${f.html}`);
+        <p class="jg-r">Quem decide antes como, quando e com quem vai votar tem mais chance de ir. Manda o seu plano pra alguém e pede o dela.</p>${f.html}`);
       el.querySelector('.jg-palco').classList.add('jg-fim');
       ligaSair(); f.liga(); topo();
     };
@@ -314,7 +302,7 @@
   }
 
   /* ---------- rotas ---------- */
-  const MODOS = { 'teste-cego': [cego, D.cego], 'seu-dia': [dia, D.dia], calculadora: [calc, D.calc], 'meu-plano': [plano, D.plano] };
+  const MODOS = { 'teste-cego': [cego, D.cego], 'seu-dia': [quiz, D.dia], calculadora: [calc, D.calc], 'meu-plano': [plano, D.plano] };
   function rota() {
     const id = location.hash.slice(1);
     if (MODOS[id] && MODOS[id][1]) return MODOS[id][0](MODOS[id][1]);

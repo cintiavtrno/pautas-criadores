@@ -79,30 +79,38 @@ window.DESAFIOS = {
   // teste cego: escolhe a proposta sem saber de quem é (fonte: nicho Saúde do guia)
   cego: {
     id: 'teste-cego',
-    titulo: 'Teste cego',
-    chamada: 'Escolha sem saber de quem é',
+    titulo: 'Teste cego: Lula x Flávio',
+    chamada: 'Escolha a proposta sem saber de quem é',
+    // l = programa de governo do Lula; f = plano de Flávio Bolsonaro (os dois registrados no TSE). pl/pf = páginas
     rodadas: [
-      { tema: 'Fila de exame', l: 'Mais especialistas: terceiro turno nos postos, carretas da saúde e recorde de cirurgias no SUS', f: 'Agendamento de exame por aplicativo e inteligência artificial' },
-      { tema: 'Remédio', l: '41 remédios 100% de graça na Farmácia Popular do bairro', f: 'Entrega de remédio por aplicativo e parcerias privadas' },
-      { tema: 'Dentista', l: 'Equipes de saúde bucal nos postos e consultórios móveis nos bairros', f: 'Enxugar gastos e contratar horários vagos em clínicas particulares' },
-      { tema: 'Trabalho', l: 'Fim da escala 6x1, sem redução de salário', f: 'Manter a escala 6x1' },
+      { tema: 'Fila do SUS', l: 'Terceiro turno nos postos, Carretas da Saúde e mutirões pra fazer mais consultas, exames e cirurgias', pl: '37', f: 'Inteligência artificial pra marcar consulta e contratar exames na rede particular em horário vago', pf: '26 e 37' },
+      { tema: 'Remédio', l: 'Farmácia Popular 100% gratuita, com 41 remédios de graça', pl: '36', f: 'Entrega de remédio em casa pra idoso, pessoa com deficiência e doente crônico', pf: '38' },
+      { tema: 'Jornada de trabalho', l: 'Fim da escala 6x1 e jornada de 40 horas, sem reduzir o salário', pl: '75', f: 'Negociado sobre o legislado: trabalhador e empresa combinam a jornada direto, com horário flexível', pf: '44' },
+      { tema: 'Salário e emprego', l: 'Continuar a valorização do salário mínimo, com aumento acima da inflação', pl: '19 e 74', f: 'Reduzir o custo de contratar e criar contrato com menos encargos pro primeiro emprego', pf: '43 e 44' },
+      { tema: 'Imposto', l: 'Isenção de Imposto de Renda pra quem ganha até R$ 5 mil, cobrando mais de quem está no topo', pl: '11 e 19', f: 'Revisar a reforma tributária e baixar o imposto sobre o consumo', pf: '30 e 71' },
+      { tema: 'Escola', l: 'Escola em tempo integral como prioridade e Pé-de-Meia pro jovem não largar o ensino médio', pl: '31 e 32', f: 'Ampliar as escolas cívico-militares e alfabetizar pelo método fônico', pf: '35' },
+      { tema: 'Conta de luz', l: 'Conta de luz de graça pra família do Cadastro Único que gasta até 80 kWh por mês', pl: '65', f: 'Cortar encargos e impostos da conta de luz, mantendo a tarifa social', pf: '31' },
+      { tema: 'Segurança', l: 'Criar o Ministério da Segurança Pública e asfixiar o dinheiro do crime organizado', pl: '27 e 30', f: 'Reduzir a maioridade penal pra 16 anos e tratar facção como organização narcoterrorista', pf: '13' },
     ],
-    guia: 'ganchos',
+    guia: 'eixos',
   },
-  // seu dia: toca em cada hora do dia e descobre onde o governo federal está
+  // quem decide o seu dia: quiz com cenas do dia (honesto: nem tudo é do governo federal)
   dia: {
     id: 'seu-dia',
-    titulo: 'Seu dia com a política',
-    chamada: 'Toque em cada hora do seu dia',
-    momentos: [
-      { h: '6h', o: 'Café da manhã', r: 'O preço do que está na mesa passa pela política de alimentos e de combustível.' },
-      { h: '7h', o: 'Ônibus ou moto', r: 'O preço da gasolina passa pela política da Petrobras.' },
-      { h: '8h', o: 'Trabalho', r: 'O salário mínimo é definido todo ano pelo governo federal.' },
-      { h: '12h', o: 'Merenda do filho', r: 'O programa de merenda escolar é federal.' },
-      { h: '15h', o: 'Posto de saúde', r: 'O SUS é financiado e coordenado pelo governo federal.' },
-      { h: '18h', o: 'Farmácia', r: 'O remédio de pressão pode sair de graça pela Farmácia Popular.' },
+    titulo: 'Quem decide o seu dia?',
+    chamada: 'Prefeitura, estado ou Brasília?',
+    para: 'Pra quem acha que política não muda a vida',
+    eixo: 'tema-1-7',
+    cartas: [
+      { t: 'esc', h: '6h30 · café da manhã', q: 'O preço do pão e do leite depende só do mercado?', o: ['Só do mercado', 'Brasília também mexe'], c: 1, r: 'Imposto da cesta básica, crédito pro agricultor e estoque de alimentos são decididos pelo governo federal.' },
+      { t: 'esc', h: '7h · ônibus pro trabalho', q: 'Quem define o preço da passagem do ônibus da cidade?', o: ['A prefeitura', 'O governo federal'], c: 0, r: 'É a prefeitura. Mas o diesel que move o ônibus tem preço puxado pela Petrobras, que o governo federal controla.' },
+      { t: 'esc', h: '8h · trabalho', q: 'Quem define o valor do salário mínimo?', o: ['O patrão', 'O sindicato', 'O governo federal'], c: 2, r: 'O governo federal, todo ano. E ele serve de base pra aposentadoria e pro BPC.' },
+      { t: 'esc', h: '10h · escola das crianças', q: 'Quem banca a merenda da escola?', o: ['Só a prefeitura', 'Só o governo federal', 'Os dois'], c: 2, r: 'Os dois. O governo federal manda o dinheiro e a prefeitura ou o estado prepara.' },
+      { t: 'esc', h: '15h · consulta no posto', q: 'Quem paga o SUS?', o: ['Prefeitura', 'Estado', 'Governo federal', 'Os três'], c: 3, r: 'Os três. O governo federal é quem mais coloca dinheiro e quem coordena o sistema.' },
+      { t: 'esc', h: '18h30 · farmácia na volta', q: 'O remédio de pressão de graça vem de onde?', o: ['Da prefeitura', 'Do governo federal', 'Da farmácia'], c: 1, r: 'Do governo federal, pela Farmácia Popular.' },
+      { t: 'esc', h: '21h · a conta de luz chega', q: 'Quem decide quem tem desconto ou luz de graça?', o: ['A companhia de luz', 'O governo federal'], c: 1, r: 'O governo federal. Hoje, família do Cadastro Único que gasta até 80 kWh por mês não paga a conta.' },
     ],
-    guia: 'tema-1-7',
+    fim: { t: 'Das 7 coisas do seu dia, 6 passam por Brasília.', s: 'Você pode não pensar em política, mas ela está com você o dia inteiro. Quem não vota deixa outra pessoa decidir tudo isso.' },
   },
   // calculadora: quanto de quem faltou precisa votar pra virar
   calc: {
@@ -125,5 +133,110 @@ window.DESAFIOS = {
       { q: 'Documento com foto separado?', o: ['Já separei', 'Vou separar'], ajuda: { 1: 'RG, CNH, carteira de trabalho ou o e-Título com foto. O título de papel não é obrigatório.' } },
     ],
     guia: 'tema-1-12',
+  },
+};
+
+// "Entenda o que isso significa" + respostas rápidas para quem conduz a conversa (corpo a corpo ou DM)
+window.ARGUMENTOS = {
+  votar: {
+    entenda: [
+      'Faltar no 1º turno não tira o seu direito. O dia 25 é outra eleição.',
+      'Branco e nulo não vão pra ninguém. Na prática, deixam os outros escolherem por você.',
+      '33 milhões ficaram em casa no 1º turno. É mais do que os votos de Cury, Caiado, Zema e Renan juntos. Quem decide essa eleição é quem faltou.',
+      'Votar em Lula não te faz petista. Dá pra votar e continuar cobrando.',
+    ],
+    conversa: [
+      ['Nenhum dos dois me representa.', 'Não precisa gostar. É escolher qual dos dois projetos vai mexer no seu salário, no SUS e na comida da sua mesa pelos próximos 4 anos.'],
+      ['Meu voto não muda nada.', 'Em 2022 a diferença foi de 2 milhões de votos, e 32 milhões não foram votar. Bastavam 6 em cada 100.'],
+      ['Não sei onde voto, perdi o título.', 'Documento com foto basta. O local aparece no app e-Título com o seu CPF. Quer que eu veja com você agora?'],
+    ],
+    pergunta: 'O que você não quer de jeito nenhum pros próximos 4 anos?',
+  },
+  renan: {
+    entenda: [
+      'O Livro Amarelo depende de Congresso, Justiça e eleições funcionando. Sem isso, o plano fica na gaveta.',
+      'Várias propostas do Renan já andam no governo Lula: o Mover, a asfixia financeira das facções, a aposta no Nordeste.',
+      'Do outro lado, a família Bolsonaro fez campanha por sanções dos EUA contra o Brasil. Isso bate de frente com o "Brasil Poderoso" do livro.',
+      'Em 2030, dá pra votar no Renan de novo.',
+    ],
+    conversa: [
+      ['Os dois são o sistema.', 'Pro Livro Amarelo, o sistema é o patrimonialismo: tratar o que é público como herança de família. Cargo passando de pai pra filho é exatamente isso.'],
+      ['Não voto no PT de jeito nenhum.', 'Ninguém tá pedindo pra virar petista. É garantir que em 2030 o seu candidato receba um país governável.'],
+    ],
+    pergunta: 'O que do Livro Amarelo você mais quer ver acontecendo?',
+  },
+  caiado: {
+    entenda: [
+      'Em saúde, segurança, educação e proteção social, as propostas do Caiado e do Lula se repetem, às vezes com as mesmas palavras.',
+      'Algumas o Caiado prometia manter porque o governo Lula já fez: conta de luz grátis pra baixa renda, Pé-de-Meia.',
+      'O Caiado rompeu com Bolsonaro pela condução da pandemia. Saúde pública precisa de quem decide pela ciência.',
+    ],
+    conversa: [
+      ['Sou de direita, não voto no Lula.', 'O que você queria do Caiado? Fila do SUS andando, segurança, escola boa? Olha quanto disso tá no plano do Lula.'],
+      ['O Caiado sempre foi contra o PT.', 'Foi. E mesmo assim prometeu manter coisas que o governo Lula criou. Dia 25 a pergunta é quem mantém isso de pé.'],
+    ],
+    pergunta: 'O que te fez votar no Caiado?',
+  },
+  zema: {
+    entenda: [
+      'O primeiro acordo de Mariana, de 2016, era ruim: R$ 20 bilhões e a reparação nas mãos das próprias mineradoras.',
+      'O de 2024 saiu com o governo federal na mesa: R$ 170 bilhões, mais de R$ 81 bilhões em Minas.',
+      'O dinheiro entra em parcelas por 20 anos. Quem estiver na Presidência vai ter que cobrar cada uma.',
+      'Estado enxuto não pode ser Estado sem força pra cobrar uma Vale.',
+    ],
+    conversa: [
+      ['Foi o PT que assinou o acordo de Mariana.', 'Assinou o de 2016, e ele era ruim. O que funcionou foi o de 2024, fechado com o governo Lula, com o Zema na mesa.'],
+      ['Eu voto em gestão.', 'Então compara as planilhas: Pé-de-Meia, Minha Casa Minha Vida, reforma tributária. O Zema prometeu manter coisas que já estão de pé.'],
+    ],
+    pergunta: 'O que você mais gostava do jeito Zema de governar?',
+  },
+  'teste-cego': {
+    entenda: [
+      'No 2º turno você não escolhe uma pessoa perfeita. Escolhe qual plano vai valer por 4 anos.',
+      'Aplicativo não marca consulta com médico que não existe. Pra fila andar, precisa de mais especialista, mais exame e mais cirurgia.',
+      'Fim da 6x1 sem reduzir salário é tempo com a família. "Negociar direto com o patrão" quase sempre quer dizer o patrão decidindo.',
+      'A isenção de Imposto de Renda pra quem ganha até R$ 5 mil já está valendo.',
+    ],
+    conversa: [
+      ['Mas eu não gosto do Lula.', 'Você escolheu as propostas sem saber de quem eram. Gostar da pessoa é outra coisa. No dia 25, vale o plano.'],
+      ['Isso é promessa de campanha.', 'Farmácia Popular, isenção do IR e Pé-de-Meia já existem. Dá pra conferir no contracheque e na farmácia do bairro.'],
+      ['Mas a proposta do Flávio também é boa.', 'Pode ser. O teste é justamente esse: decidir pelo que está escrito no plano, e não pelo nome. Qual das duas mexe mais com a sua vida?'],
+    ],
+    pergunta: 'Qual dessas propostas mexe mais com a sua vida hoje?',
+  },
+  'seu-dia': {
+    entenda: [
+      'Salário mínimo, preço do combustível, merenda, SUS e remédio: tudo passa por Brasília.',
+      'Quem não vota não sai da política. Só deixa outra pessoa decidir essas coisas.',
+    ],
+    conversa: [
+      ['Político é tudo igual.', 'Então olha o salário mínimo dos últimos anos e o preço do remédio de pressão. Quem decide isso muda o seu mês.'],
+      ['Não entendo de política.', 'Você entende de preço de mercado e de fila de posto. É disso que essa eleição trata.'],
+    ],
+    pergunta: 'Qual hora do seu dia pesa mais no bolso?',
+  },
+  calculadora: {
+    entenda: [
+      'No 1º turno, 33 milhões ficaram em casa. É mais gente do que todos os votos de Cury, Caiado, Zema e Renan juntos.',
+      'A diferença foi de 2 milhões. Bastam 7 em cada 100 de quem faltou.',
+      'Muita gente falta por falta de ajuda: trabalha domingo, mora longe, é idosa. Lembrar o horário, achar o local e ir junto já resolve.',
+    ],
+    conversa: [
+      ['Um voto não muda nada.', 'Não é um voto. São 7 em cada 100 que faltaram. Se cada pessoa levar uma, já chega.'],
+      ['Não tenho tempo.', 'A urna fica aberta das 8h às 17h, e idoso tem prioridade na fila. Bora combinar um horário?'],
+    ],
+    pergunta: 'Quem você conhece que não foi votar no 1º turno?',
+  },
+  'meu-plano': {
+    entenda: [
+      'Quem decide antes onde, quando e com quem vai votar tem mais chance de ir.',
+      'Basta um documento com foto. O título de papel não é obrigatório.',
+      'O patrão não pode te impedir. Ele tem que te liberar pelo tempo de ir votar.',
+    ],
+    conversa: [
+      ['Vou ver isso no dia.', 'Deixa pro dia e o domingo some. Consulta o local agora no e-Título?'],
+      ['Trabalho domingo.', 'Impedir de votar é crime eleitoral. Combina antes com a chefia o horário de sair.'],
+    ],
+    pergunta: 'Quem vai votar com você?',
   },
 };
