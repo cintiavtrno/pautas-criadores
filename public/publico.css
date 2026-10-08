@@ -992,3 +992,6 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 .jg-zap p { margin: 0; font: 400 clamp(19px, 2vw, 23px)/1.4 Arial, Helvetica, sans-serif; color: #111; }
 .jg-zap-h { position: absolute; right: 12px; bottom: 6px; font: 400 12px Arial, sans-serif; color: var(--tinta-3); }
 .jg-ops.zap button[data-v="m"] { text-transform: uppercase; letter-spacing: .02em; }
+.apoio-lista li.com-logo { padding: 22px 0; }
+.apoio-lista li.com-logo a { display: block; }
+.apoio-lista li.com-logo img { display: block; width: min(100%, 260px); height: auto; }

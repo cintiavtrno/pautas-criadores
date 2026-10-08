@@ -289,10 +289,11 @@ app.get('/public/config', wrap(async (_req, res) => {
     advogadas: advogadasDe(c),
   });
 }));
-// apoiadores: em Ajustes, um por linha, "Nome | link"
+// apoiadores: em Ajustes, um por linha, "Nome | link | logo (opcional)"
 const apoiadoresDe = (c) => String(c.apoiadores || '').split('\n').map((l) => {
-  const [nome, link] = l.split('|').map((x) => (x || '').trim());
-  return nome ? { nome: txt(nome, 120), link: linkRede(link) } : null;
+  const [nome, link, logo] = l.split('|').map((x) => (x || '').trim());
+  const logoOk = /^\/apoio\/[\w.-]+\.(png|jpe?g|svg|webp)$/i.test(logo || '') || urlOk(logo) ? logo : '';
+  return nome ? { nome: txt(nome, 120), link: linkRede(link), logo: logoOk } : null;
 }).filter(Boolean).slice(0, 60);
 // rede jurídica: em Ajustes, uma por linha, "Nome | OAB | link"
 const advogadasDe = (c) => String(c.advogadas || '').split('\n').map((l) => {
@@ -712,7 +713,7 @@ app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
     const m3 = (await db.list('meta'))[0];
     if (m3 && !m3.apoiadoresV2) {
       const cfg = (await db.list('config'))[0] || (await db.insert('config', {}));
-      const novo = 'Cultures of Resistance Network Foundation | https://culturesofresistance.org/';
+      const novo = 'Cultures of Resistance Network Foundation | https://culturesofresistance.org/ | /apoio/cultures-of-resistance.png';
       const linhas = String(cfg.apoiadores || '').split('\n').filter((l) => l.trim() && !/iara\s*lee/i.test(l));
       await db.update('config', cfg.id, { apoiadores: [novo, ...linhas].join('\n') });
       await db.update('meta', m3.id, { apoiadoresV2: true, apoiadoresDefinidos: true });
@@ -726,6 +727,16 @@ app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
         await db.update('config', cfg.id, { apoiadores: linhas.join('\n') });
       }
       await db.update('meta', m4.id, { apoiadoresV3: true });
+    }
+    // logo de Cultures of Resistance
+    const m5 = (await db.list('meta'))[0];
+    if (m5 && !m5.apoiadoresV4) {
+      const cfg = (await db.list('config'))[0];
+      if (cfg && cfg.apoiadores) {
+        const linhas = String(cfg.apoiadores).split('\n').map((l) => (/cultures\s*of\s*resist/i.test(l) && l.split('|').length < 3 ? l.trim() + ' | /apoio/cultures-of-resistance.png' : l));
+        await db.update('config', cfg.id, { apoiadores: linhas.join('\n') });
+      }
+      await db.update('meta', m5.id, { apoiadoresV4: true });
     }
     if (m2 && !m2.apoiadoresDefinidos) {
       const cfg = (await db.list('config'))[0] || (await db.insert('config', {}));

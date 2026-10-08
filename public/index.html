@@ -222,7 +222,7 @@ fetch('/public/config').then((r) => r.json()).then((c) => {
   const lista = c.apoiadores || [];
   if (!lista.length) return;
   const handle = (u) => { try { const p = new URL(u).pathname.split('/').filter(Boolean)[0]; return /instagram\.com/.test(u) && p ? '@' + p : u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''); } catch { return ''; } };
-  document.getElementById('lista-apoio').innerHTML = lista.map((a) => `<li>${ICONE.losango || ''}<div><strong>${esc(a.nome)}</strong>${a.link ? `<a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(handle(a.link))}</a>` : ''}</div></li>`).join('');
+  document.getElementById('lista-apoio').innerHTML = lista.map((a) => a.logo ? `<li class="com-logo"><a href="${esc(a.link || '#')}" target="_blank" rel="noopener noreferrer"><img src="${esc(a.logo)}" alt="${esc(a.nome)}" loading="lazy" /></a></li>` : `<li>${ICONE.losango || ''}<div><strong>${esc(a.nome)}</strong>${a.link ? `<a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(handle(a.link))}</a>` : ''}</div></li>`).join('');
   document.getElementById('apoiadores').hidden = false;
   observaRevela(document.getElementById('apoiadores'));
 }).catch(() => {});

@@ -771,7 +771,7 @@ async function renderAjustes() {
       ${field({ k: 'materialPautas', type: 'url', label: 'Link do material com as pautas e roteiros (PDF no Drive, por exemplo)', full: true, ph: 'https://' }, c)}
     </div></section>
     <section class="fs"><h3>Apoiadores (aparecem no fim da página inicial)</h3><div class="grid2">
-      ${field({ k: 'apoiadores', type: 'textarea', label: 'Um por linha, no formato: Nome | link (o link é opcional)', full: true, ph: 'Iara Lee | https://www.instagram.com/iaralee.explores.brazil/' }, c)}
+      ${field({ k: 'apoiadores', type: 'textarea', label: 'Um por linha, no formato: Nome | link | logo (link e logo são opcionais; logo é um endereço de imagem)', full: true, ph: 'Iara Lee | https://www.instagram.com/iaralee.explores.brazil/' }, c)}
     </div></section>
     <section class="fs"><h3>Rede jurídica (aparece na página /juridico)</h3><div class="grid2">
       ${field({ k: 'advogadas', type: 'textarea', label: 'Uma por linha, no formato: Nome | OAB nº/UF | link do perfil (OAB e link são opcionais)', full: true, ph: 'Nome Sobrenome | OAB 12345/BA | https://www.instagram.com/perfil/' }, c)}
