@@ -13,7 +13,7 @@ const PUB = path.join(__dirname, 'public');
 // coleções que só as admins mexem pela API genérica
 const PARA_CRIADOR = ['Criadores', 'Todos'];
 const PARA_PESSOA = ['Pessoas comuns', 'Todos'];
-const COLECOES = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'videos', 'config', 'juridico'];
+const COLECOES = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'videos', 'config', 'juridico', 'depoimentos'];
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // o Render fica na frente: assim o IP real de quem acessa é o que conta
@@ -555,7 +555,12 @@ app.post('/public/video', painelLimite, wrap(async (req, res) => {
   if (!urlOk(link)) return res.status(400).json({ error: 'Cole o link do vídeo (começando com http:// ou https://).' });
   const publicas = (await db.list('pautas')).filter((p) => [...PARA_PESSOA, ...PARA_CRIADOR].includes(p.paraQuem));
   const pautaIds = (Array.isArray(b.pautaIds) ? b.pautaIds : []).filter((id) => publicas.some((p) => p.id === id)).slice(0, 10);
-  await db.insert('videos', { nome, contato: txt(b.contato, 160), link, campanha: b.campanha === 'no-meu-tempo' ? 'No meu tempo' : '', comentario: txt(b.comentario, 1000), pautaIds, origem: 'formulario', tipo: '', em: agora(), conferido: false, mostrarNome: !!b.mostrar });
+  // campanha "No meu tempo": depoimento bruto (link do Drive) vai pra coleção própria, longe dos vídeos publicados e do mural
+  if (b.campanha === 'no-meu-tempo') {
+    await db.insert('depoimentos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), em: agora(), situacao: 'Novo', notas: '' });
+    return res.json({ ok: true });
+  }
+  await db.insert('videos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), pautaIds, origem: 'formulario', tipo: '', em: agora(), conferido: false, mostrarNome: !!b.mostrar });
   res.json({ ok: true });
 }));
 
@@ -697,6 +702,21 @@ app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
       await db.update('meta', m.id, { gruposDefinidos: true });
     }
     const m2 = (await db.list('meta'))[0];
+    // depoimentos do "No meu tempo" que entraram como vídeo antes da separação
+    for (const v of await db.list('videos')) {
+      if (!v.campanha) continue;
+      await db.insert('depoimentos', { nome: v.nome, contato: v.contato || '', link: v.link, comentario: v.comentario || '', em: v.em || v.createdAt, situacao: 'Novo', notas: v.notas || '' });
+      await db.remove('videos', v.id);
+    }
+    // apoiadores: troca Iara Lee por Cultures of Resistance (uma vez só; depois edita em Ajustes)
+    const m3 = (await db.list('meta'))[0];
+    if (m3 && !m3.apoiadoresV2) {
+      const cfg = (await db.list('config'))[0] || (await db.insert('config', {}));
+      const novo = 'Cultures of Resistance | https://www.instagram.com/culturesofresistence/';
+      const linhas = String(cfg.apoiadores || '').split('\n').filter((l) => l.trim() && !/iara\s*lee/i.test(l));
+      await db.update('config', cfg.id, { apoiadores: [novo, ...linhas].join('\n') });
+      await db.update('meta', m3.id, { apoiadoresV2: true, apoiadoresDefinidos: true });
+    }
     if (m2 && !m2.apoiadoresDefinidos) {
       const cfg = (await db.list('config'))[0] || (await db.insert('config', {}));
       if (!cfg.apoiadores) await db.update('config', cfg.id, { apoiadores: 'Iara Lee | https://www.instagram.com/iaralee.explores.brazil/' });

@@ -22,7 +22,7 @@ const TIPOS_MATERIAL = ['Arte', 'Vídeo', 'Texto', 'Roteiro', 'Outro'];
 
 const S = {
   me: null,
-  creators: [], pessoas: [], pautas: [], team: [], nichos: [], materiais: [], producao: [], usuarios: [], videos: [], config: [], juridico: [], 'minhas-tarefas': [],
+  creators: [], pessoas: [], pautas: [], team: [], nichos: [], materiais: [], producao: [], usuarios: [], videos: [], config: [], juridico: [], depoimentos: [], 'minhas-tarefas': [],
   view: 'criadores',
   sel: {},
   f: { q: '', nicho: '', status: '', linha: '', resp: '', origem: '' },
@@ -68,7 +68,7 @@ const api = {
 
 async function loadAll() {
   if (!ehAdmin()) { S['minhas-tarefas'] = await api.list('minhas-tarefas'); return; }
-  const cols = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'usuarios', 'videos', 'config', 'juridico'];
+  const cols = ['creators', 'pessoas', 'pautas', 'team', 'nichos', 'materiais', 'producao', 'usuarios', 'videos', 'config', 'juridico', 'depoimentos'];
   (await Promise.all(cols.map(api.list))).forEach((lista, i) => { S[cols[i]] = lista; });
 }
 async function save(col, rec, patch) {
@@ -681,6 +681,40 @@ VIEWS.videos = {
   onSaved(k) { if (k === 'conferido') renderRows(); },
 };
 
+/* Campanha "No meu tempo": depoimentos brutos (link do Drive) para a edição, separados dos vídeos publicados */
+const SITUACAO_DEP = ['Novo', 'Baixado', 'Editado', 'Descartado'];
+VIEWS.depoimentos = {
+  col: 'depoimentos',
+  bar: () => `<span class="sp"></span><button class="btn ghost" data-copy="${esc(location.origin + '/enviar-video?campanha=no-meu-tempo')}">Copiar link do formulário</button><a class="btn ghost" href="/export/depoimentos.csv">Exportar CSV</a>`,
+  filtered: () => S.depoimentos.slice().sort((a, b) => String(b.em).localeCompare(String(a.em))),
+  groups(list) { return SITUACAO_DEP.map((t) => ({ title: t, items: list.filter((d) => (d.situacao || 'Novo') === t) })); },
+  empty: 'Nenhum depoimento ainda.',
+  row(d) {
+    return `<span class="who"><span class="name">${esc(d.nome)}</span><span class="muted">${esc(d.link)}</span></span>
+      <span class="line ok">${esc(d.situacao || 'Novo')}</span><span class="line ok">${fmtData(d.em)}</span><span class="resp">${esc(d.responsavel || '')}</span>`;
+  },
+  detail(d) {
+    const ok = /^https?:\/\//i.test(d.link || '');
+    return `
+      <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
+        <div class="kicker"><span>no meu tempo</span><span>${fmtData(d.em)}</span><span class="sp"></span><span class="saved">salvo</span></div>
+        <h2>${esc(d.nome)}</h2>
+        ${ok ? `<a class="handle" href="${esc(d.link)}" target="_blank" rel="noopener noreferrer">Abrir no Drive ${ICONE.externo}</a>` : ''}
+      </div>
+      <div class="dbody">
+        ${d.comentario ? `<p class="about">${esc(d.comentario)}</p>` : ''}
+        <section class="fs"><h3>Edição</h3><div class="grid2">
+          <div class="f"><span>Contato</span><div>${esc(d.contato || '—')}</div></div>
+          ${field({ k: 'situacao', type: 'select', label: 'Situação', opts: () => SITUACAO_DEP }, d)}
+          ${field({ k: 'responsavel', label: 'Quem está editando', ph: 'nome' }, d)}
+          ${field({ k: 'notas', type: 'textarea', label: 'Notas (trecho bom, minutagem, problema de áudio…)', full: true }, d)}
+        </div></section>
+        <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>
+      </div>`;
+  },
+  onSaved(k) { if (['situacao', 'responsavel'].includes(k)) renderRows(); },
+};
+
 /* Jurídico: pedidos de orientação e gente da área oferecendo ajuda */
 const SITUACAO_JUR = ['Novo', 'Em atendimento', 'Resolvido', 'Arquivado'];
 VIEWS.juridico = {
@@ -883,7 +917,7 @@ function renderDetail() {
     const tips = {
       criadores: 'Escolha um criador na lista.', pautas: 'Escolha uma pauta na lista.', equipe: 'Escolha alguém na lista.',
       nichos: 'Escolha um nicho na lista.', pessoas: 'Escolha alguém na lista.', producao: 'Escolha uma tarefa na lista.',
-      tarefas: 'Escolha uma tarefa na lista.', materiais: 'Escolha um material na lista.', videos: 'Escolha um vídeo na lista.', juridico: 'Escolha um pedido na lista.',
+      tarefas: 'Escolha uma tarefa na lista.', materiais: 'Escolha um material na lista.', videos: 'Escolha um vídeo na lista.', juridico: 'Escolha um pedido na lista.', depoimentos: 'Escolha um depoimento na lista.',
     }[S.view];
     box.innerHTML = `<div class="empty-detail"><p>${tips}</p></div>`;
     return;
@@ -953,7 +987,7 @@ function renderStats() {
   ].map(([l, n, w]) => `<div class="${w ? 'warn' : ''}"><dt>${l}</dt><dd>${n}</dd></div>`).join('');
 }
 
-const ABAS_ADMIN = [['criadores', 'Criadores'], ['pessoas', 'Pessoas'], ['pautas', 'Pautas'], ['videos', 'Vídeos'], ['juridico', 'Jurídico'], ['producao', 'Produção'], ['materiais', 'Materiais'], ['quadro', 'Quadro'], ['equipe', 'Equipe'], ['nichos', 'Nichos'], ['ajustes', 'Ajustes']];
+const ABAS_ADMIN = [['criadores', 'Criadores'], ['pessoas', 'Pessoas'], ['pautas', 'Pautas'], ['videos', 'Vídeos'], ['depoimentos', 'No meu tempo'], ['juridico', 'Jurídico'], ['producao', 'Produção'], ['materiais', 'Materiais'], ['quadro', 'Quadro'], ['equipe', 'Equipe'], ['nichos', 'Nichos'], ['ajustes', 'Ajustes']];
 const ABAS_EQUIPE = [['tarefas', 'Minhas tarefas']];
 const abas = () => (ehAdmin() ? ABAS_ADMIN : ABAS_EQUIPE);
 
