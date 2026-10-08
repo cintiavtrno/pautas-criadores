@@ -995,3 +995,29 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 .apoio-lista li.com-logo { padding: 22px 0; }
 .apoio-lista li.com-logo a { display: block; }
 .apoio-lista li.com-logo img { display: block; width: min(100%, 260px); height: auto; }
+
+/* guia: um eixo por vez, público recolhível, navegação simples no celular */
+.g-publico { margin-top: 28px; border-top: 2px solid var(--verde-tinta); border-bottom: 1px solid var(--linha); }
+.g-publico summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 16px 44px 16px 0; position: relative; }
+.g-publico summary::-webkit-details-marker { display: none; }
+.g-publico summary span { font: 800 22px/1.1 var(--display); letter-spacing: -.03em; color: var(--verde-tinta); }
+.g-publico summary small { font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--tinta-3); }
+.g-publico summary::after { content: "+"; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font: 800 30px/1 var(--display); color: var(--verde-tinta); }
+.g-publico[open] summary::after { content: "−"; }
+.g-publico .g-ecorpo { margin-top: 8px; padding-bottom: 24px; }
+.g-prox { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; }
+.g-prox .btn { margin-top: 0; font-size: 18px; min-height: 52px; padding: 0 20px; }
+.g-eixos-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .g-eixos-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  .g-indice { display: none; }
+  .g-sub { position: static; }
+  .g-eixos-nav { grid-template-columns: 1fr 1fr; margin-top: 22px; }
+  .g-eixos-nav button { min-height: 0; padding: 12px 12px 14px; gap: 4px; border-bottom: 1px solid rgba(18, 53, 42, .22); }
+  .g-eixos-nav strong { font-size: 17px; }
+  .g-eixos-nav small { font-size: 12px; }
+  .g-eixos-nav small b { font-size: 14px; }
+  .g-prox { flex-direction: column-reverse; }
+  .g-prox .btn { width: 100%; }
+  .g-prox span:empty { display: none; }
+}

@@ -8,8 +8,9 @@
   const ROTULO = { comunicar: 'Como comunicar', conexao: 'Conexão possível', texto: '', gancho: 'Gancho possível' };
   const totalTemas = G.eixos.reduce((n, e) => n + e.temas.length, 0);
   const totalGanchos = G.nichos.reduce((n, x) => n + x.ideias.length, 0);
-  let eixoAtual = 0; // 0 = todos
-  let nichoAtual = '';
+  const celular = matchMedia('(max-width: 700px)').matches;
+  let eixoAtual = 1; // um eixo por vez (0 só durante a busca)
+  let nichoAtual = G.nichos[0] ? G.nichos[0].nome : '';
   let busca = '';
 
   function toast(msg) {
@@ -35,8 +36,7 @@
 
   /* eixos */
   const nav = $('#g-eixos-nav');
-  nav.innerHTML = `<button type="button" role="tab" data-eixo="0"><span class="g-en">todos</span><strong>Todos os eixos</strong><small>${totalTemas} roteiros</small></button>` +
-    G.eixos.map((e) => `<button type="button" role="tab" data-eixo="${e.n}"><span class="g-en">eixo ${e.n}</span><strong>${esc(e.curto)}</strong><small><b>${esc(e.num)}</b> ${esc(e.numTxt)}</small></button>`).join('');
+  nav.innerHTML = G.eixos.map((e) => `<button type="button" role="tab" data-eixo="${e.n}"><span class="g-en">eixo ${e.n}</span><strong>${esc(e.curto)}</strong><small><b>${esc(e.num)}</b> ${esc(e.numTxt)}</small></button>`).join('');
   nav.onclick = (ev) => {
     const b = ev.target.closest('[data-eixo]'); if (!b) return;
     escolheEixo(+b.dataset.eixo, true);
@@ -59,11 +59,13 @@
       </div>
       <div class="g-num"><b>${esc(e.num)}</b><span>${esc(e.numTxt)}</span></div>
     </header>
+    <details class="g-publico" ${celular ? '' : 'open'}>
+      <summary><span>Entenda esse público</span><small>quem são, por que falar com eles e cuidados</small></summary>
     <div class="g-ecorpo">
       <section><h3>Quem são essas pessoas</h3>${e.quem.map((p) => `<p>${esc(p)}</p>`).join('')}</section>
       <section><h3>Por que comunicar com esse público</h3>${e.porque.map((p) => `<p>${esc(p)}</p>`).join('')}${e.n === 1 ? funil() : ''}</section>
       ${e.cuidado ? `<section class="g-cuidado"><h3>${ICONE.conversa}Cuidado com a comunicação</h3><p>${esc(e.cuidado)}</p></section>` : ''}
-    </div>`;
+    </div></details>`;
   }
 
   function textoTema(e, t) {
@@ -103,7 +105,8 @@
       if (q && !temas.length) return '';
       return `<div class="g-bloco">${cabecalhoEixo(e)}
         <div class="g-temas-cab"><p class="kicker">temas · ${temas.length}${q ? ` com "${esc(busca)}"` : ''}</p>${!q ? `<button type="button" class="g-abrir-todos" data-abrir-todos="${e.n}">abrir todos</button>` : ''}</div>
-        <div class="g-temas">${temas.map((t) => tema(e, t, !!q || `tema-${e.n}-${t.n}` === abrirId)).join('')}</div></div>`;
+        <div class="g-temas">${temas.map((t) => tema(e, t, !!q || `tema-${e.n}-${t.n}` === abrirId)).join('')}</div>
+        ${!q && eixoAtual ? `<div class="g-prox">${e.n > 1 ? `<button type="button" class="btn ghost" data-ir-eixo="${e.n - 1}">← Eixo ${e.n - 1}</button>` : '<span></span>'}${e.n < G.eixos.length ? `<button type="button" class="btn" data-ir-eixo="${e.n + 1}">Próximo: eixo ${e.n + 1} →</button>` : ''}</div>` : ''}</div>`;
     }).join('') || `<p class="g-vazio">Nenhum roteiro com "${esc(busca)}". Tente outra palavra ou veja os <a href="#ganchos">ganchos</a>.</p>`;
     $$('[data-eixo]', nav).forEach((b) => { const on = +b.dataset.eixo === eixoAtual; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
     if (q) marca(box, busca);
@@ -113,11 +116,13 @@
   function escolheEixo(n, rolar) {
     eixoAtual = n;
     renderEixos();
-    history.replaceState(null, '', n ? `#eixo-${n}` : '#eixos');
+    history.replaceState(null, '', `#eixo-${n}`);
     if (rolar) $('#g-eixo').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   }
 
   $('#g-eixo').addEventListener('click', (ev) => {
+    const ir = ev.target.closest('[data-ir-eixo]');
+    if (ir) { escolheEixo(+ir.dataset.irEixo, true); return; }
     const cab = ev.target.closest('.g-tema-cab');
     if (cab) { const art = cab.closest('.g-tema'); const ab = art.classList.toggle('aberto'); cab.setAttribute('aria-expanded', ab); return; }
     const cp = ev.target.closest('[data-copiar]');
@@ -186,7 +191,7 @@
     clearTimeout(tq);
     tq = setTimeout(() => {
       busca = ev.target.value.trim();
-      if (busca) { eixoAtual = 0; nichoAtual = ''; }
+      if (busca) { eixoAtual = 0; nichoAtual = ''; } else { if (!eixoAtual) eixoAtual = 1; if (!nichoAtual && G.nichos[0]) nichoAtual = G.nichos[0].nome; }
       const n = renderEixos(); renderGanchos();
       if (busca) toast(`${n} roteiro${n === 1 ? '' : 's'} e ${$$('.g-gancho').length} gancho${$$('.g-gancho').length === 1 ? '' : 's'}`);
     }, 250);
