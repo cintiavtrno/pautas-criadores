@@ -712,10 +712,20 @@ app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
     const m3 = (await db.list('meta'))[0];
     if (m3 && !m3.apoiadoresV2) {
       const cfg = (await db.list('config'))[0] || (await db.insert('config', {}));
-      const novo = 'Cultures of Resistance | https://www.instagram.com/culturesofresistence/';
+      const novo = 'Cultures of Resistance Network Foundation | https://culturesofresistance.org/';
       const linhas = String(cfg.apoiadores || '').split('\n').filter((l) => l.trim() && !/iara\s*lee/i.test(l));
       await db.update('config', cfg.id, { apoiadores: [novo, ...linhas].join('\n') });
       await db.update('meta', m3.id, { apoiadoresV2: true, apoiadoresDefinidos: true });
+    }
+    // corrige o link de Cultures of Resistance (o @ do Instagram não existe): usa o site
+    const m4 = (await db.list('meta'))[0];
+    if (m4 && !m4.apoiadoresV3) {
+      const cfg = (await db.list('config'))[0];
+      if (cfg && /cultures\s*of\s*resist/i.test(cfg.apoiadores || '')) {
+        const linhas = String(cfg.apoiadores).split('\n').map((l) => (/cultures\s*of\s*resist/i.test(l) ? 'Cultures of Resistance Network Foundation | https://culturesofresistance.org/' : l));
+        await db.update('config', cfg.id, { apoiadores: linhas.join('\n') });
+      }
+      await db.update('meta', m4.id, { apoiadoresV3: true });
     }
     if (m2 && !m2.apoiadoresDefinidos) {
       const cfg = (await db.list('config'))[0] || (await db.insert('config', {}));

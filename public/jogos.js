@@ -111,11 +111,12 @@
     const carta = () => {
       respondeu = false;
       const c = jogo.cartas[i];
-      const ops = c.t === 'vf' ? [['v', 'Verdade'], ['m', 'Mito']] : c.o.map((o, k) => [String(k), o]);
+      const zap = jogo.estilo === 'zap';
+      const ops = c.t === 'vf' ? (zap ? [['v', 'Fato'], ['m', 'Fake']] : [['v', 'Verdade'], ['m', 'Mito']]) : c.o.map((o, k) => [String(k), o]);
       el.innerHTML = palco(jogo.titulo, barra(jogo.cartas.length, i), `
-        <p class="jg-tipo">${c.h ? esc(c.h) : c.t === 'vf' ? 'mito ou verdade?' : `pergunta ${i + 1}`}</p>
-        <h2 class="jg-q">${esc(c.q)}</h2>
-        <div class="jg-ops ${ops.length > 3 ? 'quatro' : ''} ${c.t === 'vf' ? 'vf' : ''}">${ops.map(([v, l]) => `<button type="button" data-v="${v}">${esc(l)}</button>`).join('')}</div>
+        <p class="jg-tipo">${c.h ? esc(c.h) : zap ? 'chegou no grupo da família:' : c.t === 'vf' ? 'mito ou verdade?' : `pergunta ${i + 1}`}</p>
+        ${zap ? `<div class="jg-zap"><span class="jg-zap-enc">↪ Encaminhada com frequência</span><p>${esc(c.q)}</p><span class="jg-zap-h">${String(8 + i).padStart(2, '0')}:${String(13 + i * 7).padStart(2, '0')}</span></div>` : `<h2 class="jg-q">${esc(c.q)}</h2>`}
+        <div class="jg-ops ${ops.length > 3 ? 'quatro' : ''} ${c.t === 'vf' ? 'vf' : ''} ${zap ? 'zap' : ''}">${ops.map(([v, l]) => `<button type="button" data-v="${v}">${esc(l)}</button>`).join('')}</div>
         <div class="jg-rev" id="rev" hidden></div>`);
       ligaSair();
       el.querySelectorAll('.jg-ops button').forEach((b) => b.addEventListener('click', () => responde(b.dataset.v)));
@@ -130,7 +131,7 @@
       const ult = i === jogo.cartas.length - 1;
       const rev = document.getElementById('rev');
       rev.innerHTML = `
-        <p class="jg-res ${ok ? 'ok' : 'nao'}">${ok ? 'Acertou!' : c.t === 'vf' ? `É ${c.v ? 'verdade' : 'mito'}!` : 'Quase!'}</p>
+        <p class="jg-res ${ok ? 'ok' : 'nao'}">${ok ? 'Acertou!' : c.t === 'vf' ? (jogo.estilo === 'zap' ? `É ${c.v ? 'fato' : 'fake'}!` : `É ${c.v ? 'verdade' : 'mito'}!`) : 'Quase!'}</p>
         <p class="jg-r">${esc(c.r)}</p>
         <p class="jg-fonte">${c.tema ? `<a href="/guia#tema-${esc(c.tema)}" target="_blank" rel="noopener">ver no guia</a>` : ''}${c.f ? ` · <a href="${esc(c.f.u)}" target="_blank" rel="noopener noreferrer">fonte: ${esc(c.f.t)}</a>` : ''}</p>
         <button type="button" class="btn jg-prox">${ult ? 'Ver resultado' : 'Próxima'}</button>`;
@@ -301,8 +302,51 @@
     passo();
   }
 
+  /* ---------- jogo da memória ---------- */
+  function memoria(d) {
+    const cartas = embaralha(d.pares.flatMap((p, k) => [{ k, txt: p.a, lado: 'a' }, { k, txt: p.b, lado: 'b' }]));
+    let abertas = [], achados = 0, jogadas = 0, trava = false;
+    el.innerHTML = palco(d.titulo, '', `
+      <p class="jg-tipo">ache os ${d.pares.length} pares</p>
+      <h2 class="jg-q">Programa e o que ele mudou na vida das pessoas.</h2>
+      <p class="jg-cont" id="cont">Pares: <b>0</b> de ${d.pares.length} · jogadas: <span id="jog">0</span></p>
+      <div class="jg-mem">${cartas.map((c, n) => `<button type="button" class="jg-mc ${c.lado}" data-n="${n}" aria-label="carta ${n + 1}"><span class="jg-mc-f" aria-hidden="true"></span><span class="jg-mc-t">${esc(c.txt)}</span></button>`).join('')}</div>
+      <div class="jg-rev jg-mem-r" id="rev" hidden></div>
+      <div id="fim-mem"></div>`);
+    ligaSair(); topo();
+    const rev = document.getElementById('rev');
+    el.querySelectorAll('.jg-mc').forEach((b) => b.addEventListener('click', () => {
+      const n = +b.dataset.n;
+      if (trava || b.classList.contains('vira') || b.classList.contains('par')) return;
+      b.classList.add('vira'); abertas.push(n);
+      if (abertas.length < 2) return;
+      jogadas++; document.getElementById('jog').textContent = jogadas;
+      const [x, y] = abertas.map((k) => cartas[k]);
+      const bx = el.querySelector(`[data-n="${abertas[0]}"]`), by = el.querySelector(`[data-n="${abertas[1]}"]`);
+      abertas = [];
+      if (x.k === y.k) {
+        bx.classList.add('par'); by.classList.add('par');
+        achados++; document.querySelector('#cont b').textContent = achados;
+        const p = d.pares[x.k];
+        rev.innerHTML = `<p class="jg-res ok">${esc(p.a)}</p><p class="jg-r">${esc(p.r)}</p>`; rev.hidden = false;
+        if (achados === d.pares.length) fim();
+      } else {
+        trava = true;
+        setTimeout(() => { bx.classList.remove('vira'); by.classList.remove('vira'); trava = false; }, 1100);
+      }
+    }));
+    const fim = () => {
+      const f = finais({ id: d.id, guia: d.guia,
+        cardDados: { kicker: 'jogo da memória', grande: `${d.pares.length} pares em ${jogadas} jogadas`, texto: 'Farmácia Popular, Pé-de-Meia, Minha Casa Minha Vida, Bolsa Família: lembra quem fez? Duvido você fazer em menos jogadas.' },
+        zapTxt: `Achei os ${d.pares.length} pares em ${jogadas} jogadas no jogo da memória dos programas que mudaram a vida da gente. Duvido você fazer em menos:` });
+      const box = document.getElementById('fim-mem');
+      box.innerHTML = `<p class="jg-placar"><b>${jogadas}</b><span>jogadas</span></p><h2 class="jg-q">Você lembrou de tudo.</h2><p class="jg-r">Agora lembra quem criou ou trouxe de volta cada um desses programas. No dia 25, a escolha é sobre quem mantém eles funcionando.</p>${f.html}`;
+      f.liga(); setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    };
+  }
+
   /* ---------- rotas ---------- */
-  const MODOS = { 'teste-cego': [cego, D.cego], 'seu-dia': [quiz, D.dia], calculadora: [calc, D.calc], 'meu-plano': [plano, D.plano] };
+  const MODOS = { 'teste-cego': [cego, D.cego], 'seu-dia': [quiz, D.dia], calculadora: [calc, D.calc], 'meu-plano': [plano, D.plano], memoria: [memoria, D.memoria], 'fato-ou-fake': [quiz, D.fake] };
   function rota() {
     const id = location.hash.slice(1);
     if (MODOS[id] && MODOS[id][1]) return MODOS[id][0](MODOS[id][1]);

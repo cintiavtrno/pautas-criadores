@@ -240,3 +240,64 @@ window.ARGUMENTOS = {
     pergunta: 'Quem vai votar com você?',
   },
 };
+
+// Novos formatos: jogo da memória e fato ou fake
+window.DESAFIOS.memoria = {
+  id: 'memoria',
+  titulo: 'Jogo da memória',
+  chamada: 'Ache o par: programa e o que ele mudou',
+  // fonte dos números: programa de governo do Lula registrado no TSE
+  pares: [
+    { a: 'Farmácia Popular', b: 'Remédio de graça na farmácia do bairro', r: '41 remédios gratuitos e 27 milhões de pessoas atendidas em 2025.' },
+    { a: 'Luz para Todos', b: 'Energia elétrica chegando no campo', r: 'Criado em 2003. Hoje foca em áreas rurais e na Amazônia, com energia limpa.' },
+    { a: 'Pé-de-Meia', b: 'Poupança pro jovem terminar o ensino médio', r: 'Já beneficiou 7,3 milhões de jovens.' },
+    { a: 'Minha Casa, Minha Vida', b: 'A chave da casa própria', r: 'Meta de 3 milhões de moradias até o fim de 2026.' },
+    { a: 'ProUni', b: 'Bolsa em faculdade particular', r: 'Voltou a bater recorde de bolsas oferecidas.' },
+    { a: 'Bolsa Família', b: 'Renda pra família com criança', r: 'Recriado com benefício extra pra crianças e adolescentes.' },
+  ],
+  guia: '',
+};
+window.DESAFIOS.fake = {
+  id: 'fato-ou-fake',
+  titulo: 'Fato ou fake?',
+  chamada: 'Corrente de WhatsApp sobre a eleição',
+  para: 'Pra quem recebe muita corrente',
+  estilo: 'zap',
+  eixo: 'tema-1-10',
+  cartas: [
+    { t: 'vf', q: 'URGENTE!!! Voto branco vai pra quem está ganhando. Repassa pra todo mundo!!', v: false, r: 'Fake. Branco e nulo são descartados e não vão pra ninguém.', tema: '1-6' },
+    { t: 'vf', q: 'Se mais da metade votar nulo, a eleição é cancelada e fazem outra com novos candidatos.', v: false, r: 'Fake. Nulo não anula eleição. Ganha quem tiver mais votos válidos.', tema: '2-4' },
+    { t: 'vf', q: 'Quem faltou no 1º turno está proibido de votar no 2º.', v: false, r: 'Fake. Cada turno é uma eleição. É só justificar a falta do dia 4.', tema: '1-1' },
+    { t: 'vf', q: 'Pode levar uma colinha de papel com o número pra cabine.', v: true, r: 'Fato. Papel pode. Celular é que não entra na cabine.' },
+    { t: 'vf', q: 'Tira foto do seu voto e manda no grupo pra provar!', v: false, r: 'Fake. É proibido usar celular na cabine. O voto é secreto.' },
+    { t: 'vf', q: 'Quem tem mais de 70 anos não é obrigado a votar.', v: true, r: 'Fato. Pra quem tem mais de 70, o voto é facultativo. Mas pode e deve votar.', tema: '1-13' },
+    { t: 'vf', q: 'Sem o título de papel na mão, o mesário não deixa votar.', v: false, r: 'Fake. Basta documento oficial com foto, ou o e-Título com foto.', tema: '1-12' },
+  ],
+  fim: { t: 'Fake se espalha mais rápido que fato.', s: 'Antes de repassar, confere. E manda este jogo pro grupo da família.' },
+};
+Object.assign(window.ARGUMENTOS, {
+  memoria: {
+    entenda: [
+      'Esses programas não caíram do céu: foram criados ou retomados nos governos Lula.',
+      'Bolsa Família, Minha Casa Minha Vida e Farmácia Popular foram recriados ou retomados a partir de 2023.',
+      'No dia 25, a escolha é sobre quem mantém isso funcionando nos próximos 4 anos.',
+    ],
+    conversa: [
+      ['Isso aí qualquer governo faria.', 'Então por que precisou recriar o Bolsa Família e retomar o Farmácia Popular? Programa só continua se quem governa quiser.'],
+      ['Eu nunca usei nenhum desses.', 'Pensa na sua mãe, na sua avó, no seu vizinho. Quem você conhece que pega remédio na Farmácia Popular?'],
+    ],
+    pergunta: 'Qual desses programas já fez diferença na sua família?',
+  },
+  'fato-ou-fake': {
+    entenda: [
+      'Corrente de WhatsApp com "URGENTE" e "repassa" quase sempre é fake.',
+      'Na dúvida, confere no site do TSE ou pergunta pra alguém de confiança antes de repassar.',
+      'Fake sobre votação serve pra uma coisa: fazer gente desistir de votar.',
+    ],
+    conversa: [
+      ['Mas recebi de alguém confiável.', 'A pessoa também recebeu de alguém. Fake viaja por gente boa. Vale conferir antes.'],
+      ['Ah, mas e se for verdade?', 'Então vai estar no site do TSE ou em jornal sério. Se só tá na corrente, desconfia.'],
+    ],
+    pergunta: 'Qual foi a última corrente sobre eleição que você recebeu?',
+  },
+});
