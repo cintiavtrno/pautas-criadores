@@ -714,7 +714,7 @@ VIEWS.depoimentos = {
           <div class="f"><span>Contato</span><div>${esc(d.contato || '—')}</div></div>
           ${field({ k: 'situacao', type: 'select', label: 'Situação', opts: () => SITUACAO_DEP }, d)}
           ${field({ k: 'responsavel', label: 'Quem está editando', ph: 'nome' }, d)}
-          ${field({ k: 'publicar', type: 'bool', text: 'Publicar na página Vídeos do site (tema No meu tempo)', full: true }, d)}
+          ${field({ k: 'publicar', type: 'bool', text: 'Publicar na página Vídeos do site (aba Da comunidade, tema No meu tempo)', full: true }, d)}
           ${field({ k: 'titulo', label: 'Título na página Vídeos', ph: 'ex.: No meu tempo, com dona Maria' }, d)}
           ${field({ k: 'linkPublicado', label: 'Link do vídeo editado (se for outro)', ph: 'Instagram, YouTube ou Drive' }, d)}
           ${field({ k: 'download', label: 'Arquivo pra baixar (link do Drive, opcional)', ph: 'https://drive.google.com/file/d/…', full: true }, d)}

@@ -1105,3 +1105,6 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 .vd-card.eq { border-width: 2px; }
 .vd-grade { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 @media (max-width: 640px) { .vd-abas button { padding: 12px 12px; } .vd-post { height: 560px; } .vd-grade { grid-template-columns: 1fr; } }
+.vd-logo { width: 46%; top: 42%; }
+.vd-logo svg { width: 100%; height: auto; display: block; }
+.vd-logo .l-f { fill: var(--menta); } .vd-logo .l-c { fill: var(--verde-tinta); }

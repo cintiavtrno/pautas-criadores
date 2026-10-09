@@ -19,12 +19,13 @@
   function cartao(v) {
     const quem = v.autor || (v.equipe ? 'seu voto decide' : 'comunidade');
     const iniciais = quem.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+    const marca = v.equipe ? '<span class="vd-ini vd-logo" data-marca="losango"></span>' : `<span class="vd-ini">${esc(iniciais)}</span>`;
     let topo;
     if (v.thumb) {
       // capa de verdade (YouTube, Drive, TikTok ou a capa posta pela equipe)
       topo = `<button type="button" class="vd-capa ${v.vertical ? 'vert' : ''}" data-ver="${esc(v.id)}" aria-label="Assistir: ${esc(v.titulo)}">
         <img src="${esc(v.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.vd-capa').classList.add('sem-img');this.remove()">
-        <span class="vd-ini">${esc(iniciais)}</span>
+        ${marca}
         <span class="vd-plat">${esc(v.plataforma)}</span><span class="vd-play">${SVG.play}</span></button>`;
     } else if (v.embed && /Instagram|TikTok/.test(v.plataforma)) {
       // sem capa disponível: mostra o próprio post, com a foto e o nome de quem publicou
@@ -32,7 +33,7 @@
         <button type="button" class="vd-ampliar" data-ver="${esc(v.id)}" aria-label="Ver maior">ver maior</button></div>`;
     } else {
       topo = `<button type="button" class="vd-capa sem-img ${v.vertical ? 'vert' : ''}" data-ver="${esc(v.id)}" aria-label="Assistir: ${esc(v.titulo)}">
-        <span class="vd-ini">${esc(iniciais)}</span><span class="vd-quem">${esc(quem)}</span>
+        ${marca}<span class="vd-quem">${esc(quem)}</span>
         <span class="vd-plat">${esc(v.plataforma)}</span><span class="vd-play">${SVG.play}</span></button>`;
     }
     return `<article class="vd-card ${v.equipe ? 'eq' : ''}" id="v-${esc(v.id)}">

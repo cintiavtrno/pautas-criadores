@@ -547,6 +547,32 @@ app.post('/public/painel/:token/preferencias', painelLimite, wrap(async (req, re
 // números para a página inicial (só contagem, sem nomes)
 app.get('/public/numeros', wrap(async (_req, res) => res.json((await comunidade()).totais)));
 
+/* ---- capa de arquivo do Drive ----
+   O navegador às vezes não consegue a miniatura direto do Google (bloqueio de cookie de terceiros),
+   então o servidor busca a imagem e entrega como se fosse nossa. Guarda na memória por algumas horas. */
+const capasDrive = new Map();
+app.get('/capa/drive/:id.jpg', wrap(async (req, res) => {
+  const id = String(req.params.id || '');
+  if (!/^[\w-]{10,80}$/.test(id)) return res.status(404).end();
+  const guardada = capasDrive.get(id);
+  if (guardada && Date.now() - guardada.em < 6 * 3600e3) { res.set({ 'Content-Type': guardada.tipo, 'Cache-Control': 'public, max-age=21600' }); return res.send(guardada.buf); }
+  for (const u of [`https://drive.google.com/thumbnail?id=${id}&sz=w800`, `https://lh3.googleusercontent.com/d/${id}=w800`]) {
+    try {
+      const r = await fetch(u, { redirect: 'follow', signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'Mozilla/5.0 (compatible; seuvotodecide)' } });
+      const tipo = r.headers.get('content-type') || '';
+      if (!r.ok || !tipo.startsWith('image/')) continue;
+      const buf = Buffer.from(await r.arrayBuffer());
+      if (buf.length < 500) continue;
+      if (capasDrive.size > 300) capasDrive.delete(capasDrive.keys().next().value);
+      capasDrive.set(id, { buf, tipo, em: Date.now() });
+      res.set({ 'Content-Type': tipo, 'Cache-Control': 'public, max-age=21600' });
+      return res.send(buf);
+    } catch { /* tenta o próximo endereço */ }
+  }
+  // ainda sem miniatura (arquivo não está aberto pra qualquer pessoa, ou o Drive ainda está processando o vídeo)
+  res.set('Cache-Control', 'no-store').status(404).end();
+}));
+
 /* ---- galeria pública de vídeos (só o que a equipe conferiu) ---- */
 // Descobre de onde é o link e monta o player, a miniatura e o download quando a plataforma deixa.
 function midia(link) {
@@ -556,7 +582,7 @@ function midia(link) {
     return { plataforma: 'YouTube', embed: `https://www.youtube-nocookie.com/embed/${m[1]}`, thumb: `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg`, vertical: /shorts\//i.test(u), download: '' };
   }
   if ((m = /drive\.google\.com\/(?:file\/d\/|open\?(?:.*&)?id=|uc\?(?:.*&)?id=)([\w-]{10,})/i.exec(u))) {
-    return { plataforma: 'Drive', embed: `https://drive.google.com/file/d/${m[1]}/preview`, thumb: `https://drive.google.com/thumbnail?id=${m[1]}&sz=w640`, vertical: true, download: `https://drive.google.com/uc?export=download&id=${m[1]}` };
+    return { plataforma: 'Drive', embed: `https://drive.google.com/file/d/${m[1]}/preview`, thumb: `/capa/drive/${m[1]}.jpg`, vertical: true, download: `https://drive.google.com/uc?export=download&id=${m[1]}` };
   }
   if ((m = /instagram\.com\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]{5,})/i.exec(u))) {
     const tipo = m[1].toLowerCase() === 'reels' ? 'reel' : m[1].toLowerCase();
@@ -604,7 +630,7 @@ app.get('/public/videos', wrap(async (_req, res) => {
     const link = x.linkPublicado || x.link;
     const d = midia(link);
     capaTikTok('depoimentos', x, link);
-    return { id: x.id, titulo: txt(x.titulo, 140) || 'No meu tempo…', tema: 'No meu tempo', autor: '', link, ...d, thumb: (x.capa && capaDe(x.capa)) || d.thumb || x.capaAuto || '', download: x.download ? baixavel(x.download) : d.download, em: x.em || x.createdAt, campanha: 'no-meu-tempo', equipe: true };
+    return { id: x.id, titulo: txt(x.titulo, 140) || 'No meu tempo…', tema: 'No meu tempo', autor: '', link, ...d, thumb: (x.capa && capaDe(x.capa)) || d.thumb || x.capaAuto || '', download: x.download ? baixavel(x.download) : d.download, em: x.em || x.createdAt, campanha: 'no-meu-tempo', equipe: false };
   });
   const todos = [...campanha, ...lista].sort((a, b) => String(b.em).localeCompare(String(a.em)));
   res.set('Cache-Control', 'public, max-age=60');
