@@ -54,7 +54,7 @@ function headers(_req, res, next) {
       "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: https://i.ytimg.com https://drive.google.com https://*.googleusercontent.com",
+      "img-src 'self' data: https:",
       "connect-src 'self'",
       'frame-src https://challenges.cloudflare.com https://www.youtube-nocookie.com https://drive.google.com https://www.instagram.com https://www.tiktok.com',
       "frame-ancestors 'none'",

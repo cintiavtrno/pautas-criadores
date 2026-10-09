@@ -11,20 +11,32 @@
     baixar: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     fechar: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
   };
-  let V = [], tema = 'Todos';
+  let TODOS = [], V = [], tema = 'Todos', aba = '';
   const url = (v) => `${location.origin}/videos#v-${v.id}`;
   const toast = (t) => { let d = document.getElementById('vd-toast'); if (!d) { d = document.createElement('div'); d.id = 'vd-toast'; d.className = 'vd-toast'; document.body.appendChild(d); } d.textContent = t; d.classList.add('on'); clearTimeout(d._t); d._t = setTimeout(() => d.classList.remove('on'), 2600); };
   const copia = async (t, msg) => { try { await navigator.clipboard.writeText(t); toast(msg); } catch { prompt('Copie o link:', t); } };
 
   function cartao(v) {
-    const capa = v.thumb
-      ? `<img src="${esc(v.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`
-      : '';
-    return `<article class="vd-card" id="v-${esc(v.id)}">
-      <button type="button" class="vd-capa ${v.vertical ? 'vert' : ''}" data-ver="${esc(v.id)}" aria-label="Assistir: ${esc(v.titulo)}">
-        <span class="vd-fundo" data-marca="losango"></span>${capa}
-        <span class="vd-plat">${esc(v.plataforma)}</span><span class="vd-play">${SVG.play}</span>
-      </button>
+    const quem = v.autor || (v.equipe ? 'seu voto decide' : 'comunidade');
+    const iniciais = quem.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+    let topo;
+    if (v.thumb) {
+      // capa de verdade (YouTube, Drive, TikTok ou a capa posta pela equipe)
+      topo = `<button type="button" class="vd-capa ${v.vertical ? 'vert' : ''}" data-ver="${esc(v.id)}" aria-label="Assistir: ${esc(v.titulo)}">
+        <img src="${esc(v.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.vd-capa').classList.add('sem-img');this.remove()">
+        <span class="vd-ini">${esc(iniciais)}</span>
+        <span class="vd-plat">${esc(v.plataforma)}</span><span class="vd-play">${SVG.play}</span></button>`;
+    } else if (v.embed && /Instagram|TikTok/.test(v.plataforma)) {
+      // sem capa disponível: mostra o próprio post, com a foto e o nome de quem publicou
+      topo = `<div class="vd-capa vd-post"><iframe src="${esc(v.embed)}" title="${esc(v.titulo)}" loading="lazy" scrolling="no" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
+        <button type="button" class="vd-ampliar" data-ver="${esc(v.id)}" aria-label="Ver maior">ver maior</button></div>`;
+    } else {
+      topo = `<button type="button" class="vd-capa sem-img ${v.vertical ? 'vert' : ''}" data-ver="${esc(v.id)}" aria-label="Assistir: ${esc(v.titulo)}">
+        <span class="vd-ini">${esc(iniciais)}</span><span class="vd-quem">${esc(quem)}</span>
+        <span class="vd-plat">${esc(v.plataforma)}</span><span class="vd-play">${SVG.play}</span></button>`;
+    }
+    return `<article class="vd-card ${v.equipe ? 'eq' : ''}" id="v-${esc(v.id)}">
+      ${topo}
       <div class="vd-info">
         <span class="kicker">${esc(v.tema)}</span>
         <strong>${esc(v.titulo)}</strong>
@@ -41,6 +53,12 @@
   }
 
   function desenha() {
+    const eq = TODOS.filter((v) => v.equipe), com = TODOS.filter((v) => !v.equipe);
+    if (!aba) aba = eq.length ? 'equipe' : 'comunidade';
+    V = aba === 'equipe' ? eq : com;
+    const abas = `<div class="vd-abas" role="tablist">
+      <button type="button" role="tab" class="${aba === 'equipe' ? 'on' : ''}" data-aba="equipe"><strong>Nossas produções</strong><span>${eq.length} · edição da equipe</span></button>
+      <button type="button" role="tab" class="${aba === 'comunidade' ? 'on' : ''}" data-aba="comunidade"><strong>Da comunidade</strong><span>${com.length} · criadores e participantes</span></button></div>`;
     const temas = ['Todos', ...[...new Set(V.map((v) => v.tema))].sort((a, b) => (a === 'No meu tempo' ? -1 : b === 'No meu tempo' ? 1 : a.localeCompare(b, 'pt')))];
     const lista = tema === 'Todos' ? V : V.filter((v) => v.tema === tema);
     const grupos = tema === 'Todos' ? temas.slice(1).map((t) => [t, V.filter((v) => v.tema === t)]) : [[tema, lista]];
@@ -48,12 +66,13 @@
       <section class="capa vd-capa-pg"><div class="miolo">
         <p class="kicker">nossas produções</p>
         <h1>Vídeos <em>no ar</em></h1>
-        <div class="vd-conta"><b>${V.length}</b><span>${V.length === 1 ? 'vídeo no ar' : 'vídeos no ar'}</span></div>
+        <div class="vd-conta"><b>${TODOS.length}</b><span>${TODOS.length === 1 ? 'vídeo no ar' : 'vídeos no ar'}</span></div>
         <p class="lead">Assista, baixe e mande pra quem ainda não decidiu. Gravou o seu? <a href="/enviar-video">Mande o link</a> que a equipe confere e coloca aqui.</p>
       </div></section>
       <section class="miolo vd-sec">
+        ${abas}
         ${V.length ? `<div class="vd-temas" role="tablist">${temas.map((t) => `<button type="button" class="${t === tema ? 'on' : ''}" data-tema="${esc(t)}">${esc(t)} <small>${t === 'Todos' ? V.length : V.filter((v) => v.tema === t).length}</small></button>`).join('')}</div>` : ''}
-        ${grupos.map(([t, vs]) => `<h2 class="vd-h">${esc(t)}</h2><div class="vd-grade">${vs.map(cartao).join('')}</div>`).join('') || '<p class="vd-vazio">Os primeiros vídeos estão sendo conferidos. Volte daqui a pouco.</p>'}
+        ${grupos.map(([t, vs]) => `<h2 class="vd-h">${esc(t)}</h2><div class="vd-grade">${vs.map(cartao).join('')}</div>`).join('') || `<p class="vd-vazio">${aba === 'equipe' ? 'As produções da equipe entram aqui em breve.' : 'Os primeiros vídeos estão sendo conferidos. Volte daqui a pouco.'}</p>`}
       </section>`;
     if (window.MARCA && MARCA.aplica) MARCA.aplica(el);
   }
@@ -75,6 +94,8 @@
   }
 
   el.addEventListener('click', async (e) => {
+    const ab = e.target.closest('[data-aba]');
+    if (ab) { aba = ab.dataset.aba; tema = 'Todos'; desenha(); return; }
     const t = e.target.closest('[data-tema]');
     if (t) { tema = t.dataset.tema; desenha(); return; }
     const ver = e.target.closest('[data-ver]');
@@ -91,9 +112,12 @@
   });
 
   fetch('/public/videos').then((r) => r.json()).then((d) => {
-    V = d.videos || [];
-    desenha();
+    TODOS = d.videos || [];
     const h = /^#v-(.+)$/.exec(location.hash);
+    const alvo = h && TODOS.find((x) => x.id === h[1]);
+    if (alvo) aba = alvo.equipe ? 'equipe' : 'comunidade';
+    else if (location.hash === '#comunidade' || location.hash === '#equipe') aba = location.hash.slice(1);
+    desenha();
     if (h) { const v = V.find((x) => x.id === h[1]); if (v) { document.getElementById(`v-${v.id}`)?.scrollIntoView({ block: 'center' }); assistir(v); } }
   }).catch(() => { el.innerHTML = '<section class="miolo vd-sec"><p class="vd-vazio">Não conseguimos carregar os vídeos agora. Tente de novo em instantes.</p></section>'; });
 })();

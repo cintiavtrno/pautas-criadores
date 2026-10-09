@@ -648,21 +648,22 @@ VIEWS.materiais = {
 const titulosPautas = (ids) => (ids || []).map((id) => find('pautas', id)?.titulo).filter(Boolean);
 VIEWS.videos = {
   col: 'videos',
-  bar: () => `<span class="sp"></span><button class="btn ghost" data-copy="${esc(location.origin + '/enviar-video')}">Copiar link do formulário de vídeo</button><a class="btn ghost" href="/export/videos.csv">Exportar CSV</a>`,
+  bar: () => `<span class="sp"></span><button class="btn ghost" data-copy="${esc(location.origin + '/enviar-video')}">Copiar link do formulário de vídeo</button><a class="btn ghost" href="/export/videos.csv">Exportar CSV</a><button class="btn solid" data-new>Nova produção da equipe</button>`,
   filtered: () => S.videos.slice().sort((a, b) => String(b.em).localeCompare(String(a.em))),
-  groups(list) { return [{ title: 'A conferir', items: list.filter((v) => !v.conferido) }, { title: 'Conferidos', items: list.filter((v) => v.conferido) }]; },
+  groups(list) { return [{ title: 'Produções da equipe', items: list.filter((v) => v.equipe) }, { title: 'A conferir', items: list.filter((v) => !v.equipe && !v.conferido) }, { title: 'Conferidos', items: list.filter((v) => !v.equipe && v.conferido) }]; },
+  async create() { return api.save('videos', { nome: 'Equipe seu voto decide', titulo: 'Nova produção', link: '', tema: '', equipe: true, conferido: true, origem: 'equipe', mostrarNome: true, pautaIds: [], em: new Date().toISOString() }); },
   empty: 'Nenhum vídeo ainda.',
   row(v) {
     const pts = titulosPautas(v.pautaIds);
-    return `<span class="who"><span class="name">${esc(v.nome)}${v.tipo === 'criador' ? '<span class="flag" style="color:var(--blue)">criador</span>' : ''}${v.campanha ? `<span class="flag">${esc(v.campanha)}</span>` : ''}</span><span class="muted">${esc(v.link)}</span></span>
+    return `<span class="who"><span class="name">${esc(v.equipe ? (v.titulo || 'Produção') : v.nome)}${v.equipe ? '<span class="flag">equipe</span>' : ''}${v.tipo === 'criador' ? '<span class="flag" style="color:var(--blue)">criador</span>' : ''}${v.campanha ? `<span class="flag">${esc(v.campanha)}</span>` : ''}</span><span class="muted">${esc(v.link)}</span></span>
       <span class="line ok">${esc(pts[0] ? pts[0].slice(0, 16) : 'sem pauta')}</span><span class="line ok">${fmtData(v.em)}</span><span class="resp">${v.origem === 'formulario' ? 'form' : 'painel'}</span>`;
   },
   detail(v) {
     const ok = /^https?:\/\//i.test(v.link || '');
     return `
       <div class="dhead"><button class="btn ghost back" data-back>${ICONE.voltar} Voltar</button>
-        <div class="kicker"><span>${v.origem === 'formulario' ? 'formulário aberto' : 'painel pessoal'}</span><span>${fmtData(v.em)}</span><span class="sp"></span><span class="saved">salvo</span></div>
-        <h2>${esc(v.nome)}</h2>
+        <div class="kicker"><span>${v.equipe ? 'produção da equipe' : v.origem === 'formulario' ? 'formulário aberto' : 'painel pessoal'}</span><span>${fmtData(v.em)}</span><span class="sp"></span><span class="saved">salvo</span></div>
+        <h2 data-h="titulo">${esc(v.equipe ? (v.titulo || 'Produção') : v.nome)}</h2>
         ${ok ? `<a class="handle" href="${esc(v.link)}" target="_blank" rel="noopener noreferrer">${esc(v.link)} ${ICONE.externo}</a>` : ''}
       </div>
       <div class="dbody">
@@ -672,7 +673,10 @@ VIEWS.videos = {
           ${v.campanha ? `<div class="f"><span>Campanha</span><div>${esc(v.campanha)}</div></div>` : ''}
           <div class="f"><span>Pautas</span><div>${esc(titulosPautas(v.pautaIds).join(' · ') || '—')}</div></div>
           <div class="f"><span>Nome no mural</span><div>${v.mostrarNome ? 'pode mostrar' : 'aparece como "Participante"'}</div></div>
+          ${field({ k: 'link', label: 'Link do vídeo', ph: 'Instagram, TikTok, YouTube ou Drive', full: true }, v)}
+          ${field({ k: 'equipe', type: 'bool', text: 'Produção da equipe: aparece na aba "Nossas produções"', full: true }, v)}
           ${field({ k: 'conferido', type: 'bool', text: 'Conferido: entra no ar na página Vídeos do site e no mural', full: true }, v)}
+          ${field({ k: 'capa', label: 'Capa (link de imagem ou do Drive, opcional)', ph: 'se vazio, o site busca a capa do vídeo quando a plataforma deixa', full: true }, v)}
           ${field({ k: 'titulo', label: 'Título na página Vídeos', ph: 'se vazio, usa o título da pauta', full: true }, v)}
           ${field({ k: 'tema', label: 'Tema (agrupa na página Vídeos)', ph: 'ex.: Saúde, Trabalho, 13º… se vazio, usa o tema da pauta' }, v)}
           ${field({ k: 'download', label: 'Arquivo pra baixar (link do Drive, opcional)', ph: 'https://drive.google.com/file/d/…' }, v)}
@@ -681,7 +685,7 @@ VIEWS.videos = {
         <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>
       </div>`;
   },
-  onSaved(k) { if (k === 'conferido') renderRows(); },
+  onSaved(k, v) { if (['conferido', 'equipe', 'titulo'].includes(k)) renderRows(); if (k === 'titulo' && v.equipe && $('[data-h=titulo]')) $('[data-h=titulo]').textContent = v.titulo; },
 };
 
 /* Campanha "No meu tempo": depoimentos brutos (link do Drive) para a edição, separados dos vídeos publicados */
@@ -714,6 +718,7 @@ VIEWS.depoimentos = {
           ${field({ k: 'titulo', label: 'Título na página Vídeos', ph: 'ex.: No meu tempo, com dona Maria' }, d)}
           ${field({ k: 'linkPublicado', label: 'Link do vídeo editado (se for outro)', ph: 'Instagram, YouTube ou Drive' }, d)}
           ${field({ k: 'download', label: 'Arquivo pra baixar (link do Drive, opcional)', ph: 'https://drive.google.com/file/d/…', full: true }, d)}
+          ${field({ k: 'capa', label: 'Capa (link de imagem ou do Drive, opcional)', ph: 'foto da pessoa ou frame do vídeo', full: true }, d)}
           ${field({ k: 'notas', type: 'textarea', label: 'Notas (trecho bom, minutagem, problema de áudio…)', full: true }, d)}
         </div></section>
         <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>

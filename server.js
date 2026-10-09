@@ -571,23 +571,40 @@ function midia(link) {
   return { plataforma: h, embed: '', thumb: '', vertical: true, download: '' };
 }
 const baixavel = (u) => { const d = midia(u); return d.download || (urlOk(u) ? u : ''); };
+// capa posta à mão: link de imagem ou de arquivo do Drive
+const capaDe = (u) => { const d = midia(u); return d.plataforma === 'Drive' ? d.thumb : (urlOk(u) ? u : ''); };
+// TikTok entrega a capa do vídeo pelo oEmbed público; guardamos no registro pra não buscar de novo
+const buscandoCapa = new Set();
+function capaTikTok(col, r, link) {
+  if (r.capaAuto || buscandoCapa.has(r.id) || !/tiktok\.com/i.test(link)) return;
+  buscandoCapa.add(r.id);
+  fetch('https://www.tiktok.com/oembed?url=' + encodeURIComponent(link), { signal: AbortSignal.timeout(5000) })
+    .then((x) => (x.ok ? x.json() : null))
+    .then((j) => { if (j && /^https:\/\//.test(j.thumbnail_url || '')) return db.update(col, r.id, { capaAuto: j.thumbnail_url, autorAuto: txt(j.author_name, 80) }); })
+    .catch(() => {})
+    .finally(() => buscandoCapa.delete(r.id));
+}
 app.get('/public/videos', wrap(async (_req, res) => {
   const [videos, pautas, depoimentos] = await Promise.all(['videos', 'pautas', 'depoimentos'].map((c) => db.list(c)));
   const pauta = (id) => pautas.find((p) => p.id === id);
   const lista = videos.filter((v) => v.conferido && urlOk(v.link)).map((v) => {
     const p = pauta((v.pautaIds || [])[0]);
     const d = midia(v.link);
+    capaTikTok('videos', v, v.link);
+    const equipe = !!v.equipe;
     return {
-      id: v.id, titulo: txt(v.titulo, 140) || p?.titulo || (v.mostrarNome ? `Vídeo de ${v.nome}` : 'Vídeo da comunidade'),
+      id: v.id, titulo: txt(v.titulo, 140) || p?.titulo || (equipe ? 'Produção seu voto decide' : v.mostrarNome ? `Vídeo de ${v.nome}` : 'Vídeo da comunidade'),
       tema: txt(v.tema, 60) || p?.tema || p?.titulo || 'Outros temas',
-      autor: v.mostrarNome ? v.nome : '', link: v.link, ...d,
-      download: v.download ? baixavel(v.download) : d.download, em: v.em || v.createdAt, campanha: '',
+      autor: equipe ? 'seu voto decide' : v.mostrarNome ? v.nome : '', link: v.link, ...d,
+      thumb: (v.capa && capaDe(v.capa)) || d.thumb || v.capaAuto || '',
+      download: v.download ? baixavel(v.download) : d.download, em: v.em || v.createdAt, campanha: '', equipe,
     };
   });
   const campanha = depoimentos.filter((x) => x.publicar && urlOk(x.linkPublicado || x.link)).map((x) => {
     const link = x.linkPublicado || x.link;
     const d = midia(link);
-    return { id: x.id, titulo: txt(x.titulo, 140) || 'No meu tempo…', tema: 'No meu tempo', autor: '', link, ...d, download: x.download ? baixavel(x.download) : d.download, em: x.em || x.createdAt, campanha: 'no-meu-tempo' };
+    capaTikTok('depoimentos', x, link);
+    return { id: x.id, titulo: txt(x.titulo, 140) || 'No meu tempo…', tema: 'No meu tempo', autor: '', link, ...d, thumb: (x.capa && capaDe(x.capa)) || d.thumb || x.capaAuto || '', download: x.download ? baixavel(x.download) : d.download, em: x.em || x.createdAt, campanha: 'no-meu-tempo', equipe: true };
   });
   const todos = [...campanha, ...lista].sort((a, b) => String(b.em).localeCompare(String(a.em)));
   res.set('Cache-Control', 'public, max-age=60');

@@ -1087,3 +1087,21 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 }
 /* celular: com Vídeos no menu, o Jurídico sai da barra (continua na página inicial e no rodapé) */
 @media (max-width: 640px) { .barra nav a[href="/juridico"] { display: none !important; } }
+/* abas e capas com a cara de quem gravou */
+.vd-abas { display: grid; grid-template-columns: 1fr 1fr; border: 2px solid var(--verde-tinta); margin: 0 0 22px; }
+.vd-abas button { text-align: left; padding: 16px 18px; background: none; border: 0; cursor: pointer; color: var(--verde-tinta); display: grid; gap: 2px; }
+.vd-abas button + button { border-left: 2px solid var(--verde-tinta); }
+.vd-abas strong { font: 800 clamp(20px, 2.4vw, 28px)/1 var(--display); letter-spacing: -.03em; }
+.vd-abas span { font: 500 11.5px var(--mono); text-transform: uppercase; letter-spacing: .05em; opacity: .75; }
+.vd-abas button.on { background: var(--verde-tinta); color: var(--branco); }
+.vd-capa.sem-img { background: var(--verde-tinta); }
+.vd-ini { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); font: 800 clamp(64px, 9vw, 96px)/1 var(--display); letter-spacing: -.05em; color: var(--menta); }
+.vd-capa:not(.sem-img) .vd-ini { display: none; }
+.vd-quem { position: absolute; left: 12px; right: 12px; bottom: 14px; font: 800 18px/1.1 var(--display); letter-spacing: -.02em; color: var(--branco); text-align: left; }
+.vd-capa.sem-img .vd-play { top: auto; bottom: 14px; left: auto; right: 14px; margin: 0; width: 52px; height: 52px; background: var(--menta); color: var(--verde-tinta); }
+.vd-post { aspect-ratio: auto; height: 520px; background: #fff; cursor: default; }
+.vd-post iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.vd-ampliar { position: absolute; right: 10px; bottom: 10px; z-index: 3; font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .05em; padding: 7px 9px; background: var(--verde-tinta); color: var(--branco); border: 0; cursor: pointer; }
+.vd-card.eq { border-width: 2px; }
+.vd-grade { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+@media (max-width: 640px) { .vd-abas button { padding: 12px 12px; } .vd-post { height: 560px; } .vd-grade { grid-template-columns: 1fr; } }
