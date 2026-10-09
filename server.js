@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const path = require('path');
+const { Readable } = require('stream');
 const db = require('./db');
 const seed = require('./seed');
 const seg = require('./security');
@@ -547,6 +548,38 @@ app.post('/public/painel/:token/preferencias', painelLimite, wrap(async (req, re
 // números para a página inicial (só contagem, sem nomes)
 app.get('/public/numeros', wrap(async (_req, res) => res.json((await comunidade()).totais)));
 
+/* ---- vídeo do Drive entregue pelo nosso endereço ----
+   No celular, o player e o download do Drive pedem login e aceite de cookies. Aqui o servidor busca o arquivo
+   aberto ("qualquer pessoa com o link") e repassa: toca no player do próprio navegador e baixa direto. */
+app.get('/video/drive/:id.mp4', async (req, res) => {
+  const id = String(req.params.id || '');
+  if (!/^[\w-]{10,80}$/.test(id)) return res.status(404).end();
+  const ctrl = new AbortController();
+  res.on('close', () => ctrl.abort());
+  try {
+    const headers = { 'User-Agent': 'Mozilla/5.0 (compatible; seuvotodecide)' };
+    if (req.headers.range) headers.Range = req.headers.range;
+    const r = await fetch(`https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t`, { headers, redirect: 'follow', signal: ctrl.signal });
+    const tipo = r.headers.get('content-type') || '';
+    if (!r.ok || tipo.startsWith('text/html')) {
+      r.body?.cancel?.();
+      return res.status(404).type('html').send('<meta charset="utf-8"><p style="font:18px sans-serif;padding:24px">Esse vídeo ainda não está aberto. No Drive, em Compartilhar, marque "Qualquer pessoa com o link". <a href="/videos">Voltar</a></p>');
+    }
+    res.status(r.status);
+    res.set('Content-Type', /^video\//.test(tipo) ? tipo : 'video/mp4');
+    for (const h of ['content-length', 'content-range', 'accept-ranges', 'last-modified', 'etag']) { const v = r.headers.get(h); if (v) res.set(h, v); }
+    if (!r.headers.get('accept-ranges')) res.set('Accept-Ranges', 'bytes');
+    res.set('Cache-Control', 'public, max-age=86400');
+    if (req.query.baixar) {
+      const nome = String(req.query.nome || 'seu-voto-decide').normalize('NFD').replace(/[^\w-]+/g, '-').replace(/-+/g, '-').slice(0, 60) || 'seu-voto-decide';
+      res.set('Content-Disposition', `attachment; filename="${nome}.mp4"`);
+    }
+    Readable.fromWeb(r.body).on('error', () => res.destroy()).pipe(res);
+  } catch (e) {
+    if (!res.headersSent) res.status(502).end(); else res.destroy();
+  }
+});
+
 /* ---- capa de arquivo do Drive ----
    O navegador às vezes não consegue a miniatura direto do Google (bloqueio de cookie de terceiros),
    então o servidor busca a imagem e entrega como se fosse nossa. Guarda na memória por algumas horas. */
@@ -579,24 +612,25 @@ function midia(link) {
   const u = String(link || '').trim();
   let m;
   if ((m = /(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{6,15})/i.exec(u))) {
-    return { plataforma: 'YouTube', embed: `https://www.youtube-nocookie.com/embed/${m[1]}`, thumb: `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg`, vertical: /shorts\//i.test(u), download: '' };
+    return { plataforma: 'YouTube', embed: `https://www.youtube-nocookie.com/embed/${m[1]}`, thumb: `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg`, vertical: /shorts\//i.test(u), arquivo: '', download: '' };
   }
   if ((m = /drive\.google\.com\/(?:file\/d\/|open\?(?:.*&)?id=|uc\?(?:.*&)?id=)([\w-]{10,})/i.exec(u))) {
-    return { plataforma: 'Drive', embed: `https://drive.google.com/file/d/${m[1]}/preview`, thumb: `/capa/drive/${m[1]}.jpg`, vertical: true, download: `https://drive.google.com/uc?export=download&id=${m[1]}` };
+    return { plataforma: 'Drive', embed: `https://drive.google.com/file/d/${m[1]}/preview`, thumb: `/capa/drive/${m[1]}.jpg`, vertical: true, arquivo: `/video/drive/${m[1]}.mp4`, download: `/video/drive/${m[1]}.mp4?baixar=1` };
   }
   if ((m = /instagram\.com\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]{5,})/i.exec(u))) {
     const tipo = m[1].toLowerCase() === 'reels' ? 'reel' : m[1].toLowerCase();
-    return { plataforma: 'Instagram', embed: `https://www.instagram.com/${tipo}/${m[2]}/embed`, thumb: '', vertical: true, download: '' };
+    return { plataforma: 'Instagram', embed: `https://www.instagram.com/${tipo}/${m[2]}/embed`, thumb: '', vertical: true, arquivo: '', download: '' };
   }
   if ((m = /tiktok\.com\/.*\/video\/(\d{8,})/i.exec(u))) {
-    return { plataforma: 'TikTok', embed: `https://www.tiktok.com/embed/v2/${m[1]}`, thumb: '', vertical: true, download: '' };
+    return { plataforma: 'TikTok', embed: `https://www.tiktok.com/embed/v2/${m[1]}`, thumb: '', vertical: true, arquivo: '', download: '' };
   }
   let h = 'link';
   try { h = new URL(u).hostname.replace(/^www\./, ''); } catch { /* fica "link" */ }
   if (/tiktok/.test(h)) h = 'TikTok'; else if (/instagram/.test(h)) h = 'Instagram'; else if (/facebook|fb\.watch/.test(h)) h = 'Facebook'; else if (/kwai/.test(h)) h = 'Kwai'; else if (/^x\.com$|twitter/.test(h)) h = 'X';
-  return { plataforma: h, embed: '', thumb: '', vertical: true, download: '' };
+  return { plataforma: h, embed: '', thumb: '', vertical: true, arquivo: '', download: '' };
 }
 const baixavel = (u) => { const d = midia(u); return d.download || (urlOk(u) ? u : ''); };
+const arquivoDe = (u) => midia(u).arquivo || '';
 // capa posta à mão: link de imagem ou de arquivo do Drive
 const capaDe = (u) => { const d = midia(u); return d.plataforma === 'Drive' ? d.thumb : (urlOk(u) ? u : ''); };
 // TikTok entrega a capa do vídeo pelo oEmbed público; guardamos no registro pra não buscar de novo
@@ -623,6 +657,7 @@ app.get('/public/videos', wrap(async (_req, res) => {
       tema: txt(v.tema, 60) || p?.tema || p?.titulo || 'Outros temas',
       autor: equipe ? 'seu voto decide' : v.mostrarNome ? v.nome : '', link: v.link, ...d,
       thumb: (v.capa && capaDe(v.capa)) || d.thumb || v.capaAuto || '',
+      arquivo: d.arquivo || (v.download ? arquivoDe(v.download) : ''),
       download: v.download ? baixavel(v.download) : d.download, em: v.em || v.createdAt, campanha: '', equipe,
     };
   });
@@ -630,7 +665,7 @@ app.get('/public/videos', wrap(async (_req, res) => {
     const link = x.linkPublicado || x.link;
     const d = midia(link);
     capaTikTok('depoimentos', x, link);
-    return { id: x.id, titulo: txt(x.titulo, 140) || 'No meu tempo…', tema: 'No meu tempo', autor: '', link, ...d, thumb: (x.capa && capaDe(x.capa)) || d.thumb || x.capaAuto || '', download: x.download ? baixavel(x.download) : d.download, em: x.em || x.createdAt, campanha: 'no-meu-tempo', equipe: false };
+    return { id: x.id, titulo: txt(x.titulo, 140) || 'No meu tempo…', tema: 'No meu tempo', autor: '', link, ...d, thumb: (x.capa && capaDe(x.capa)) || d.thumb || x.capaAuto || '', arquivo: d.arquivo || (x.download ? arquivoDe(x.download) : ''), download: x.download ? baixavel(x.download) : d.download, em: x.em || x.createdAt, campanha: 'no-meu-tempo', equipe: false };
   });
   const todos = [...campanha, ...lista].sort((a, b) => String(b.em).localeCompare(String(a.em)));
   res.set('Cache-Control', 'public, max-age=60');
@@ -653,7 +688,8 @@ app.post('/public/video', painelLimite, wrap(async (req, res) => {
     await db.insert('depoimentos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), em: agora(), situacao: 'Novo', notas: '' });
     return res.json({ ok: true });
   }
-  await db.insert('videos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), pautaIds, origem: 'formulario', tipo: '', em: agora(), conferido: false, mostrarNome: !!b.mostrar });
+  const arquivo = txt(b.arquivo, 500);
+  await db.insert('videos', { nome, contato: txt(b.contato, 160), link, comentario: txt(b.comentario, 1000), pautaIds, download: urlOk(arquivo) ? arquivo : '', origem: 'formulario', tipo: '', em: agora(), conferido: false, mostrarNome: !!b.mostrar });
   res.json({ ok: true });
 }));
 

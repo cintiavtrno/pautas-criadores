@@ -1108,3 +1108,5 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 .vd-logo { width: 46%; top: 42%; }
 .vd-logo svg { width: 100%; height: auto; display: block; }
 .vd-logo .l-f { fill: var(--menta); } .vd-logo .l-c { fill: var(--verde-tinta); }
+.vd-frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--verde-tinta); }
+.vd-player video { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }

@@ -45,6 +45,7 @@
     <fieldset style="margin-top:0">
       <legend>Seu vídeo</legend>
       <label class="f">Link do vídeo<input type="url" name="link" maxlength="500" placeholder="https://" /></label>
+      <label class="f" id="campo-arquivo">Arquivo do vídeo no Google Drive <i>(opcional)</i><input type="url" name="arquivo" maxlength="500" placeholder="https://drive.google.com/…" /><small style="display:block;font:400 15px/1.45 var(--serif);text-transform:none;letter-spacing:0;opacity:.8;margin-top:6px">Postou no Instagram ou TikTok? Suba o mesmo vídeo no Drive, com acesso "qualquer pessoa com o link", e cole aqui. Assim quem visita o site consegue baixar e mandar o vídeo direto no WhatsApp.</small></label>
       <div class="row2">
         <label class="f">Seu nome<input type="text" name="nome" maxlength="120" autocomplete="name" /></label>
         <label class="f">@ ou WhatsApp <i>(opcional)</i><input type="text" name="contato" maxlength="160" /></label>
@@ -79,6 +80,7 @@ if (campanha) {
   document.querySelector('legend').textContent = 'Seu depoimento';
   document.querySelector('label.f textarea[name=comentario]').closest('label').firstChild.textContent = 'Quem fala e do que fala ';
   document.getElementById('bloco-pautas').remove();
+  document.getElementById('campo-arquivo').remove();
   const lk = f.elements.link; lk.placeholder = 'https://drive.google.com/…';
   lk.closest('label').firstChild.textContent = 'Link do Google Drive';
 }
@@ -103,7 +105,7 @@ fetch('/public/config').then((r) => r.json()).then((c) => {
 f.addEventListener('submit', async (e) => {
   e.preventDefault();
   const v = (n) => (f.elements[n]?.value || '').trim();
-  const d = { link: v('link'), nome: v('nome'), contato: v('contato'), comentario: v('comentario'), site: v('site'), mostrar: f.mostrar.checked,
+  const d = { link: v('link'), arquivo: f.elements.arquivo ? v('arquivo') : '', nome: v('nome'), contato: v('contato'), comentario: v('comentario'), site: v('site'), mostrar: f.mostrar.checked,
     pautaIds: [...f.querySelectorAll('input[name=pautaIds]:checked')].map((x) => x.value), campanha, t: Date.now() - abertoEm, turnstile: turnstileToken };
   msg.className = 'msg err';
   if (!/^https?:\/\//i.test(d.link)) { msg.textContent = 'Cole o link do vídeo, começando com https://'; return; }

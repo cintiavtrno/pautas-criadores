@@ -21,10 +21,11 @@
     const iniciais = quem.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
     const marca = v.equipe ? '<span class="vd-ini vd-logo" data-marca="losango"></span>' : `<span class="vd-ini">${esc(iniciais)}</span>`;
     let topo;
-    if (v.thumb) {
+    const frame = v.arquivo ? `<video class="vd-frame" src="${esc(v.arquivo)}#t=1" preload="metadata" muted playsinline></video>` : '';
+    if (v.thumb || v.arquivo) {
       // capa de verdade (YouTube, Drive, TikTok ou a capa posta pela equipe)
       topo = `<button type="button" class="vd-capa ${v.vertical ? 'vert' : ''}" data-ver="${esc(v.id)}" aria-label="Assistir: ${esc(v.titulo)}">
-        <img src="${esc(v.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.vd-capa').classList.add('sem-img');this.remove()">
+        ${v.thumb ? `<img src="${esc(v.thumb)}" data-f="${esc(frame)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="${v.arquivo ? `this.insertAdjacentHTML('afterend', this.dataset.f);this.remove()` : "this.closest('.vd-capa').classList.add('sem-img');this.remove()"}">` : ''}${v.thumb ? '' : frame}
         ${marca}
         <span class="vd-plat">${esc(v.plataforma)}</span><span class="vd-play">${SVG.play}</span></button>`;
     } else if (v.embed && /Instagram|TikTok/.test(v.plataforma)) {
@@ -44,8 +45,9 @@
         ${v.autor ? `<span class="vd-autor">por ${esc(v.autor)}</span>` : ''}
       </div>
       <div class="vd-acoes">
-        ${v.download ? `<a class="vd-b forte" href="${esc(v.download)}" target="_blank" rel="noopener noreferrer">${SVG.baixar}Baixar</a>` : `<a class="vd-b forte" href="${esc(v.link)}" target="_blank" rel="noopener noreferrer">${I.externo || ''}Abrir no ${esc(v.plataforma)}</a>`}
-        <a class="vd-b" href="https://wa.me/?text=${encodeURIComponent(`${v.titulo} · assiste e repassa: ${url(v)}`)}" target="_blank" rel="noopener">${SVG.zap}WhatsApp</a>
+        ${v.download ? (v.download.startsWith('/') ? `<a class="vd-b forte" href="${esc(v.download + '&nome=' + encodeURIComponent(v.titulo))}" download>${SVG.baixar}Baixar</a>` : `<a class="vd-b forte" href="${esc(v.download)}" target="_blank" rel="noopener noreferrer">${SVG.baixar}Baixar</a>`) : `<a class="vd-b forte" href="${esc(v.link)}" target="_blank" rel="noopener noreferrer">${I.externo || ''}Abrir no ${esc(v.plataforma)}</a>`}
+        ${v.arquivo ? `<button type="button" class="vd-b forte" data-enviar="${esc(v.id)}">${SVG.zap}Mandar o vídeo</button>` : ''}
+        <a class="vd-b" href="https://wa.me/?text=${encodeURIComponent(`${v.titulo} · assiste e repassa: ${url(v)}`)}" target="_blank" rel="noopener">${SVG.zap}${v.arquivo ? 'Mandar link' : 'WhatsApp'}</a>
         <button type="button" class="vd-b" data-insta="${esc(v.id)}">${SVG.insta}Instagram</button>
         <a class="vd-b" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url(v))}" target="_blank" rel="noopener">${SVG.face}Facebook</a>
         <button type="button" class="vd-b" data-copiar="${esc(v.id)}">${I.link || ''}Copiar link</button>
@@ -79,12 +81,15 @@
   }
 
   function assistir(v) {
-    if (!v.embed) { window.open(v.link, '_blank', 'noopener'); return; }
+    if (!v.embed && !v.arquivo) { window.open(v.link, '_blank', 'noopener'); return; }
+    const player = v.arquivo
+      ? `<video src="${esc(v.arquivo)}" controls autoplay playsinline preload="auto"></video>`
+      : `<iframe src="${esc(v.embed)}" title="${esc(v.titulo)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
     const m = document.createElement('div');
     m.className = 'vd-modal';
     m.innerHTML = `<div class="vd-caixa ${v.vertical ? 'vert' : ''}" role="dialog" aria-modal="true" aria-label="${esc(v.titulo)}">
       <button type="button" class="vd-fecha" aria-label="Fechar">${SVG.fechar}</button>
-      <div class="vd-player"><iframe src="${esc(v.embed)}" title="${esc(v.titulo)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+      <div class="vd-player">${player}</div>
       <p class="vd-mt"><strong>${esc(v.titulo)}</strong><a href="${esc(v.link)}" target="_blank" rel="noopener noreferrer">abrir no ${esc(v.plataforma)}</a></p></div>`;
     const fecha = () => { m.remove(); document.body.style.overflow = ''; if (location.hash.startsWith('#v-')) history.replaceState(null, '', location.pathname); };
     m.addEventListener('click', (e) => { if (e.target === m || e.target.closest('.vd-fecha')) fecha(); });
@@ -103,6 +108,27 @@
     if (ver) { assistir(V.find((v) => v.id === ver.dataset.ver)); return; }
     const c = e.target.closest('[data-copiar]');
     if (c) { const v = V.find((x) => x.id === c.dataset.copiar); copia(url(v), 'Link copiado'); return; }
+    const env = e.target.closest('[data-enviar]');
+    if (env) {
+      // manda o próprio arquivo pelo menu de compartilhar do celular (WhatsApp, Instagram, Telegram…)
+      const v = V.find((x) => x.id === env.dataset.enviar);
+      const rotulo = env.innerHTML;
+      env.disabled = true; env.textContent = 'Preparando o vídeo…';
+      try {
+        const r = await fetch(v.arquivo);
+        if (!r.ok) throw new Error('falhou');
+        const blob = await r.blob();
+        const arq = new File([blob], `${(v.titulo || 'seu-voto-decide').normalize('NFD').replace(/[^\w-]+/g, '-').slice(0, 50)}.mp4`, { type: blob.type || 'video/mp4' });
+        if (navigator.canShare && navigator.canShare({ files: [arq] })) {
+          await navigator.share({ files: [arq], text: `${v.titulo} · seuvotodecide.com.br/videos` });
+        } else {
+          const a = document.createElement('a'); a.href = URL.createObjectURL(arq); a.download = arq.name; document.body.appendChild(a); a.click(); a.remove();
+          toast('Vídeo baixado: agora é só mandar pelo WhatsApp');
+        }
+      } catch (err) { if (err.name !== 'AbortError') toast('Não deu pra preparar o vídeo. Tente o botão Baixar.'); }
+      env.disabled = false; env.innerHTML = rotulo;
+      return;
+    }
     const ig = e.target.closest('[data-insta]');
     if (ig) {
       const v = V.find((x) => x.id === ig.dataset.insta);
