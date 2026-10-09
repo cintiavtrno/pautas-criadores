@@ -672,7 +672,10 @@ VIEWS.videos = {
           ${v.campanha ? `<div class="f"><span>Campanha</span><div>${esc(v.campanha)}</div></div>` : ''}
           <div class="f"><span>Pautas</span><div>${esc(titulosPautas(v.pautaIds).join(' · ') || '—')}</div></div>
           <div class="f"><span>Nome no mural</span><div>${v.mostrarNome ? 'pode mostrar' : 'aparece como "Participante"'}</div></div>
-          ${field({ k: 'conferido', type: 'bool', text: 'Conferido: entra no mural de quem participa', full: true }, v)}
+          ${field({ k: 'conferido', type: 'bool', text: 'Conferido: entra no ar na página Vídeos do site e no mural', full: true }, v)}
+          ${field({ k: 'titulo', label: 'Título na página Vídeos', ph: 'se vazio, usa o título da pauta', full: true }, v)}
+          ${field({ k: 'tema', label: 'Tema (agrupa na página Vídeos)', ph: 'ex.: Saúde, Trabalho, 13º… se vazio, usa o tema da pauta' }, v)}
+          ${field({ k: 'download', label: 'Arquivo pra baixar (link do Drive, opcional)', ph: 'https://drive.google.com/file/d/…' }, v)}
           ${field({ k: 'notas', type: 'textarea', label: 'Notas', full: true }, v)}
         </div></section>
         <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>
@@ -691,7 +694,7 @@ VIEWS.depoimentos = {
   empty: 'Nenhum depoimento ainda.',
   row(d) {
     return `<span class="who"><span class="name">${esc(d.nome)}</span><span class="muted">${esc(d.link)}</span></span>
-      <span class="line ok">${esc(d.situacao || 'Novo')}</span><span class="line ok">${fmtData(d.em)}</span><span class="resp">${esc(d.responsavel || '')}</span>`;
+      <span class="line ok">${esc(d.situacao || 'Novo')}${d.publicar ? ' · no ar' : ''}</span><span class="line ok">${fmtData(d.em)}</span><span class="resp">${esc(d.responsavel || '')}</span>`;
   },
   detail(d) {
     const ok = /^https?:\/\//i.test(d.link || '');
@@ -707,12 +710,16 @@ VIEWS.depoimentos = {
           <div class="f"><span>Contato</span><div>${esc(d.contato || '—')}</div></div>
           ${field({ k: 'situacao', type: 'select', label: 'Situação', opts: () => SITUACAO_DEP }, d)}
           ${field({ k: 'responsavel', label: 'Quem está editando', ph: 'nome' }, d)}
+          ${field({ k: 'publicar', type: 'bool', text: 'Publicar na página Vídeos do site (tema No meu tempo)', full: true }, d)}
+          ${field({ k: 'titulo', label: 'Título na página Vídeos', ph: 'ex.: No meu tempo, com dona Maria' }, d)}
+          ${field({ k: 'linkPublicado', label: 'Link do vídeo editado (se for outro)', ph: 'Instagram, YouTube ou Drive' }, d)}
+          ${field({ k: 'download', label: 'Arquivo pra baixar (link do Drive, opcional)', ph: 'https://drive.google.com/file/d/…', full: true }, d)}
           ${field({ k: 'notas', type: 'textarea', label: 'Notas (trecho bom, minutagem, problema de áudio…)', full: true }, d)}
         </div></section>
         <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>
       </div>`;
   },
-  onSaved(k) { if (['situacao', 'responsavel'].includes(k)) renderRows(); },
+  onSaved(k) { if (['situacao', 'responsavel', 'publicar'].includes(k)) renderRows(); },
 };
 
 /* Jurídico: pedidos de orientação e gente da área oferecendo ajuda */

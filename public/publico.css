@@ -1021,3 +1021,69 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
   .g-prox .btn { width: 100%; }
   .g-prox span:empty { display: none; }
 }
+
+/* =====================================================================
+   VÍDEOS NO AR
+   ===================================================================== */
+.vd-capa-pg .miolo { display: block; padding-bottom: clamp(70px, 8vw, 120px); }
+.vd-capa-pg h1 { font-size: clamp(56px, 8vw, 128px); margin: 14px 0 18px; }
+.vd-capa-pg .lead a { color: var(--branco); }
+.vd-conta { display: flex; align-items: baseline; gap: 12px; margin: 0 0 14px; }
+.vd-conta b { font: 800 clamp(56px, 7vw, 96px)/.9 var(--display); letter-spacing: -.05em; color: var(--verde-tinta); }
+.vd-conta span { font: 500 13px var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+.vd-sec { padding-top: 30px; padding-bottom: 90px; }
+.vd-temas { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.vd-temas button { font: 500 12.5px var(--mono); text-transform: uppercase; letter-spacing: .05em; padding: 10px 13px; background: none; border: 1.5px solid var(--verde-tinta); color: var(--verde-tinta); cursor: pointer; }
+.vd-temas button small { opacity: .65; margin-left: 4px; }
+.vd-temas button.on { background: var(--verde-tinta); color: var(--branco); }
+.vd-h { font: 800 clamp(30px, 3.4vw, 46px)/.95 var(--display); letter-spacing: -.04em; text-transform: lowercase; margin: 44px 0 18px; color: var(--verde-tinta); border-top: 2px solid var(--verde-tinta); padding-top: 14px; }
+.vd-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; }
+.vd-card { display: flex; flex-direction: column; border: 1.5px solid var(--verde-tinta); background: var(--branco); }
+.vd-capa { position: relative; display: block; width: 100%; aspect-ratio: 16 / 10; border: 0; padding: 0; cursor: pointer; overflow: hidden; background: var(--menta); color: var(--branco); }
+.vd-capa.vert { aspect-ratio: 4 / 5; }
+.vd-capa img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vd-fundo { position: absolute; left: 50%; top: 50%; width: 46%; transform: translate(-50%, -50%); opacity: .35; }
+.vd-fundo svg { width: 100%; height: auto; }
+.vd-plat { position: absolute; left: 12px; top: 12px; font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; background: var(--verde-tinta); color: var(--branco); padding: 6px 9px; z-index: 2; }
+.vd-play { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; background: var(--verde-tinta); display: grid; place-items: center; z-index: 2; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); transition: transform .2s ease; }
+.vd-capa:hover .vd-play, .vd-capa:focus-visible .vd-play { transform: scale(1.08); }
+.vd-info { padding: 14px 16px 6px; display: grid; gap: 4px; }
+.vd-info .kicker { font-size: 11px; color: var(--verde); }
+.vd-info strong { font: 800 21px/1.08 var(--display); letter-spacing: -.03em; color: var(--verde-tinta); }
+.vd-autor { font: 400 14.5px var(--serif); color: var(--tinta-2); }
+.vd-acoes { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 16px; margin-top: auto; }
+.vd-b { display: inline-flex; align-items: center; gap: 6px; font: 500 11.5px var(--mono); text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; border: 1.5px solid var(--verde-tinta); color: var(--verde-tinta); background: none; text-decoration: none; cursor: pointer; }
+.vd-b:hover { background: var(--papel); }
+.vd-b.forte { background: var(--verde-tinta); color: var(--branco); }
+.vd-b .ico { width: 16px; height: 16px; }
+.vd-vazio { font: 400 20px var(--serif); color: var(--tinta-2); padding: 40px 0; }
+.vd-modal { position: fixed; inset: 0; z-index: 100; background: rgba(10, 30, 23, .88); display: grid; place-items: center; padding: 16px; }
+.vd-caixa { position: relative; width: min(960px, 100%); }
+.vd-caixa.vert { width: min(420px, 100%); }
+.vd-player { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+.vd-caixa.vert .vd-player { aspect-ratio: 9 / 16; max-height: 78vh; margin: 0 auto; }
+.vd-player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.vd-fecha { position: absolute; right: 0; top: -48px; width: 42px; height: 42px; border: 0; background: var(--branco); color: var(--verde-tinta); display: grid; place-items: center; cursor: pointer; }
+.vd-mt { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; color: var(--branco); margin: 12px 0 0; font: 400 15px var(--serif); }
+.vd-mt strong { font: 800 18px var(--display); letter-spacing: -.02em; }
+.vd-mt a { color: var(--menta); font: 500 12px var(--mono); text-transform: uppercase; white-space: nowrap; }
+.vd-toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--verde-tinta); color: var(--branco); font: 500 13px var(--mono); padding: 12px 16px; opacity: 0; transition: .25s; z-index: 120; max-width: calc(100% - 32px); text-align: center; }
+.vd-toast.on { opacity: 1; transform: translate(-50%, 0); }
+/* atalho na capa da página inicial */
+.link-videos { display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: var(--verde-tinta); color: var(--branco); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
+.link-videos:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 var(--branco); }
+.link-videos b { font: 800 46px/.9 var(--display); letter-spacing: -.05em; color: var(--menta); min-width: 1.2ch; }
+.link-videos span { display: grid; gap: 2px; }
+.link-videos strong { font: 800 22px/1.05 var(--display); letter-spacing: -.03em; }
+.link-videos small { font: 400 14.5px var(--serif); opacity: .85; }
+.numeros a { color: inherit; text-decoration: none; }
+@media (max-width: 860px) {
+  .barra nav a[href="/videos"] { display: inline-block !important; border-color: currentColor; }
+}
+@media (max-width: 640px) {
+  .vd-grade { grid-template-columns: 1fr; gap: 16px; }
+  .vd-capa.vert { aspect-ratio: 16 / 13; }
+  .vd-b { font-size: 11px; padding: 8px 9px; }
+}
+/* celular: com Vídeos no menu, o Jurídico sai da barra (continua na página inicial e no rodapé) */
+@media (max-width: 640px) { .barra nav a[href="/juridico"] { display: none !important; } }

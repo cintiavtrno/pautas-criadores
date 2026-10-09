@@ -67,6 +67,7 @@ app.get('/enviar-video', (_req, res) => res.sendFile(path.join(PUB, 'enviar-vide
 app.get('/guia', (_req, res) => res.sendFile(path.join(PUB, 'guia.html')));
 app.get('/juridico', (_req, res) => res.sendFile(path.join(PUB, 'juridico.html')));
 app.get('/jogos', (_req, res) => res.sendFile(path.join(PUB, 'jogos.html')));
+app.get('/videos', (_req, res) => res.sendFile(path.join(PUB, 'videos.html')));
 // foto da equipe (fica no banco, porque o disco do Render é apagado a cada deploy)
 app.get('/foto/:id.jpg', wrap(async (req, res) => {
   const f = await db.get('fotos', `foto-${req.params.id}`);
@@ -512,9 +513,10 @@ app.post('/public/painel/:token/ideia', painelLimite, wrap(async (req, res) => {
 /* ---- comunidade: quem participa e os vídeos conferidos ---- */
 // Só aparece quem autorizou. Vídeo só entra no mural depois que a equipe marca como conferido.
 async function comunidade() {
-  const [criadores, pessoas, videos, pautas, equipe] = await Promise.all(['creators', 'pessoas', 'videos', 'pautas', 'team'].map((c) => db.list(c)));
+  const [criadores, pessoas, videos, pautas, equipe, depoimentos] = await Promise.all(['creators', 'pessoas', 'videos', 'pautas', 'team', 'depoimentos'].map((c) => db.list(c)));
   const cfg = await config();
   const conferidos = videos.filter((v) => v.conferido && urlOk(v.link));
+  const campanhaNoAr = depoimentos.filter((d) => d.publicar && urlOk(d.linkPublicado || d.link)).length;
   const qtd = (campo, id) => conferidos.filter((v) => v[campo] === id).length;
   const participantes = [
     ...equipe.filter((t) => t.mostrarNoSite !== false).map((t) => ({ nome: t.nome, tipo: 'equipe', handle: '', cidade: (t.funcoes || [])[0] || '', videos: 0, desde: '0' })),
@@ -528,7 +530,7 @@ async function comunidade() {
   // conta: equipe (participa mesmo sem gravar) + quem se cadastrou + quem participa fora do site (número posto em Ajustes)
   const extra = Math.max(0, parseInt(cfg.participantesExtra, 10) || 0);
   const total = equipe.length + criadores.filter((c) => c.inscreveuSe || ANDAMENTO_CRIADOR.includes(c.status)).length + pessoas.length + extra;
-  return { participantes, mural, totais: { participantes: total, videos: conferidos.length } };
+  return { participantes, mural, totais: { participantes: total, videos: conferidos.length + campanhaNoAr } };
 }
 const ANDAMENTO_CRIADOR = ['Topou', 'Em roteiro', 'Em edição', 'Publicado'];
 
@@ -544,6 +546,53 @@ app.post('/public/painel/:token/preferencias', painelLimite, wrap(async (req, re
 }));
 // números para a página inicial (só contagem, sem nomes)
 app.get('/public/numeros', wrap(async (_req, res) => res.json((await comunidade()).totais)));
+
+/* ---- galeria pública de vídeos (só o que a equipe conferiu) ---- */
+// Descobre de onde é o link e monta o player, a miniatura e o download quando a plataforma deixa.
+function midia(link) {
+  const u = String(link || '').trim();
+  let m;
+  if ((m = /(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{6,15})/i.exec(u))) {
+    return { plataforma: 'YouTube', embed: `https://www.youtube-nocookie.com/embed/${m[1]}`, thumb: `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg`, vertical: /shorts\//i.test(u), download: '' };
+  }
+  if ((m = /drive\.google\.com\/(?:file\/d\/|open\?(?:.*&)?id=|uc\?(?:.*&)?id=)([\w-]{10,})/i.exec(u))) {
+    return { plataforma: 'Drive', embed: `https://drive.google.com/file/d/${m[1]}/preview`, thumb: `https://drive.google.com/thumbnail?id=${m[1]}&sz=w640`, vertical: true, download: `https://drive.google.com/uc?export=download&id=${m[1]}` };
+  }
+  if ((m = /instagram\.com\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]{5,})/i.exec(u))) {
+    const tipo = m[1].toLowerCase() === 'reels' ? 'reel' : m[1].toLowerCase();
+    return { plataforma: 'Instagram', embed: `https://www.instagram.com/${tipo}/${m[2]}/embed`, thumb: '', vertical: true, download: '' };
+  }
+  if ((m = /tiktok\.com\/.*\/video\/(\d{8,})/i.exec(u))) {
+    return { plataforma: 'TikTok', embed: `https://www.tiktok.com/embed/v2/${m[1]}`, thumb: '', vertical: true, download: '' };
+  }
+  let h = 'link';
+  try { h = new URL(u).hostname.replace(/^www\./, ''); } catch { /* fica "link" */ }
+  if (/tiktok/.test(h)) h = 'TikTok'; else if (/instagram/.test(h)) h = 'Instagram'; else if (/facebook|fb\.watch/.test(h)) h = 'Facebook'; else if (/kwai/.test(h)) h = 'Kwai'; else if (/^x\.com$|twitter/.test(h)) h = 'X';
+  return { plataforma: h, embed: '', thumb: '', vertical: true, download: '' };
+}
+const baixavel = (u) => { const d = midia(u); return d.download || (urlOk(u) ? u : ''); };
+app.get('/public/videos', wrap(async (_req, res) => {
+  const [videos, pautas, depoimentos] = await Promise.all(['videos', 'pautas', 'depoimentos'].map((c) => db.list(c)));
+  const pauta = (id) => pautas.find((p) => p.id === id);
+  const lista = videos.filter((v) => v.conferido && urlOk(v.link)).map((v) => {
+    const p = pauta((v.pautaIds || [])[0]);
+    const d = midia(v.link);
+    return {
+      id: v.id, titulo: txt(v.titulo, 140) || p?.titulo || (v.mostrarNome ? `Vídeo de ${v.nome}` : 'Vídeo da comunidade'),
+      tema: txt(v.tema, 60) || p?.tema || p?.titulo || 'Outros temas',
+      autor: v.mostrarNome ? v.nome : '', link: v.link, ...d,
+      download: v.download ? baixavel(v.download) : d.download, em: v.em || v.createdAt, campanha: '',
+    };
+  });
+  const campanha = depoimentos.filter((x) => x.publicar && urlOk(x.linkPublicado || x.link)).map((x) => {
+    const link = x.linkPublicado || x.link;
+    const d = midia(link);
+    return { id: x.id, titulo: txt(x.titulo, 140) || 'No meu tempo…', tema: 'No meu tempo', autor: '', link, ...d, download: x.download ? baixavel(x.download) : d.download, em: x.em || x.createdAt, campanha: 'no-meu-tempo' };
+  });
+  const todos = [...campanha, ...lista].sort((a, b) => String(b.em).localeCompare(String(a.em)));
+  res.set('Cache-Control', 'public, max-age=60');
+  res.json({ total: todos.length, videos: todos });
+}));
 
 /* ---- formulário aberto para mandar o link do vídeo ---- */
 app.post('/public/video', painelLimite, wrap(async (req, res) => {

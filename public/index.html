@@ -34,7 +34,7 @@
     <a class="marca-site" href="/" aria-label="seu voto decide, início"></a>
     <nav>
       <a href="/guia">Guia</a>
-      <a href="/jogos">Jogos</a>
+      <a href="/jogos">Jogos</a><a href="/videos">Vídeos</a>
       <a href="/juridico">Jurídico</a>
       <a href="#como">Como funciona</a>
       <a href="#equipe">Quem faz</a>
@@ -52,11 +52,12 @@
       <p class="lead">O Seu Voto Decide é uma articulação de comunicação popular, criadores de conteúdo e sociedade civil para converter abstenções e votos brancos e nulos e conseguir uma virada no 2º turno. A gente prepara pautas com informação checada e você grava do seu jeito, pra quem você conhece.</p>
       <div class="numeros" id="numeros" hidden>
         <div><b data-conta="participantes">0</b><span>pessoas participando</span></div>
-        <div><b data-conta="videos">0</b><span>vídeos no ar</span></div>
+        <a href="/videos"><b data-conta="videos">0</b><span>vídeos no ar</span></a>
       </div>
     </div>
     <div class="capa-acoes">
       <div class="bandeira" data-marca="losango" id="bandeira"></div>
+      <a class="link-videos" href="/videos"><b data-conta-videos>0</b><span><strong>vídeos no ar</strong><small>Assista, baixe e mande pra quem não decidiu</small></span></a>
       <a class="caminho" href="/participar?tipo=pessoa"><strong>Não sou criador de conteúdo</strong><span>Quero gravar para minha família, meus amigos, meu status.</span></a>
       <a class="caminho" href="/participar?tipo=criador"><strong>Sou criador de conteúdo</strong><span>Tenho perfil com público e quero usar meu alcance.</span></a>
       <a class="link-guia" href="#no-meu-tempo"><span class="kicker">novo · campanha</span><strong>No meu tempo…</strong><span>Grave 20 segundos com alguém mais velho contando o que mudou</span></a>
@@ -229,6 +230,7 @@ fetch('/public/config').then((r) => r.json()).then((c) => {
 
 // números da capa
 fetch('/public/numeros').then((r) => r.json()).then((n) => {
+  document.querySelectorAll('[data-conta-videos]').forEach((el) => conta(el, n.videos || 0));
   if (!n.participantes) return;
   document.getElementById('numeros').hidden = false;
   document.querySelectorAll('[data-conta]').forEach((el) => conta(el, n[el.dataset.conta] || 0));
