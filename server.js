@@ -2,6 +2,8 @@ const express = require('express');
 const crypto = require('crypto');
 const path = require('path');
 const { Readable } = require('stream');
+const fs = require('fs');
+const { pipeline } = require('stream/promises');
 const db = require('./db');
 const seed = require('./seed');
 const seg = require('./security');
@@ -34,6 +36,7 @@ const txt = (v, max = 300) => String(v || '').trim().slice(0, max);
 const newToken = () => crypto.randomBytes(12).toString('base64url');
 const agora = () => new Date().toISOString();
 const urlOk = (u) => /^https?:\/\/[^\s]{3,}$/i.test(String(u || '').trim());
+const linkOk = (u) => urlOk(u) || /^\/arquivos\/videos\/[\w-]+\.(mp4|mov|webm)$/.test(String(u || ''));
 // como as funções aparecem no site público (no controle continuam com o nome interno)
 const ROTULO_PUBLICO = { 'Edição dos vídeos': 'Audiovisual' };
 // link de rede social: aceita URL, endereço sem https ou @perfil (vira Instagram)
@@ -214,6 +217,37 @@ app.delete('/api/usuarios/:id', wrap(async (req, res) => {
   ok ? res.json({ ok: true }) : res.status(404).json({ error: 'Não encontrado.' });
 }));
 
+/* ---- vídeos guardados no próprio servidor (disco persistente do Render) ----
+   Só funciona com a variável VIDEOS_DIR apontando pra pasta do disco, ex.: /opt/render/project/src/storage/videos */
+const VIDEOS_DIR = process.env.VIDEOS_DIR || '';
+const MAX_VIDEO = 600 * 1024 * 1024; // 600 MB por arquivo
+if (VIDEOS_DIR) { try { fs.mkdirSync(VIDEOS_DIR, { recursive: true }); } catch (e) { console.error('VIDEOS_DIR', e.message); } }
+app.get('/api/upload-video/status', wrap(async (_req, res) => {
+  if (!VIDEOS_DIR) return res.json({ ativo: false });
+  let livre = null;
+  try { const st = await fs.promises.statfs(VIDEOS_DIR); livre = st.bavail * st.bsize; } catch { /* sem info de espaço */ }
+  res.json({ ativo: true, livre });
+}));
+app.post('/api/upload-video', wrap(async (req, res) => {
+  if (!VIDEOS_DIR) return res.status(400).json({ error: 'O disco de vídeos não está ligado no servidor.' });
+  const tipo = String(req.get('content-type') || '');
+  if (!/^video\//.test(tipo)) return res.status(400).json({ error: 'Escolha um arquivo de vídeo (mp4 ou mov).' });
+  const tam = Number(req.get('content-length') || 0);
+  if (tam > MAX_VIDEO) return res.status(413).json({ error: 'Vídeo grande demais (máximo 600 MB). Exporte em 1080p.' });
+  const ext = /quicktime/.test(tipo) ? 'mov' : /webm/.test(tipo) ? 'webm' : 'mp4';
+  const nome = `${crypto.randomUUID()}.${ext}`;
+  const destino = path.join(VIDEOS_DIR, nome);
+  let lidos = 0;
+  req.on('data', (c) => { lidos += c.length; if (lidos > MAX_VIDEO) req.destroy(new Error('grande demais')); });
+  try {
+    await pipeline(req, fs.createWriteStream(destino));
+  } catch (e) {
+    fs.promises.unlink(destino).catch(() => {});
+    return res.status(lidos > MAX_VIDEO ? 413 : 400).json({ error: lidos > MAX_VIDEO ? 'Vídeo grande demais (máximo 600 MB).' : 'O envio foi interrompido. Tente de novo.' });
+  }
+  res.json({ ok: true, link: `/arquivos/videos/${nome}`, tamanho: lidos });
+}));
+
 /* API genérica das coleções */
 const colecaoOk = (req, res, next) => (COLECOES.includes(req.params.col) ? next() : res.status(404).json({ error: 'Coleção inválida.' }));
 
@@ -233,6 +267,10 @@ app.put('/api/:col/:id', colecaoOk, wrap(async (req, res) => {
 
 app.delete('/api/:col/:id', colecaoOk, wrap(async (req, res) => {
   const { col, id } = req.params;
+  if (['videos', 'depoimentos'].includes(col) && VIDEOS_DIR) {
+    const r = (await db.list(col)).find((x) => x.id === id);
+    for (const u of [r?.link, r?.download, r?.linkPublicado]) { const m = /^\/arquivos\/videos\/([\w-]+\.(?:mp4|mov|webm))$/.exec(u || ''); if (m) fs.promises.unlink(path.join(VIDEOS_DIR, m[1])).catch(() => {}); }
+  }
   if (!(await db.remove(col, id))) return res.status(404).json({ error: 'Não encontrado.' });
   // limpa referências soltas
   const limpa = async (colecao, fn) => { for (const r of await db.list(colecao)) { const p = fn(r); if (p) await db.update(colecao, r.id, p); } };
@@ -516,8 +554,8 @@ app.post('/public/painel/:token/ideia', painelLimite, wrap(async (req, res) => {
 async function comunidade() {
   const [criadores, pessoas, videos, pautas, equipe, depoimentos] = await Promise.all(['creators', 'pessoas', 'videos', 'pautas', 'team', 'depoimentos'].map((c) => db.list(c)));
   const cfg = await config();
-  const conferidos = videos.filter((v) => v.conferido && urlOk(v.link));
-  const campanhaNoAr = depoimentos.filter((d) => d.publicar && urlOk(d.linkPublicado || d.link)).length;
+  const conferidos = videos.filter((v) => v.conferido && linkOk(v.link));
+  const campanhaNoAr = depoimentos.filter((d) => d.publicar && linkOk(d.linkPublicado || d.link)).length;
   const qtd = (campo, id) => conferidos.filter((v) => v[campo] === id).length;
   const participantes = [
     ...equipe.filter((t) => t.mostrarNoSite !== false).map((t) => ({ nome: t.nome, tipo: 'equipe', handle: '', cidade: (t.funcoes || [])[0] || '', videos: 0, desde: '0' })),
@@ -547,6 +585,18 @@ app.post('/public/painel/:token/preferencias', painelLimite, wrap(async (req, re
 }));
 // números para a página inicial (só contagem, sem nomes)
 app.get('/public/numeros', wrap(async (_req, res) => res.json((await comunidade()).totais)));
+
+/* ---- vídeos enviados pelo painel ---- */
+app.get('/arquivos/videos/:arq', (req, res) => {
+  const arq = String(req.params.arq || '');
+  if (!VIDEOS_DIR || !/^[\w-]+\.(mp4|mov|webm)$/.test(arq)) return res.status(404).end();
+  const opts = { root: VIDEOS_DIR, maxAge: '7d', headers: {} };
+  if (req.query.baixar) {
+    const nome = String(req.query.nome || 'seu-voto-decide').normalize('NFD').replace(/[^\w-]+/g, '-').replace(/-+/g, '-').slice(0, 60) || 'seu-voto-decide';
+    opts.headers['Content-Disposition'] = `attachment; filename="${nome}.${arq.split('.').pop()}"`;
+  }
+  res.sendFile(arq, opts, (e) => { if (e && !res.headersSent) res.status(404).end(); });
+});
 
 /* ---- vídeo do Drive entregue pelo nosso endereço ----
    No celular, o player e o download do Drive pedem login e aceite de cookies. Aqui o servidor busca o arquivo
@@ -614,6 +664,9 @@ function midia(link) {
   if ((m = /(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{6,15})/i.exec(u))) {
     return { plataforma: 'YouTube', embed: `https://www.youtube-nocookie.com/embed/${m[1]}`, thumb: `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg`, vertical: /shorts\//i.test(u), arquivo: '', download: '' };
   }
+  if ((m = /^\/arquivos\/videos\/([\w-]+\.(?:mp4|mov|webm))$/.exec(u))) {
+    return { plataforma: 'seu voto decide', embed: '', thumb: '', vertical: true, arquivo: u, download: `${u}?baixar=1` };
+  }
   if ((m = /drive\.google\.com\/(?:file\/d\/|open\?(?:.*&)?id=|uc\?(?:.*&)?id=)([\w-]{10,})/i.exec(u))) {
     return { plataforma: 'Drive', embed: `https://drive.google.com/file/d/${m[1]}/preview`, thumb: `/capa/drive/${m[1]}.jpg`, vertical: true, arquivo: `/video/drive/${m[1]}.mp4`, download: `/video/drive/${m[1]}.mp4?baixar=1` };
   }
@@ -647,7 +700,7 @@ function capaTikTok(col, r, link) {
 app.get('/public/videos', wrap(async (_req, res) => {
   const [videos, pautas, depoimentos] = await Promise.all(['videos', 'pautas', 'depoimentos'].map((c) => db.list(c)));
   const pauta = (id) => pautas.find((p) => p.id === id);
-  const lista = videos.filter((v) => v.conferido && urlOk(v.link)).map((v) => {
+  const lista = videos.filter((v) => v.conferido && linkOk(v.link)).map((v) => {
     const p = pauta((v.pautaIds || [])[0]);
     const d = midia(v.link);
     capaTikTok('videos', v, v.link);
@@ -661,7 +714,7 @@ app.get('/public/videos', wrap(async (_req, res) => {
       download: v.download ? baixavel(v.download) : d.download, em: v.em || v.createdAt, campanha: '', equipe,
     };
   });
-  const campanha = depoimentos.filter((x) => x.publicar && urlOk(x.linkPublicado || x.link)).map((x) => {
+  const campanha = depoimentos.filter((x) => x.publicar && linkOk(x.linkPublicado || x.link)).map((x) => {
     const link = x.linkPublicado || x.link;
     const d = midia(link);
     capaTikTok('depoimentos', x, link);
@@ -873,5 +926,6 @@ app.use((_req, res) => res.status(404).sendFile(path.join(PUB, 'index.html')));
     }
   }
 
-  app.listen(PORT, () => console.log(`Rodando na porta ${PORT} · armazenamento: ${db.kind}`));
+  const servidor = app.listen(PORT, () => console.log(`Rodando na porta ${PORT} · armazenamento: ${db.kind}${VIDEOS_DIR ? ' · vídeos em ' + VIDEOS_DIR : ''}`));
+  servidor.requestTimeout = 30 * 60 * 1000; // envio de vídeo grande pode levar vários minutos
 })();

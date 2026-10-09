@@ -99,6 +99,51 @@
     history.replaceState(null, '', `#v-${v.id}`);
   }
 
+  // "Mandar o vídeo": 1º toque baixa o arquivo (com porcentagem); quando fica pronto, o botão vira "Enviar agora".
+  // O celular só abre o menu de compartilhar logo depois de um toque, por isso o segundo toque.
+  const PRONTOS = {};
+  const nomeArq = (v) => `${(v.titulo || 'seu-voto-decide').normalize('NFD').replace(/[^\w-]+/g, '-').replace(/-+/g, '-').slice(0, 50)}.mp4`;
+  function baixaLocal(arq) { const a = document.createElement('a'); a.href = URL.createObjectURL(arq); a.download = arq.name; document.body.appendChild(a); a.click(); a.remove(); }
+  async function compartilha(v, arq) {
+    if (navigator.canShare && navigator.canShare({ files: [arq] })) {
+      try { await navigator.share({ files: [arq], text: `${v.titulo} · seuvotodecide.com.br/videos` }); }
+      catch (err) { if (err.name !== 'AbortError') { baixaLocal(arq); toast('Vídeo baixado: agora é só mandar pelo WhatsApp'); } }
+    } else { baixaLocal(arq); toast('Vídeo baixado: agora é só mandar pelo WhatsApp'); }
+  }
+  async function enviarVideo(btn) {
+    const v = V.find((x) => x.id === btn.dataset.enviar);
+    if (!v) return;
+    if (PRONTOS[v.id]) { compartilha(v, PRONTOS[v.id]); return; }
+    if (btn.dataset.baixando) return;
+    btn.dataset.baixando = '1';
+    const rotulo = btn.innerHTML;
+    const ctrl = new AbortController();
+    let parado = setTimeout(() => ctrl.abort(), 45000);
+    try {
+      btn.textContent = 'Preparando… 0%';
+      const r = await fetch(v.arquivo, { signal: ctrl.signal });
+      if (!r.ok || !r.body) throw new Error('falhou');
+      const total = Number(r.headers.get('content-length')) || 0;
+      if (total > 150 * 1024 * 1024) { ctrl.abort(); window.location.href = v.download; return; }
+      const leitor = r.body.getReader(); const partes = []; let lidos = 0;
+      for (;;) {
+        const { done, value } = await leitor.read();
+        if (done) break;
+        partes.push(value); lidos += value.length;
+        clearTimeout(parado); parado = setTimeout(() => ctrl.abort(), 30000); // só desiste se ficar 30 s sem chegar nada
+        btn.textContent = total ? `Preparando… ${Math.min(99, Math.round((lidos / total) * 100))}%` : `Preparando… ${(lidos / 1048576).toFixed(1)} MB`;
+      }
+      const arq = new File(partes, nomeArq(v), { type: r.headers.get('content-type') || 'video/mp4' });
+      PRONTOS[v.id] = arq;
+      btn.innerHTML = `${SVG.zap}Enviar agora`;
+      btn.classList.add('pronto');
+      toast('Vídeo pronto: toque em "Enviar agora"');
+    } catch (err) {
+      btn.innerHTML = rotulo;
+      toast(err.name === 'AbortError' ? 'A conexão ficou lenta. Use o botão Baixar e mande pelo WhatsApp.' : 'Não deu pra preparar o vídeo. Tente o botão Baixar.');
+    } finally { clearTimeout(parado); delete btn.dataset.baixando; }
+  }
+
   el.addEventListener('click', async (e) => {
     const ab = e.target.closest('[data-aba]');
     if (ab) { aba = ab.dataset.aba; tema = 'Todos'; desenha(); return; }
@@ -109,26 +154,7 @@
     const c = e.target.closest('[data-copiar]');
     if (c) { const v = V.find((x) => x.id === c.dataset.copiar); copia(url(v), 'Link copiado'); return; }
     const env = e.target.closest('[data-enviar]');
-    if (env) {
-      // manda o próprio arquivo pelo menu de compartilhar do celular (WhatsApp, Instagram, Telegram…)
-      const v = V.find((x) => x.id === env.dataset.enviar);
-      const rotulo = env.innerHTML;
-      env.disabled = true; env.textContent = 'Preparando o vídeo…';
-      try {
-        const r = await fetch(v.arquivo);
-        if (!r.ok) throw new Error('falhou');
-        const blob = await r.blob();
-        const arq = new File([blob], `${(v.titulo || 'seu-voto-decide').normalize('NFD').replace(/[^\w-]+/g, '-').slice(0, 50)}.mp4`, { type: blob.type || 'video/mp4' });
-        if (navigator.canShare && navigator.canShare({ files: [arq] })) {
-          await navigator.share({ files: [arq], text: `${v.titulo} · seuvotodecide.com.br/videos` });
-        } else {
-          const a = document.createElement('a'); a.href = URL.createObjectURL(arq); a.download = arq.name; document.body.appendChild(a); a.click(); a.remove();
-          toast('Vídeo baixado: agora é só mandar pelo WhatsApp');
-        }
-      } catch (err) { if (err.name !== 'AbortError') toast('Não deu pra preparar o vídeo. Tente o botão Baixar.'); }
-      env.disabled = false; env.innerHTML = rotulo;
-      return;
-    }
+    if (env) { enviarVideo(env); return; }
     const ig = e.target.closest('[data-insta]');
     if (ig) {
       const v = V.find((x) => x.id === ig.dataset.insta);

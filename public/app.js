@@ -644,6 +644,38 @@ VIEWS.materiais = {
   onSaved(k, m) { if (k === 'titulo') $('[data-h=titulo]').textContent = m.titulo; if (['tipo', 'paraQuem', 'link'].includes(k)) renderRows(); },
 };
 
+/* envio de arquivo de vídeo pro disco do servidor (aparece só quando o disco está ligado) */
+const UPLOAD = { ativo: false };
+function checaUpload() {
+  if (UPLOAD.checando) return; UPLOAD.checando = true;
+  fetch('/api/upload-video/status', { headers: HDR }).then((r) => (r.ok ? r.json() : Promise.reject())).then((x) => { UPLOAD.ativo = !!x.ativo; UPLOAD.livre = x.livre; if (UPLOAD.ativo) renderDetail(); }).catch(() => { UPLOAD.checando = false; });
+}
+function ligaUpload(box, col, rec, campo) {
+  checaUpload();
+  const inp = $('[data-upload-video]', box); if (!inp) return;
+  const msg = $('[data-upload-msg]', box);
+  inp.onchange = () => {
+    const f = inp.files[0]; if (!f) return;
+    if (f.size > 600 * 1024 * 1024) { toast('Vídeo grande demais (máximo 600 MB).'); return; }
+    const x = new XMLHttpRequest();
+    x.open('POST', '/api/upload-video');
+    Object.entries(HDR).forEach(([k, val]) => { if (k.toLowerCase() !== 'content-type') x.setRequestHeader(k, val); });
+    x.setRequestHeader('Content-Type', f.type || 'video/mp4');
+    x.upload.onprogress = (e) => { if (e.lengthComputable && msg) msg.textContent = `enviando… ${Math.round((e.loaded / e.total) * 100)}%`; };
+    x.onload = async () => {
+      let out = {}; try { out = JSON.parse(x.responseText); } catch { /* resposta vazia */ }
+      if (x.status !== 200 || !out.link) { toast(out.error || 'O envio falhou. Tente de novo.'); if (msg) msg.textContent = ''; return; }
+      // sem link ainda: o arquivo vira o vídeo; com link (Instagram etc.): vira o arquivo pra baixar e mandar
+      const alvo = campo || (rec.link && !/^\/arquivos\/videos\//.test(rec.link) ? 'download' : 'link');
+      await save(col, rec, { [alvo]: out.link });
+      toast('Vídeo enviado'); renderDetail();
+    };
+    x.onerror = () => { toast('A conexão caiu durante o envio. Tente de novo.'); if (msg) msg.textContent = ''; };
+    if (msg) msg.textContent = 'enviando… 0%';
+    x.send(f);
+  };
+}
+
 /* Vídeos que chegaram (pelo painel pessoal ou pelo formulário aberto) */
 const titulosPautas = (ids) => (ids || []).map((id) => find('pautas', id)?.titulo).filter(Boolean);
 VIEWS.videos = {
@@ -673,6 +705,7 @@ VIEWS.videos = {
           ${v.campanha ? `<div class="f"><span>Campanha</span><div>${esc(v.campanha)}</div></div>` : ''}
           <div class="f"><span>Pautas</span><div>${esc(titulosPautas(v.pautaIds).join(' · ') || '—')}</div></div>
           <div class="f"><span>Nome no mural</span><div>${v.mostrarNome ? 'pode mostrar' : 'aparece como "Participante"'}</div></div>
+          ${UPLOAD.ativo ? `<div class="f full"><span>Arquivo do vídeo no site</span><div><label class="btn solid">Enviar arquivo de vídeo<input type="file" accept="video/mp4,video/quicktime,video/webm" hidden data-upload-video /></label> <span class="muted" data-upload-msg>${/^\/arquivos\/videos\//.test(v.link || v.download || '') ? 'arquivo já está no site' : 'mp4 ou mov, até 600 MB · toca e baixa direto, sem login'}</span></div></div>` : ''}
           ${field({ k: 'link', label: 'Link do vídeo', ph: 'Instagram, TikTok, YouTube ou Drive', full: true }, v)}
           ${field({ k: 'equipe', type: 'bool', text: 'Produção da equipe: aparece na aba "Nossas produções"', full: true }, v)}
           ${field({ k: 'conferido', type: 'bool', text: 'Conferido: entra no ar na página Vídeos do site e no mural', full: true }, v)}
@@ -685,6 +718,7 @@ VIEWS.videos = {
         <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>
       </div>`;
   },
+  bind(box, v) { ligaUpload(box, 'videos', v); },
   onSaved(k, v) { if (['conferido', 'equipe', 'titulo'].includes(k)) renderRows(); if (k === 'titulo' && v.equipe && $('[data-h=titulo]')) $('[data-h=titulo]').textContent = v.titulo; },
 };
 
@@ -715,6 +749,7 @@ VIEWS.depoimentos = {
           ${field({ k: 'situacao', type: 'select', label: 'Situação', opts: () => SITUACAO_DEP }, d)}
           ${field({ k: 'responsavel', label: 'Quem está editando', ph: 'nome' }, d)}
           ${field({ k: 'publicar', type: 'bool', text: 'Publicar na página Vídeos do site (aba Da comunidade, tema No meu tempo)', full: true }, d)}
+          ${UPLOAD.ativo ? `<div class="f full"><span>Vídeo editado</span><div><label class="btn ghost">Enviar arquivo do vídeo editado<input type="file" accept="video/mp4,video/quicktime,video/webm" hidden data-upload-video /></label> <span class="muted" data-upload-msg></span></div></div>` : ''}
           ${field({ k: 'titulo', label: 'Título na página Vídeos', ph: 'ex.: No meu tempo, com dona Maria' }, d)}
           ${field({ k: 'linkPublicado', label: 'Link do vídeo editado (se for outro)', ph: 'Instagram, YouTube ou Drive' }, d)}
           ${field({ k: 'download', label: 'Arquivo pra baixar (link do Drive, opcional)', ph: 'https://drive.google.com/file/d/…', full: true }, d)}
@@ -724,6 +759,7 @@ VIEWS.depoimentos = {
         <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>
       </div>`;
   },
+  bind(box, d) { ligaUpload(box, 'depoimentos', d, 'linkPublicado'); },
   onSaved(k) { if (['situacao', 'responsavel', 'publicar'].includes(k)) renderRows(); },
 };
 
