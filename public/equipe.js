@@ -45,7 +45,7 @@ fetch('/public/equipe').then((r) => r.json()).then((equipe) => {
   observaRevela(box);
 
   // quem idealizou: em destaque, antes da equipe por função
-  const ideia = equipe.filter((p) => p.idealizadora);
+  const ideia = equipe.filter((p) => p.idealizadora).sort((a, b) => a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' }));
   if (ideia.length) {
     const lista = document.getElementById('lista-ideia');
     lista.innerHTML = ideia.map((p) => cartao(p, true)).join('');
