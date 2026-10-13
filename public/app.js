@@ -835,6 +835,88 @@ async function renderAjustes() {
   $$('[data-copy]').forEach((b) => (b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); toast('Copiado'); } catch { b.previousElementSibling.select(); } }));
 }
 
+/* Métricas de uso do site (contagens por dia, sem dado pessoal) */
+let DIAS_M = 7;
+const nomeJogo = (id) => { const g = [...Object.values(window.DESAFIOS || {}), ...(window.JOGOS || [])].find((x) => x && x.id === id); return g ? g.titulo : id; };
+const nomeVideo = (id) => { const v = [...(S.videos || []), ...(S.depoimentos || [])].find((x) => x.id === id); return v ? (v.titulo || v.nome || v.link || id) : id; };
+const NOME_PAG = { '/': 'Página inicial', '/guia': 'Guia', '/jogos': 'Jogos', '/videos': 'Vídeos', '/participar': 'Participar', '/juridico': 'Jurídico', '/enviar-video': 'Mandar vídeo', '/p': 'Painel pessoal', outra: 'Outras' };
+// cadastros e envios por dia desde o começo (vem do que já está guardado no banco)
+function historico() {
+  const dia = (iso) => (iso ? new Date(new Date(iso).getTime() - 3 * 3600 * 1000).toISOString().slice(0, 10) : '');
+  const series = [
+    ['Pessoas', (S.pessoas || []).map((x) => dia(x.inscritoEm || x.createdAt))],
+    ['Criadores', (S.creators || []).filter((x) => x.inscreveuSe).map((x) => dia(x.inscritoEm || x.createdAt))],
+    ['Vídeos recebidos', (S.videos || []).filter((x) => !x.equipe).map((x) => dia(x.em || x.createdAt))],
+    ['No meu tempo', (S.depoimentos || []).map((x) => dia(x.em || x.createdAt))],
+    ['Jurídico', (S.juridico || []).map((x) => dia(x.em || x.createdAt))],
+  ];
+  const todos = series.flatMap(([, d]) => d).filter(Boolean).sort();
+  if (!todos.length) return '<section class="m-bloco"><h3>Cadastros e envios desde o começo</h3><p class="m-vazio">Ainda sem cadastros.</p></section>';
+  const dias = [];
+  for (let t = new Date(todos[0] + 'T12:00:00Z'), fim = new Date(dia(new Date().toISOString()) + 'T12:00:00Z'); t <= fim; t = new Date(t.getTime() + 86400000)) dias.push(t.toISOString().slice(0, 10));
+  const conta = (lista, d) => lista.filter((x) => x === d).length;
+  const linhas = dias.map((d) => { const v = series.map(([, l]) => conta(l, d)); return [d, v, v.reduce((a, b) => a + b, 0)]; });
+  const mx = Math.max(1, ...linhas.map((l) => l[2]));
+  const curto = (d) => { const [, m, dd] = d.split('-'); return `${dd}/${m}`; };
+  const fmt = (n) => n.toLocaleString('pt-BR');
+  return `<section class="m-bloco"><h3>Cadastros e envios desde o começo</h3>
+    <div class="m-nums">${series.map(([n, l]) => `<div class="m-num"><b>${fmt(l.filter(Boolean).length)}</b><span>${n}</span></div>`).join('')}</div>
+    <div class="m-dias">${linhas.map(([d, , t]) => `<div class="m-dia" title="${curto(d)}: ${fmt(t)}"><span class="m-col"><i class="u" style="height:${(t / mx) * 100}%;left:12%;right:12%"></i></span><small>${curto(d)}</small></div>`).join('')}</div>
+    <div class="m-tabela"><table><thead><tr><th>Dia</th>${series.map(([n]) => `<th>${n}</th>`).join('')}<th>Total</th></tr></thead>
+    <tbody>${linhas.slice().reverse().map(([d, v, t]) => `<tr><td>${curto(d)}</td>${v.map((n) => `<td>${n || '·'}</td>`).join('')}<td><b>${t}</b></td></tr>`).join('')}</tbody></table></div></section>`;
+}
+async function renderMetricas() {
+  $('#view').innerHTML = '<p class="nothing">carregando…</p>';
+  let dados;
+  try { dados = await req(`/api/metricas?dias=${DIAS_M}`); } catch (e) { $('#view').innerHTML = `<p class="nothing">${esc(e.message)}</p>`; return; }
+  if (S.view !== 'metricas') return;
+  const tot = {};
+  dados.forEach((d) => Object.entries(d.c).forEach(([k, n]) => { tot[k] = (tot[k] || 0) + n; }));
+  const soma = (e) => Object.entries(tot).filter(([k]) => k.startsWith(e + '|')).reduce((a, [, n]) => a + n, 0);
+  const top = (e, nome = (x) => x, max = 8) => Object.entries(tot).filter(([k]) => k.startsWith(e + '|')).map(([k, n]) => [nome(k.slice(e.length + 1)) || '—', n]).sort((a, b) => b[1] - a[1]).slice(0, max);
+  const porDia = (e) => dados.map((d) => Object.entries(d.c).filter(([k]) => k.startsWith(e + '|')).reduce((a, [, n]) => a + n, 0));
+  const fmt = (n) => n.toLocaleString('pt-BR');
+  const num = (rot, n, sub = '') => `<div class="m-num"><b>${fmt(n)}</b><span>${rot}</span>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  const lista = (tit, linhas, vazio = 'Ainda sem registros.') => {
+    const mx = Math.max(1, ...linhas.map(([, n]) => n));
+    return `<section class="m-bloco"><h3>${tit}</h3>${linhas.length ? `<ol class="m-lista">${linhas.map(([l, n]) => `<li><span class="m-rot">${esc(l)}</span><span class="m-barra"><i style="width:${(n / mx) * 100}%"></i></span><b>${fmt(n)}</b></li>`).join('')}</ol>` : `<p class="m-vazio">${vazio}</p>`}</section>`;
+  };
+  const vis = porDia('u'), pvs = porDia('pv');
+  const mx = Math.max(1, ...pvs);
+  const diaCurto = (d) => { const [, m, dd] = d.split('-'); return `${dd}/${m}`; };
+  $('#view').innerHTML = `<div class="ajustes metricas"><div class="dhead"><div class="kicker"><span>métricas do site</span><span class="sp"></span><span>sem cookie e sem dado pessoal</span></div>
+    <h2>Como o site está sendo usado</h2>
+    <div class="m-periodo">${[1, 7, 14, 30].map((n) => `<button type="button" class="btn ${n === DIAS_M ? 'solid' : ''}" data-dias="${n}">${n === 1 ? 'Hoje' : `${n} dias`}</button>`).join('')}</div></div>
+    <div class="dbody">
+      <section class="m-bloco"><h3>Visitas</h3><div class="m-nums">
+        ${num('visitantes', soma('u'), DIAS_M > 1 ? 'soma dos visitantes de cada dia' : 'aparelhos diferentes hoje')}
+        ${num('páginas vistas', soma('pv'))}
+      </div>
+      <div class="m-dias">${dados.map((d, i) => `<div class="m-dia" title="${diaCurto(d.dia)}: ${fmt(vis[i])} visitantes, ${fmt(pvs[i])} páginas"><span class="m-col"><i class="pv" style="height:${(pvs[i] / mx) * 100}%"></i><i class="u" style="height:${(vis[i] / mx) * 100}%"></i></span><small>${diaCurto(d.dia)}</small></div>`).join('')}</div>
+      <p class="m-leg"><i class="u"></i> visitantes <i class="pv"></i> páginas vistas</p></section>
+      ${historico()}
+      <section class="m-bloco"><h3>Jogos</h3><div class="m-nums">
+        ${num('jogos abertos', soma('jogo_abriu'))}${num('jogos terminados', soma('jogo_terminou'))}${num('cards baixados ou compartilhados', soma('jogo_card'))}${num('mandados no WhatsApp', soma('jogo_zap'))}
+      </div></section>
+      <section class="m-bloco"><h3>Vídeos</h3><div class="m-nums">
+        ${num('assistidos no site', soma('video_assistiu'))}${num('baixados', soma('video_baixou'))}${num('arquivos mandados', soma('video_mandou'))}${num('links compartilhados', soma('video_zap') + soma('video_insta') + soma('video_face') + soma('video_link'), `WhatsApp ${fmt(soma('video_zap'))} · Instagram ${fmt(soma('video_insta'))} · Facebook ${fmt(soma('video_face'))} · copiados ${fmt(soma('video_link'))}`)}
+      </div></section>
+      <section class="m-bloco"><h3>Guia</h3><div class="m-nums">
+        ${num('temas abertos', soma('guia_tema'))}${num('roteiros copiados', soma('guia_roteiro'))}${num('ganchos copiados', soma('guia_gancho'))}${num('links de tema copiados', soma('guia_link'))}
+      </div></section>
+      <div class="m-duas">
+        ${lista('Páginas mais vistas', top('pv', (k) => NOME_PAG[k] || k))}
+        ${lista('De onde as pessoas vêm', top('origem'))}
+        ${lista('Jogos mais abertos', top('jogo_abriu', nomeJogo))}
+        ${lista('Vídeos mais vistos e baixados', (() => { const m = {}; ['video_assistiu', 'video_baixou', 'video_mandou'].forEach((e) => top(e, (x) => x, 999).forEach(([k, n]) => { m[k] = (m[k] || 0) + n; })); return Object.entries(m).map(([k, n]) => [nomeVideo(k), n]).sort((a, b) => b[1] - a[1]).slice(0, 8); })())}
+        ${lista('Temas do guia mais abertos', top('guia_tema'))}
+        ${lista('Roteiros mais copiados', top('guia_roteiro'))}
+      </div>
+      <p class="m-nota">As contagens começam a partir de quando esta função entrou no ar. "Visitantes" conta cada celular ou computador uma vez por dia; quem volta em outro dia conta de novo. "De onde vêm" depende do aplicativo informar a origem: quem abre o link pelo WhatsApp costuma aparecer como "Direto ou WhatsApp". Os números chegam com até um minuto de atraso.</p>
+    </div></div>`;
+  $$('[data-dias]').forEach((b) => (b.onclick = () => { DIAS_M = +b.dataset.dias; renderMetricas(); }));
+}
+
 /* Nichos */
 VIEWS.nichos = {
   col: 'nichos',
@@ -1035,7 +1117,7 @@ function renderStats() {
   ].map(([l, n, w]) => `<div class="${w ? 'warn' : ''}"><dt>${l}</dt><dd>${n}</dd></div>`).join('');
 }
 
-const ABAS_ADMIN = [['criadores', 'Criadores'], ['pessoas', 'Pessoas'], ['pautas', 'Pautas'], ['videos', 'Vídeos'], ['depoimentos', 'No meu tempo'], ['juridico', 'Jurídico'], ['producao', 'Produção'], ['materiais', 'Materiais'], ['quadro', 'Quadro'], ['equipe', 'Equipe'], ['nichos', 'Nichos'], ['ajustes', 'Ajustes']];
+const ABAS_ADMIN = [['criadores', 'Criadores'], ['pessoas', 'Pessoas'], ['pautas', 'Pautas'], ['videos', 'Vídeos'], ['depoimentos', 'No meu tempo'], ['juridico', 'Jurídico'], ['producao', 'Produção'], ['materiais', 'Materiais'], ['quadro', 'Quadro'], ['equipe', 'Equipe'], ['nichos', 'Nichos'], ['metricas', 'Métricas'], ['ajustes', 'Ajustes']];
 const ABAS_EQUIPE = [['tarefas', 'Minhas tarefas']];
 const abas = () => (ehAdmin() ? ABAS_ADMIN : ABAS_EQUIPE);
 
@@ -1051,7 +1133,7 @@ function renderMast() {
 function render() {
   renderStats();
   $$('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.view === S.view));
-  if (S.view === 'quadro') renderQuadro(); else if (S.view === 'ajustes') renderAjustes(); else renderSplit();
+  if (S.view === 'quadro') renderQuadro(); else if (S.view === 'ajustes') renderAjustes(); else if (S.view === 'metricas') renderMetricas(); else renderSplit();
 }
 function go() { history.replaceState(null, '', '/admin#' + S.view); render(); }
 

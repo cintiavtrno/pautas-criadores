@@ -27,6 +27,7 @@ const limits = {
   escolha: new Limiter(200, 10 * 60 * 1000),        // 60 envios de escolha a cada 10 min por IP
   senhaErrada: new Limiter(10, 15 * 60 * 1000),   // 10 senhas erradas = bloqueio de 15 min (por IP e por login)
   painel: new Limiter(400, 10 * 60 * 1000),        // 30 ações no painel pessoal a cada 10 min
+  metrica: new Limiter(1500, 10 * 60 * 1000),     // contagem de uso: 1500 envios a cada 10 min por IP (o resto é ignorado)
 };
 setInterval(() => Object.values(limits).forEach((l) => l.sweep()), 5 * 60 * 1000).unref();
 

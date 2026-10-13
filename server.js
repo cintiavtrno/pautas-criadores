@@ -8,6 +8,7 @@ const db = require('./db');
 const seed = require('./seed');
 const seg = require('./security');
 const auth = require('./auth');
+const metricas = require('./metricas')(db);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -169,6 +170,8 @@ app.delete('/api/team/:id/foto', wrap(async (req, res) => {
 
 /* acessos (usuários do controle interno) */
 const usuarioSemSenha = ({ senhaHash, ...u }) => u;
+// métricas de uso do site (só contagens, sem dado pessoal)
+app.get('/api/metricas', wrap(async (req, res) => res.json(await metricas.ler(Math.min(90, Math.max(1, parseInt(req.query.dias, 10) || 14))))));
 app.get('/api/usuarios', wrap(async (_req, res) => res.json((await db.list('usuarios')).map(usuarioSemSenha))));
 
 app.post('/api/usuarios', wrap(async (req, res) => {
@@ -318,6 +321,11 @@ app.get('/export/:col.csv', mesmoSite, logado, soAdmin, colecaoOk, wrap(async (r
    PÚBLICO: CADASTRO E PAINEL PESSOAL
    ========================================================= */
 app.use('/public', mesmoSite);
+// contagem de uso: o site manda o que aconteceu (abriu jogo, baixou vídeo…), sem nada que identifique a pessoa
+app.post('/public/m', (req, res) => {
+  if (seg.limits.metrica.hit(seg.ipOf(req))) metricas.receber(req.body);
+  res.status(204).end();
+});
 app.get('/public/nichos', wrap(async (_req, res) => res.json((await db.list('nichos')).map((n) => n.nome))));
 const config = async () => (await db.list('config'))[0] || {};
 app.get('/public/config', wrap(async (_req, res) => {

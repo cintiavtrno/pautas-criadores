@@ -59,6 +59,7 @@
   }
   // bloco final comum: card + WhatsApp + jogar de novo + outros
   function finais({ id, cardDados, zapTxt, guia }) {
+    if (window.metrica) window.metrica('jogo_terminou', id);
     const A = (window.ARGUMENTOS || {})[id];
     const zap = `https://wa.me/?text=${encodeURIComponent(zapTxt + ' ' + location.origin + '/jogos#' + id)}`;
     const outros = [...Object.values(D), ...J].filter((g) => g.id !== id).slice(0, 4);
