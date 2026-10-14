@@ -713,6 +713,7 @@ VIEWS.videos = {
           ${field({ k: 'titulo', label: 'Título na página Vídeos', ph: 'se vazio, usa o título da pauta', full: true }, v)}
           ${field({ k: 'tema', label: 'Tema (agrupa na página Vídeos)', ph: 'ex.: Saúde, Trabalho, 13º… se vazio, usa o tema da pauta' }, v)}
           ${field({ k: 'download', label: 'Arquivo pra baixar (link do Drive, opcional)', ph: 'https://drive.google.com/file/d/…' }, v)}
+          ${field({ k: 'creditos', type: 'textarea', label: 'Créditos (aparecem no site, no vídeo e na hora de baixar)', ph: 'ex.: Motion e edição: Fulana (instagram.com/fulana). Locução: Ciclana. Produção: equipe Seu Voto Decide.', full: true }, v)}
           ${field({ k: 'notas', type: 'textarea', label: 'Notas', full: true }, v)}
         </div></section>
         <div class="dfoot"><span></span><button class="btn danger" data-del>Excluir</button></div>
@@ -753,6 +754,7 @@ VIEWS.depoimentos = {
           ${field({ k: 'titulo', label: 'Título na página Vídeos', ph: 'ex.: No meu tempo, com dona Maria' }, d)}
           ${field({ k: 'linkPublicado', label: 'Link do vídeo editado (se for outro)', ph: 'Instagram, YouTube ou Drive' }, d)}
           ${field({ k: 'download', label: 'Arquivo pra baixar (link do Drive, opcional)', ph: 'https://drive.google.com/file/d/…', full: true }, d)}
+          ${field({ k: 'creditos', type: 'textarea', label: 'Créditos (aparecem no site, no vídeo e na hora de baixar)', ph: 'ex.: Edição: Fulana (instagram.com/fulana). Produção: equipe Seu Voto Decide.', full: true }, d)}
           ${field({ k: 'capa', label: 'Capa (link de imagem ou do Drive, opcional)', ph: 'foto da pessoa ou frame do vídeo', full: true }, d)}
           ${field({ k: 'notas', type: 'textarea', label: 'Notas (trecho bom, minutagem, problema de áudio…)', full: true }, d)}
         </div></section>

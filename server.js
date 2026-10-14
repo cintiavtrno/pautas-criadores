@@ -719,14 +719,14 @@ app.get('/public/videos', wrap(async (_req, res) => {
       autor: equipe ? 'seu voto decide' : v.mostrarNome ? v.nome : '', link: v.link, ...d,
       thumb: (v.capa && capaDe(v.capa)) || d.thumb || v.capaAuto || '',
       arquivo: d.arquivo || (v.download ? arquivoDe(v.download) : ''),
-      download: v.download ? baixavel(v.download) : d.download, em: v.em || v.createdAt, campanha: '', equipe,
+      download: v.download ? baixavel(v.download) : d.download, em: v.em || v.createdAt, campanha: '', equipe, creditos: txt(v.creditos, 600),
     };
   });
   const campanha = depoimentos.filter((x) => x.publicar && linkOk(x.linkPublicado || x.link)).map((x) => {
     const link = x.linkPublicado || x.link;
     const d = midia(link);
     capaTikTok('depoimentos', x, link);
-    return { id: x.id, titulo: txt(x.titulo, 140) || 'No meu tempo…', tema: 'No meu tempo', autor: '', link, ...d, thumb: (x.capa && capaDe(x.capa)) || d.thumb || x.capaAuto || '', arquivo: d.arquivo || (x.download ? arquivoDe(x.download) : ''), download: x.download ? baixavel(x.download) : d.download, em: x.em || x.createdAt, campanha: 'no-meu-tempo', equipe: false };
+    return { id: x.id, titulo: txt(x.titulo, 140) || 'No meu tempo…', tema: 'No meu tempo', autor: '', link, ...d, thumb: (x.capa && capaDe(x.capa)) || d.thumb || x.capaAuto || '', arquivo: d.arquivo || (x.download ? arquivoDe(x.download) : ''), download: x.download ? baixavel(x.download) : d.download, em: x.em || x.createdAt, campanha: 'no-meu-tempo', equipe: false, creditos: txt(x.creditos, 600) };
   });
   const todos = [...campanha, ...lista].sort((a, b) => String(b.em).localeCompare(String(a.em)));
   res.set('Cache-Control', 'public, max-age=60');

@@ -1110,3 +1110,8 @@ mark { background: var(--menta); color: var(--verde-tinta); padding: 0 2px; }
 .vd-frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--verde-tinta); }
 .vd-player video { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }
 .vd-b.pronto { background: var(--menta); border-color: var(--menta); color: var(--verde-tinta); }
+
+/* créditos dos vídeos */
+.vd-cred { font: 400 13.5px/1.35 var(--serif, Georgia, serif); color: var(--tinta-2, #4a4a4a); margin-top: 4px; }
+.vd-repost { margin: 2px 16px 0; font: 500 11.5px/1.35 var(--mono, monospace); color: var(--verde, #3f8f6c); }
+.vd-mcred { color: #e8efe9; font-size: 14px; line-height: 1.4; margin-top: 8px; opacity: .9; }

@@ -13,7 +13,7 @@
   };
   let TODOS = [], V = [], tema = 'Todos', aba = '';
   const url = (v) => `${location.origin}/videos#v-${v.id}`;
-  const toast = (t) => { let d = document.getElementById('vd-toast'); if (!d) { d = document.createElement('div'); d.id = 'vd-toast'; d.className = 'vd-toast'; document.body.appendChild(d); } d.textContent = t; d.classList.add('on'); clearTimeout(d._t); d._t = setTimeout(() => d.classList.remove('on'), 2600); };
+  const toast = (t) => { let d = document.getElementById('vd-toast'); if (!d) { d = document.createElement('div'); d.id = 'vd-toast'; d.className = 'vd-toast'; document.body.appendChild(d); } d.textContent = t; d.classList.add('on'); clearTimeout(d._t); d._t = setTimeout(() => d.classList.remove('on'), Math.max(2600, t.length * 55)); };
   const copia = async (t, msg) => { try { await navigator.clipboard.writeText(t); toast(msg); } catch { prompt('Copie o link:', t); } };
 
   function cartao(v) {
@@ -43,11 +43,13 @@
         <span class="kicker">${esc(v.tema)}</span>
         <strong>${esc(v.titulo)}</strong>
         ${v.autor ? `<span class="vd-autor">por ${esc(v.autor)}</span>` : ''}
+        ${v.creditos ? `<span class="vd-cred">${esc(v.creditos)}</span>` : ''}
       </div>
+      ${v.creditos ? '<p class="vd-repost">Vai repostar? Mantenha os créditos na legenda e marque @seuvotodecide.</p>' : ''}
       <div class="vd-acoes">
         ${v.download ? (v.download.startsWith('/') ? `<a class="vd-b forte" href="${esc(v.download + '&nome=' + encodeURIComponent(v.titulo))}" download>${SVG.baixar}Baixar</a>` : `<a class="vd-b forte" href="${esc(v.download)}" target="_blank" rel="noopener noreferrer">${SVG.baixar}Baixar</a>`) : `<a class="vd-b forte" href="${esc(v.link)}" target="_blank" rel="noopener noreferrer">${I.externo || ''}Abrir no ${esc(v.plataforma)}</a>`}
         ${v.arquivo ? `<button type="button" class="vd-b forte" data-enviar="${esc(v.id)}">${SVG.zap}Mandar o vídeo</button>` : ''}
-        <a class="vd-b" href="https://wa.me/?text=${encodeURIComponent(`${v.titulo} · assiste e repassa: ${url(v)}`)}" target="_blank" rel="noopener">${SVG.zap}${v.arquivo ? 'Mandar link' : 'WhatsApp'}</a>
+        <a class="vd-b" href="https://wa.me/?text=${encodeURIComponent(`${v.titulo} · assiste e repassa: ${url(v)}${v.creditos ? `\n\nCréditos: ${v.creditos}` : ''}`)}" target="_blank" rel="noopener">${SVG.zap}${v.arquivo ? 'Mandar link' : 'WhatsApp'}</a>
         <button type="button" class="vd-b" data-insta="${esc(v.id)}">${SVG.insta}Instagram</button>
         <a class="vd-b" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url(v))}" target="_blank" rel="noopener">${SVG.face}Facebook</a>
         <button type="button" class="vd-b" data-copiar="${esc(v.id)}">${I.link || ''}Copiar link</button>
@@ -90,7 +92,7 @@
     m.innerHTML = `<div class="vd-caixa ${v.vertical ? 'vert' : ''}" role="dialog" aria-modal="true" aria-label="${esc(v.titulo)}">
       <button type="button" class="vd-fecha" aria-label="Fechar">${SVG.fechar}</button>
       <div class="vd-player">${player}</div>
-      <p class="vd-mt"><strong>${esc(v.titulo)}</strong><a href="${esc(v.link)}" target="_blank" rel="noopener noreferrer">abrir no ${esc(v.plataforma)}</a></p></div>`;
+      <p class="vd-mt"><strong>${esc(v.titulo)}</strong><a href="${esc(v.link)}" target="_blank" rel="noopener noreferrer">abrir no ${esc(v.plataforma)}</a></p>${v.creditos ? `<p class="vd-mcred">${esc(v.creditos)}</p>` : ''}</div>`;
     const fecha = () => { m.remove(); document.body.style.overflow = ''; if (location.hash.startsWith('#v-')) history.replaceState(null, '', location.pathname); };
     m.addEventListener('click', (e) => { if (e.target === m || e.target.closest('.vd-fecha')) fecha(); });
     document.addEventListener('keydown', function esc_(e) { if (e.key === 'Escape') { fecha(); document.removeEventListener('keydown', esc_); } });
@@ -145,6 +147,8 @@
   }
 
   el.addEventListener('click', async (e) => {
+    const bx = e.target.closest('.vd-acoes a[download], .vd-acoes [data-enviar]');
+    if (bx) { const card = bx.closest('.vd-card'); const vv = card && TODOS.find((x) => 'v-' + x.id === card.id); if (vv && vv.creditos) toast('Ao postar, coloque os créditos: ' + vv.creditos); }
     const ab = e.target.closest('[data-aba]');
     if (ab) { aba = ab.dataset.aba; tema = 'Todos'; desenha(); return; }
     const t = e.target.closest('[data-tema]');
