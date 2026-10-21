@@ -66,7 +66,7 @@
     if (!gente.length) { grade.innerHTML = '<p class="muted">Em breve.</p>'; return; }
     const TIPOS = ['Escrita e pesquisa', 'Audiovisual', 'Design', 'Marketing', 'Site'];
     const ideia = gente.filter((p) => p.idealizadora);
-    const nomes = ['', ...(ideia.length ? ['Idealização'] : []), ...TIPOS.filter((t) => gente.some((p) => (p.funcoes || []).includes(t)))];
+    const nomes = ['', ...TIPOS.filter((t) => gente.some((p) => (p.funcoes || []).includes(t)))];
     filtros.innerHTML = nomes.map((nm) => `<button type="button" class="chip" data-f="${esc(nm)}" aria-pressed="false">${nm ? esc(nm) : 'Todo mundo'} <i>${gente.filter((p) => temFun(p, nm)).length}</i></button>`).join('');
     filtros.addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; filtro = b.dataset.f; seed = Math.floor(Math.random() * 1e9); desenha(); });
     grade.innerHTML = gente.map((p, i) => {
@@ -76,5 +76,16 @@
     grade.addEventListener('click', (e) => { const b = e.target.closest('.tile'); if (!b) return; sel = gente[+b.dataset.i].id; desenha(); if (matchMedia('(max-width: 900px)').matches) boxSel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
     document.getElementById('embaralha').addEventListener('click', () => { seed = Math.floor(Math.random() * 1e9); desenha(); });
     desenha();
+    if (ideia.length) {
+      ideia.sort((x, y) => x.nome.localeCompare(y.nome, 'pt', { sensitivity: 'base' }));
+      document.getElementById('lista-ideia').innerHTML = ideia.map((p) => `<article class="qf-pessoa">
+        <a class="circ-g" href="?p=${encodeURIComponent(p.id)}#sel" aria-label="${esc(p.nome)}">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : esc(ini(p.nome))}</a>
+        <b>${esc(p.nome)}</b><span>${esc((p.funcoes || []).join(' · '))}</span>
+        ${p.bio ? `<p>${esc(p.bio)}</p>` : ''}
+        ${p.link ? `<a class="qf-rede-link" href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">${esc(rede(p.link))}</a>` : ''}
+      </article>`).join('');
+      document.getElementById('idealizacao').hidden = false;
+      if (location.hash === '#idealizacao') document.getElementById('idealizacao').scrollIntoView();
+    }
   }).catch(() => { grade.innerHTML = ''; });
 })();

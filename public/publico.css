@@ -1611,3 +1611,15 @@ h1, .titulo-secao, .texto p.titulo-secao, .tit, .capa h1, .lateral h1, .folha > 
 .qf-sel .diam img { transform: none; object-position: 50% 30%; }
 @media (min-width: 521px) { .h-rostos .rosto { width: 172px; } .h-rostos .foto { width: 172px; height: 172px; } .h-rostos .r-l { gap: 26px; } }
 .qf-sel-cab .tit { text-transform: none !important; }
+/* idealização: seção própria na página quem faz */
+.qf-ideia { scroll-margin-top: 20px; }
+.qf-ideia-gente { justify-content: flex-start; gap: 40px 48px; }
+.qf-pessoa { width: 260px; gap: 10px; }
+.circ-g { width: 200px; height: 200px; border-radius: 50%; overflow: hidden; background: var(--musgo); color: var(--menta); display: flex; align-items: center; justify-content: center; font: 800 52px var(--display); letter-spacing: -.045em; text-decoration: none; border: 4px solid var(--menta); transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+.circ-g img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.circ-g:hover { transform: translateY(-6px); }
+.qf-pessoa p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--apoio); }
+.qf-pessoa .qf-rede-link { color: var(--claro); font: 600 14px var(--display); }
+@media (max-width: 640px) { .qf-pessoa { width: calc(50% - 12px); } .circ-g { width: 140px; height: 140px; font-size: 38px; } .qf-ideia-gente { gap: 32px 24px; } }
+@media (max-width: 1180px) and (min-width: 961px) { .cab nav { gap: 14px; font-size: 15px; } }
+.qf-gal { padding-top: clamp(48px, 6vw, 80px); } .qf-gal-tit { font-size: clamp(44px, 5.4vw, 80px); }
