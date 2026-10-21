@@ -43,6 +43,10 @@
     <div class="h-texto">
       <h1 aria-label="fale com quem pensa em não votar">fale com quem pensa em <span id="h-nao">não</span> v<svg class="h-o" viewBox="-50 -50 100 100" aria-hidden="true"><polygon id="o-ext" points="-40,-40 40,-40 40,40 -40,40"/><polygon id="o-int1" points="-20,-20 20,-20 20,20 -20,20"/><polygon id="o-int2" points="-20,-20 20,-20 20,20 -20,20"/><g id="o-x"><path d="M-22 -22 L22 22 M22 -22 L-22 22"/></g><circle id="o-c" r="22"/></svg>tar</h1>
       <p class="h-lead">O Seu Voto Decide é uma articulação de comunicação popular, criadores de conteúdo e sociedade civil para converter abstenções e votos brancos e nulos e conseguir uma virada no 2º turno. A gente prepara pautas com informação checada e você grava do seu jeito, pra quem você conhece.</p>
+      <div class="h-nums" id="numeros">
+        <div><b data-conta="participantes">0</b><span>pessoas participando</span></div>
+        <a href="/videos"><b data-conta-videos>0</b><span>vídeos no ar</span></a>
+      </div>
       <div class="h-bts">
         <a class="btn" href="/participar?tipo=pessoa">Não sou criador de conteúdo</a>
         <a class="btn contorno" href="/participar?tipo=criador">Sou criador de conteúdo</a>
@@ -56,7 +60,7 @@
     </div>
   </div>
   <nav class="h-faixa" aria-label="atalhos">
-    <a href="/videos"><b data-conta-videos>0</b> vídeos no ar: assista, baixe e mande pra quem não decidiu</a>
+    <a href="/videos">Vídeos no ar: assista, baixe e mande pra quem não decidiu</a>
     <a href="/guia">Guia de comunicação popular para a virada</a>
     <a href="/enviar-video">Já gravou? Mande o link</a>
   </nav>
@@ -68,11 +72,19 @@
   <div class="h-in">
     <div class="h-quem-txt">
       <h2 class="tit">tudo aqui é voluntário. quem faz é gente de peso.</h2>
-      <p id="msg-tipo" aria-live="polite">Ninguém recebe para estar no seu voto decide. Quem escreve, edita, desenha, programa e divulga faz porque sabe fazer e acredita nisso. Precisou de um serviço? Escolha o tipo e veja quem pode ajudar: é uma rede de divulgação e de solidariedade.</p>
-      <div class="h-chips" role="group" aria-label="Tipo de serviço"><span>Precisa de um serviço?</span></div>
-      <div class="h-bts"><a class="btn escuro" id="ver-quem" href="/quem-faz">Conheça quem faz</a><a class="btn vazio-escuro" href="/quem-faz#rede">Entre na rede</a></div>
+      <p class="h-quem-p">Ninguém recebe para estar no seu voto decide. Quem escreve, edita, desenha, programa e divulga faz porque sabe fazer e acredita nisso. Precisou de um serviço? Conte com a gente: é uma rede de divulgação e de solidariedade.</p>
+      <div class="h-bts"><a class="btn escuro" href="/quem-faz">Conheça quem faz</a><a class="btn vazio-escuro" href="/quem-faz#rede">Entre na rede</a></div>
     </div>
-    <div class="h-rostos-box"><div class="h-rostos" id="rostos" role="group" aria-label="Pessoas da equipe, sorteadas"></div></div>
+    <div class="h-rostos" id="rostos" role="group" aria-label="Pessoas da equipe, sorteadas a cada visita"></div>
+  </div>
+</section>
+
+<section class="h-eq" id="equipe-funcao">
+  <div class="h-in col">
+    <div class="h-eq-cab"><h2 class="tit">a equipe, por função</h2><p>Cada pessoa com o que faz. Escolha uma função para ver quem está nela.</p></div>
+    <div class="qf-filtros" id="eq-filtros" role="group" aria-label="Filtrar por função"></div>
+    <p class="h-eq-desc" id="eq-desc" aria-live="polite"></p>
+    <div class="h-eq-grade" id="eq-grade"><p class="muted">carregando…</p></div>
   </div>
 </section>
 

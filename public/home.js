@@ -33,22 +33,29 @@
     if (nao) nao.style.opacity = (1 - fo * 0.8).toFixed(3);
   }
 
-  // ---------- a bandeira: 81 losangos, nove por nove ----------
+  // ---------- a bandeira de losangos ----------
+  // Cada losango cheio é gente que entrou. A bandeira começa com 9 por 9 (81) e vai ficando mais
+  // densa conforme a gente chega, até 16 por 16 (256). Passou disso, cada losango vale mais de uma pessoa.
   const g = document.getElementById('celulas'), circ = document.getElementById('circulo');
-  const n = 9, W = 520, H = 340, a = W / (2 * n), b = H / (2 * n), q = 0.8, u = b * 0.72, total = n * n;
-  const ordem = (() => { const arr = [...Array(total).keys()]; let s = 7; for (let i = total - 1; i > 0; i--) { s = (s * 1103515245 + 12345) & 0x7fffffff; const j = s % (i + 1); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; })();
-  const cel = [];
-  if (g) {
+  const W = 520, H = 340, q = 0.8;
+  let n = 9, a = 0, b = 0, u = 0, total = 81, esca = 1, ordem = [], cel = [];
+  function monta(lado) {
+    n = lado; total = n * n; a = W / (2 * n); b = H / (2 * n); u = b * 0.72; esca = 9 / n;
+    ordem = [...Array(total).keys()]; let s = 7;
+    for (let i = total - 1; i > 0; i--) { s = (s * 1103515245 + 12345) & 0x7fffffff; const j = s % (i + 1); [ordem[i], ordem[j]] = [ordem[j], ordem[i]]; }
+    cel = []; if (!g) return; g.innerHTML = '';
+    g.style.setProperty('--traco', (2.6 * esca).toFixed(2) + 'px');
     for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
       const x = (i - j) * a, y = (i + j - (n - 1)) * b;
       const gr = document.createElementNS(NS, 'g'); gr.setAttribute('transform', `translate(${f1(x)} ${f1(y)})`);
       const pol = document.createElementNS(NS, 'polygon'); pol.setAttribute('class', 'c-pol');
-      const xp = document.createElementNS(NS, 'path'); xp.setAttribute('class', 'c-x'); xp.setAttribute('d', 'M-7 -4.4 L7 4.4 M7 -4.4 L-7 4.4');
-      const dot = document.createElementNS(NS, 'circle'); dot.setAttribute('class', 'c-dot'); dot.setAttribute('r', '4');
+      const xp = document.createElementNS(NS, 'path'); xp.setAttribute('class', 'c-x'); xp.setAttribute('d', `M${-7 * esca} ${-4.4 * esca} L${7 * esca} ${4.4 * esca} M${7 * esca} ${-4.4 * esca} L${-7 * esca} ${4.4 * esca}`);
+      const dot = document.createElementNS(NS, 'circle'); dot.setAttribute('class', 'c-dot'); dot.setAttribute('r', (4 * esca).toFixed(2));
       gr.append(pol, xp, dot); g.appendChild(gr);
       cel.push({ x, y, pol, xp, dot, id: i * n + j, k: '' });
     }
   }
+  monta(9);
   const pessoa = new Set();
   function marcaPessoas() { pessoa.clear(); const cheios = Math.min(total, Math.ceil(pessoas / porLosango)); for (let i = 0; i < cheios; i++) pessoa.add(ordem[i]); }
   function desenhaBandeira() {
@@ -121,58 +128,70 @@
   }
   marcaPessoas(); quadro();
 
-  // ---------- números: pessoas viram losangos cheios ----------
+  // ---------- números: pessoas participando e vídeos no ar; pessoas viram losangos cheios ----------
   const txtP = document.getElementById('pessoas-txt');
   fetch('/public/numeros').then((r) => r.json()).then((nn) => {
-    document.querySelectorAll('[data-conta-videos]').forEach((el) => window.conta ? conta(el, nn.videos || 0) : (el.textContent = nn.videos || 0));
+    const anima = (el, v) => (window.conta ? conta(el, v) : (el.textContent = v));
+    document.querySelectorAll('[data-conta-videos]').forEach((el) => anima(el, nn.videos || 0));
+    document.querySelectorAll('[data-conta="participantes"]').forEach((el) => anima(el, nn.participantes || 0));
     pessoas = nn.participantes || 0;
+    const lado = Math.max(9, Math.min(16, Math.ceil(Math.sqrt(pessoas))));
+    if (lado !== n) monta(lado);
     porLosango = pessoas > total ? Math.ceil(pessoas / total) : 1;
     marcaPessoas(); cel.forEach((c) => { c.k = ''; }); chuta(); quadro();
     if (txtP && pessoas) txtP.textContent = porLosango > 1
-      ? `${pessoas} pessoas já entraram. Cada losango cheio vale ${porLosango} pessoas.`
+      ? `${pessoas} pessoas já entraram. A bandeira tem ${total} losangos, e cada losango cheio vale ${porLosango} pessoas.`
       : `${pessoas} ${pessoas === 1 ? 'pessoa já entrou' : 'pessoas já entraram'}, e cada losango cheio é uma.`;
   }).catch(() => {});
 
-  // ---------- faixa "quem faz": tipos de serviço e rostos sorteados ----------
-  const TIPOS = ['Escrita e pesquisa', 'Audiovisual', 'Design', 'Marketing', 'Site'];
-  const MSG = {
-    'Escrita e pesquisa': 'Tem um negócio e precisa de texto, roteiro ou pesquisa? Talvez alguém aqui faça um freela com você.',
-    'Audiovisual': 'Tem um negócio e precisa de vídeo ou edição? Talvez alguém aqui faça um freela com você.',
-    'Design': 'Tem um negócio e precisa de identidade visual, post ou material gráfico? Talvez alguém aqui faça um freela com você.',
-    'Marketing': 'Tem um negócio e quer divulgar, mas não sabe por onde começar? Talvez alguém aqui faça um freela com você.',
-    'Site': 'Tem um negócio e precisa de um site ou de uma base de dados? Talvez alguém aqui faça um freela com você.',
-  };
-  const MSG0 = document.getElementById('msg-tipo')?.textContent || '';
-  const chipsBox = document.querySelector('.h-chips'), rostosBox = document.getElementById('rostos'), ver = document.getElementById('ver-quem'), msg = document.getElementById('msg-tipo');
-  let gente = [], tipo = '', seed = Math.floor(Math.random() * 1e9);
+  // ---------- equipe: rostos sorteados na faixa menta e a equipe por função logo abaixo ----------
+  const FUNCOES = [
+    ['Escrita e pesquisa', 'Monta o material com as pautas e as sugestões de roteiro.'],
+    ['Audiovisual', 'Criam os templates de edição que qualquer pessoa pode usar para editar o seu vídeo.'],
+    ['Design', 'Cria a identidade visual e o PDF com as pautas.'],
+    ['Marketing', 'Pensa as estratégias para o seu voto decide chegar mais longe.'],
+    ['Site', 'Cuida deste site e da base de dados.'],
+  ];
   const iniciais = (nm) => String(nm).split(/\s+/).filter(Boolean).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
-  function sorteia() {
-    const o = gente.map((_, i) => i); let r = seed || 1;
-    for (let i = o.length - 1; i > 0; i--) { r = (r * 1103515245 + 12345) & 0x7fffffff; const j = r % (i + 1); [o[i], o[j]] = [o[j], o[i]]; }
-    return o;
-  }
-  function rostos() {
-    if (!rostosBox) return;
-    const vis = sorteia().filter((i) => !tipo || (gente[i].funcoes || []).includes(tipo)).slice(0, 5);
-    const pk = new Map(vis.map((id, k) => [id, k]));
-    rostosBox.querySelectorAll('.rosto').forEach((el) => {
-      const i = +el.dataset.i; const k = pk.get(i); const on = k !== undefined;
-      const left = on ? (k < 3 ? k * 150 : 75 + (k - 3) * 150) : 150, top = on ? (k < 3 ? 0 : 75) : 40;
-      el.style.left = left + 'px'; el.style.top = top + 'px';
-      el.classList.toggle('fora', !on); el.tabIndex = on ? 0 : -1;
-      el.querySelector('.foto').classList.toggle('alt', on && k % 2 === 1);
+  const primeiro = (nm) => String(nm).split(/\s+/)[0];
+  const rotuloRede = (uu) => { try { const url = new URL(uu); const h = url.hostname.replace(/^www\./, ''); const c = url.pathname.split('/').filter(Boolean)[0]; const r = { 'instagram.com': 'instagram', 'tiktok.com': 'tiktok', 'x.com': 'x', 'twitter.com': 'x', 'youtube.com': 'youtube', 'linkedin.com': 'linkedin', 'threads.net': 'threads', 'bsky.app': 'bluesky', 'behance.net': 'behance' }[h]; return r && c ? `@${decodeURIComponent(c).replace(/^@/, '')} · ${r}` : (r || h); } catch { return 'rede social'; } };
+  const ordemFuncao = (p) => { const i = FUNCOES.findIndex(([f]) => (p.funcoes || [])[0] === f); return i < 0 ? 99 : i; };
+  fetch('/public/equipe').then((r) => r.json()).then((gente) => {
+    gente = gente || [];
+    // faixa menta: quatro pessoas sorteadas (de preferência com foto) e o convite para ver todo mundo
+    const box = document.getElementById('rostos');
+    if (box && gente.length) {
+      const emb = [...gente].sort(() => Math.random() - 0.5).sort((x, y) => (!!y.foto) - (!!x.foto));
+      const qu = emb.slice(0, 4);
+      const rosto = (p, k) => `<a class="rosto" href="/quem-faz?p=${encodeURIComponent(p.id)}" aria-label="${esc(p.nome)}"><div class="foto${k % 2 ? ' alt' : ''}">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : esc(iniciais(p.nome))}</div><span class="rosto-nome">${esc(primeiro(p.nome))}</span></a>`;
+      box.innerHTML = `<div class="r-l">${qu.slice(0, 3).map(rosto).join('')}</div><div class="r-l">${qu.slice(3).map((p) => rosto(p, 1)).join('')}<a class="rosto" href="/quem-faz" aria-label="Ver toda a equipe"><div class="foto mais">e mais<br>gente</div><span class="rosto-nome">${gente.length} pessoas</span></a></div>`;
+    }
+    // a equipe, por função
+    const grade = document.getElementById('eq-grade'), filtro = document.getElementById('eq-filtros'), desc = document.getElementById('eq-desc');
+    if (!grade) return;
+    if (!gente.length) { grade.innerHTML = '<p class="muted">Em breve.</p>'; return; }
+    gente.sort((x, y) => (y.idealizadora - x.idealizadora) || ordemFuncao(x) - ordemFuncao(y) || x.nome.localeCompare(y.nome, 'pt'));
+    grade.innerHTML = gente.map((p) => {
+      const fun = [...(p.idealizadora ? ['Idealização'] : []), ...(p.funcoes || [])];
+      return `<article class="eq-card" data-f="${esc(fun.join('|'))}">
+        <a class="eq-foto" href="/quem-faz?p=${encodeURIComponent(p.id)}" aria-label="${esc(p.nome)}">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : `<span>${esc(iniciais(p.nome))}</span>`}<i aria-hidden="true"></i></a>
+        <h3>${esc(p.nome)}</h3>
+        <p class="eq-fun">${esc(fun.join(' · '))}</p>
+        ${p.bio ? `<p class="eq-bio">${esc(p.bio)}</p>` : ''}
+        ${p.link ? `<a class="eq-rede" href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">${esc(rotuloRede(p.link))}</a>` : ''}
+      </article>`;
+    }).join('');
+    const ideia = gente.filter((p) => p.idealizadora).length;
+    const presentes = FUNCOES.filter(([f]) => gente.some((p) => (p.funcoes || []).includes(f)));
+    filtro.innerHTML = `<button type="button" class="chip" data-f="" aria-pressed="true">Todo mundo <i>${gente.length}</i></button>` +
+      (ideia ? `<button type="button" class="chip" data-f="Idealização" aria-pressed="false">Idealização <i>${ideia}</i></button>` : '') +
+      presentes.map(([f]) => `<button type="button" class="chip" data-f="${esc(f)}" aria-pressed="false">${esc(f)} <i>${gente.filter((p) => (p.funcoes || []).includes(f)).length}</i></button>`).join('');
+    filtro.addEventListener('click', (e) => {
+      const bt = e.target.closest('.chip'); if (!bt) return; const f = bt.dataset.f;
+      filtro.querySelectorAll('.chip').forEach((x) => x.setAttribute('aria-pressed', x === bt ? 'true' : 'false'));
+      desc.textContent = f === 'Idealização' ? 'Idealizaram o seu voto decide.' : (FUNCOES.find(([nn]) => nn === f) || [])[1] || '';
+      grade.querySelectorAll('.eq-card').forEach((c) => { c.hidden = !!f && !c.dataset.f.split('|').includes(f); });
     });
-    if (msg) msg.textContent = tipo ? MSG[tipo] : MSG0;
-    if (ver) { ver.textContent = tipo ? 'Ver quem faz ' + tipo.toLowerCase() : 'Conheça quem faz'; ver.href = '/quem-faz' + (tipo ? '?f=' + encodeURIComponent(tipo) : ''); }
-    chipsBox?.querySelectorAll('button').forEach((bt) => bt.setAttribute('aria-pressed', bt.dataset.t === tipo ? 'true' : 'false'));
-  }
-  fetch('/public/equipe').then((r) => r.json()).then((eq) => {
-    gente = eq || [];
-    const presentes = TIPOS.filter((tp) => gente.some((p) => (p.funcoes || []).includes(tp)));
-    if (chipsBox) chipsBox.insertAdjacentHTML('beforeend', presentes.map((tp) => `<button type="button" class="chipm" data-t="${esc(tp)}" aria-pressed="false">${esc(tp.toLowerCase())}</button>`).join(''));
-    chipsBox?.addEventListener('click', (e) => { const bt = e.target.closest('button'); if (!bt) return; tipo = tipo === bt.dataset.t ? '' : bt.dataset.t; seed = Math.floor(Math.random() * 1e9); rostos(); });
-    if (rostosBox) rostosBox.innerHTML = gente.map((p, i) => `<a class="rosto fora" data-i="${i}" href="/quem-faz?p=${encodeURIComponent(p.id)}" aria-label="${esc(p.nome + (p.funcoes?.length ? ', ' + p.funcoes.join(', ') : ''))}" tabindex="-1"><div class="foto">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : esc(iniciais(p.nome))}</div></a>`).join('');
-    rostos();
   }).catch(() => {});
 
   // ---------- apoiadores (editados em Ajustes, no controle) ----------

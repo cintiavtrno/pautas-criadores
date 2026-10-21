@@ -38,25 +38,15 @@
   function desenha() {
     const vis = ordem().filter((i) => temFun(gente[i], filtro));
     if (!vis.some((i) => gente[i].id === sel)) sel = vis.length ? gente[vis[0]].id : '';
-    // losangos encaixados: quantos cabem por fileira depende da largura
-    const larg = grade.parentElement.clientWidth || 860;
-    const T = larg < 520 ? 120 : 168, meio = T / 2;
-    const porLinha = Math.max(2, Math.floor((larg - meio) / T));
+    // a ordem sorteada vira a ordem dos itens na grade
     const pos = new Map(vis.map((id, k) => [id, k]));
-    const linhas = Math.max(1, Math.ceil(vis.length / porLinha));
-    const altura = (linhas - 1) * meio + T;
-    grade.style.height = altura + 'px';
-    grade.style.width = (porLinha * T + meio) + 'px';
-    grade.style.setProperty('--t', T + 'px');
     grade.querySelectorAll('.tile').forEach((el) => {
       const i = +el.dataset.i; const k = pos.get(i); const on = k !== undefined;
-      el.style.left = (on ? (k % porLinha) * T + (Math.floor(k / porLinha) % 2 ? meio : 0) : (porLinha * T) / 2 - meio) + 'px';
-      el.style.top = (on ? Math.floor(k / porLinha) * meio : altura / 2 - meio) + 'px';
-      el.classList.toggle('fora', !on); el.tabIndex = on ? 0 : -1;
+      el.hidden = !on; el.style.order = on ? k : 999;
       const s = gente[i].id === sel; el.classList.toggle('sel', s); el.setAttribute('aria-pressed', s ? 'true' : 'false');
     });
     filtros.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', b.dataset.f === filtro ? 'true' : 'false'));
-    document.getElementById('msg-filtro').textContent = filtro && MSGF[filtro] ? MSGF[filtro] : filtro === 'Idealização' ? 'Quem teve a ideia e puxou o seu voto decide.' : 'Escolha um tipo de atividade para ver quem faz.';
+    document.getElementById('msg-filtro').textContent = filtro && MSGF[filtro] ? MSGF[filtro] : filtro === 'Idealização' ? 'Idealizaram o seu voto decide.' : 'Escolha um tipo de atividade para ver quem faz.';
     document.getElementById('desc-filtro').textContent = DESC[filtro] || '';
     ficha();
   }
@@ -80,18 +70,11 @@
     filtros.innerHTML = nomes.map((nm) => `<button type="button" class="chip" data-f="${esc(nm)}" aria-pressed="false">${nm ? esc(nm) : 'Todo mundo'} <i>${gente.filter((p) => temFun(p, nm)).length}</i></button>`).join('');
     filtros.addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; filtro = b.dataset.f; seed = Math.floor(Math.random() * 1e9); desenha(); });
     grade.innerHTML = gente.map((p, i) => {
-      const curto = primeiro(p.nome).toLowerCase();
-      return `<button type="button" class="tile fora" data-i="${i}" aria-pressed="false" aria-label="${esc(p.nome + ((p.funcoes || []).length ? ', ' + p.funcoes.join(', ') : ''))}" tabindex="-1"><span class="d">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : `<b>${esc(ini(p.nome))}</b>`}<small>${esc(curto)}</small></span></button>`;
+      const fun = [...(p.idealizadora ? ['Idealização'] : []), ...(p.funcoes || [])];
+      return `<button type="button" class="tile" data-i="${i}" aria-pressed="false" aria-label="${esc(p.nome + (fun.length ? ', ' + fun.join(', ') : ''))}"><span class="d">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : `<b>${esc(ini(p.nome))}</b>`}</span><span class="t-nome">${esc(p.nome)}</span><span class="t-fun">${esc(fun.join(' · '))}</span></button>`;
     }).join('');
     grade.addEventListener('click', (e) => { const b = e.target.closest('.tile'); if (!b) return; sel = gente[+b.dataset.i].id; desenha(); if (matchMedia('(max-width: 900px)').matches) boxSel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
     document.getElementById('embaralha').addEventListener('click', () => { seed = Math.floor(Math.random() * 1e9); desenha(); });
-    let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(desenha, 150); });
     desenha();
-    // idealização: fixa, em ordem alfabética
-    if (ideia.length) {
-      ideia.sort((a, b) => a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' }));
-      document.getElementById('lista-ideia').innerHTML = ideia.map((p) => `<div class="qf-pessoa"><div class="diam grande">${p.foto ? `<img src="${esc(p.foto)}" alt="${esc(p.nome)}" loading="lazy" />` : esc(ini(p.nome))}</div><b>${esc(p.nome)}</b><span>${esc((p.funcoes || []).join(', ').toLowerCase())}</span></div>`).join('');
-      document.getElementById('ideia').hidden = false;
-    }
   }).catch(() => { grade.innerHTML = ''; });
 })();
