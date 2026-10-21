@@ -1629,3 +1629,9 @@ h1, .titulo-secao, .texto p.titulo-secao, .tit, .capa h1, .lateral h1, .folha > 
 .eq-mais { align-self: flex-start; margin: 2px 0 4px; padding: 0; background: none; border: 0; color: var(--menta); font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .eq-mais:hover, .eq-mais:focus-visible { color: var(--branco); }
 .eq-mais[hidden] { display: none; }
+
+/* idealização: todo mundo na mesma fileira */
+.qf-ideia-gente { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px 20px; justify-content: stretch; }
+.qf-pessoa { width: auto; min-width: 0; }
+@media (max-width: 760px) { .qf-ideia-gente { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 14px; } .qf-pessoa { width: auto; } }
+.qf-ideia-gente .circ-g { width: min(170px, 100%); height: auto; aspect-ratio: 1; }
