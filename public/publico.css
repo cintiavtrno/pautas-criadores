@@ -1635,3 +1635,30 @@ h1, .titulo-secao, .texto p.titulo-secao, .tit, .capa h1, .lateral h1, .folha > 
 .qf-pessoa { width: auto; min-width: 0; }
 @media (max-width: 760px) { .qf-ideia-gente { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 14px; } .qf-pessoa { width: auto; } }
 .qf-ideia-gente .circ-g { width: min(170px, 100%); height: auto; aspect-ratio: 1; }
+
+/* faixa menta + equipe numa coisa só: o painel de serviços filtra a equipe */
+.h-serv { flex: 1 1 400px; min-width: 0; max-width: 520px; display: flex; flex-direction: column; gap: 10px; }
+.h-serv h3 { margin: 0 0 6px; font: 800 28px/1 var(--display); letter-spacing: -.03em; color: var(--floresta); text-transform: lowercase; }
+#servicos { display: flex; flex-direction: column; gap: 8px; }
+.sv { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-height: 64px; padding: 10px 14px 10px 20px; background: var(--floresta); color: var(--claro); border: 2px solid var(--floresta); cursor: pointer; text-align: left; font: 800 20px/1.1 var(--display); letter-spacing: -.02em; transition: transform .2s, background .2s; }
+.sv:hover { transform: translateX(6px); }
+.sv[aria-pressed="true"] { background: var(--claro); color: var(--floresta); }
+.sv-todos { background: transparent; color: var(--floresta); }
+.sv-gente { display: flex; align-items: center; flex: none; }
+.sv-av { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; margin-left: -10px; border: 2px solid var(--menta); background: var(--musgo); color: var(--menta); display: inline-flex; align-items: center; justify-content: center; font: 800 13px var(--display); }
+.sv-av img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.sv-gente i { font-style: normal; font: 700 15px var(--display); margin-left: 10px; min-width: 2ch; text-align: right; opacity: .85; }
+.h-eq { scroll-margin-top: 80px; }
+.h-eq-cab { flex-direction: column; align-items: flex-start; gap: 12px; }
+.h-eq-cab .h-eq-desc { max-width: 60ch; font-size: 19px; color: var(--apoio); }
+.eq-rede { display: inline-flex; flex-direction: column; gap: 2px; margin-top: 4px; padding: 10px 14px; border: 2px solid var(--menta); color: var(--claro); text-decoration: none; font: 800 15px var(--display); align-self: flex-start; }
+.eq-rede span { font: 600 12px var(--display); color: var(--apoio); }
+.eq-rede:hover { background: var(--menta); color: var(--floresta); }
+.eq-rede:hover span { color: var(--floresta); }
+@media (max-width: 520px) { .sv { font-size: 17px; min-height: 56px; } .sv-av { width: 34px; height: 34px; } }
+.h-quem .sv, .h-quem .sv .sv-nome { color: var(--claro); }
+.h-quem .sv[aria-pressed="true"], .h-quem .sv[aria-pressed="true"] .sv-nome, .h-quem .sv-todos, .h-quem .sv-todos .sv-nome { color: var(--floresta); }
+.h-quem .sv .sv-gente i { color: inherit; }
+.h-quem .sv:not([aria-pressed="true"]):not(.sv-todos) .sv-gente i { color: var(--menta); }
+.h-eq .eq-card a.eq-rede { color: var(--claro); }
+.h-eq .eq-card a.eq-rede:hover { color: var(--floresta); }

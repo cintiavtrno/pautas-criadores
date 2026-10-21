@@ -158,27 +158,27 @@
   const ordemFuncao = (p) => { const i = FUNCOES.findIndex(([f]) => (p.funcoes || [])[0] === f); return i < 0 ? 99 : i; };
   fetch('/public/equipe').then((r) => r.json()).then((gente) => {
     gente = gente || [];
-    // faixa menta: quatro pessoas sorteadas (de preferência com foto) e o convite para ver todo mundo
-    const box = document.getElementById('rostos');
-    if (box && gente.length) {
-      const emb = [...gente].sort(() => Math.random() - 0.5).sort((x, y) => (!!y.foto) - (!!x.foto));
-      const qu = emb.slice(0, 4);
-      const rosto = (p, k) => `<a class="rosto" href="/quem-faz?p=${encodeURIComponent(p.id)}" aria-label="${esc(p.nome)}"><div class="foto${k % 2 ? ' alt' : ''}">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : esc(iniciais(p.nome))}</div><span class="rosto-nome">${esc(primeiro(p.nome))}</span><span class="rosto-fun">${esc(((p.funcoes || [])[0] || (p.idealizadora ? 'Idealização' : '')).toLowerCase())}</span></a>`;
-      box.innerHTML = `<div class="r-l">${qu.slice(0, 3).map(rosto).join('')}</div><div class="r-l">${qu.slice(3).map((p) => rosto(p, 1)).join('')}<a class="rosto" href="/quem-faz" aria-label="Ver toda a equipe"><div class="foto mais">e mais<br>gente</div><span class="rosto-nome">${gente.length} pessoas</span><span class="rosto-fun">ver todo mundo</span></a></div>`;
-    }
-    // a equipe, por função
-    const grade = document.getElementById('eq-grade'), filtro = document.getElementById('eq-filtros'), desc = document.getElementById('eq-desc');
+    const SERV = { 'Escrita e pesquisa': 'texto, roteiro e pesquisa', 'Audiovisual': 'vídeo e edição', 'Design': 'identidade visual e design', 'Marketing': 'divulgação e estratégia', 'Site': 'site e dados' };
+    const MSGF = {
+      'Escrita e pesquisa': 'Precisa de texto, roteiro ou pesquisa para o seu negócio? Chame direto no perfil e combine um freela.',
+      'Audiovisual': 'Precisa de vídeo ou edição para o seu negócio? Chame direto no perfil e combine um freela.',
+      'Design': 'Precisa de identidade visual, post ou material gráfico? Chame direto no perfil e combine um freela.',
+      'Marketing': 'Quer divulgar o seu negócio e não sabe por onde começar? Chame direto no perfil e combine um freela.',
+      'Site': 'Precisa de um site ou de organizar os seus dados? Chame direto no perfil e combine um freela.',
+    };
+    const DESC0 = 'Na campanha, todo mundo é voluntário. Fora dela, cada pessoa aqui trabalha com o que faz e pode fazer um freela com você.';
+    const grade = document.getElementById('eq-grade'), desc = document.getElementById('eq-desc'), tit = document.getElementById('eq-tit'), serv = document.getElementById('servicos');
     if (!grade) return;
     if (!gente.length) { grade.innerHTML = '<p class="muted">Em breve.</p>'; return; }
     gente.sort((x, y) => (y.idealizadora - x.idealizadora) || ordemFuncao(x) - ordemFuncao(y) || x.nome.localeCompare(y.nome, 'pt'));
     grade.innerHTML = gente.map((p) => {
       const fun = [...(p.idealizadora ? ['Idealização'] : []), ...(p.funcoes || [])];
-      return `<article class="eq-card" data-f="${esc(fun.join('|'))}">
+      return `<article class="eq-card" data-f="${esc((p.funcoes || []).join('|'))}">
         <a class="eq-foto" href="/quem-faz?p=${encodeURIComponent(p.id)}" aria-label="${esc(p.nome)}">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : `<span>${esc(iniciais(p.nome))}</span>`}<i aria-hidden="true"></i></a>
         <h3>${esc(p.nome)}</h3>
         <p class="eq-fun">${esc(fun.join(' · '))}</p>
         ${p.bio ? `<p class="eq-bio">${esc(p.bio)}</p><button type="button" class="eq-mais" aria-expanded="false" hidden>ver mais</button>` : ''}
-        ${p.link ? `<a class="eq-rede" href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">${esc(rotuloRede(p.link))}</a>` : ''}
+        ${p.link ? `<a class="eq-rede" href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">Chamar ${esc(primeiro(p.nome))} <span>${esc(rotuloRede(p.link))}</span></a>` : ''}
       </article>`;
     }).join('');
     // "ver mais" só aparece quando o texto realmente foi cortado
@@ -194,18 +194,23 @@
     });
     requestAnimationFrame(marcaCortes); addEventListener('resize', marcaCortes);
     grade.querySelectorAll('img').forEach((im) => im.addEventListener('load', marcaCortes));
-    const ideia = gente.filter((p) => p.idealizadora).length;
+    // painel de serviços na faixa menta: é ele que filtra a equipe
     const presentes = FUNCOES.filter(([f]) => gente.some((p) => (p.funcoes || []).includes(f)));
-    filtro.innerHTML = `<button type="button" class="chip" data-f="" aria-pressed="true">Todo mundo <i>${gente.length}</i></button>` +
-      (ideia ? `<button type="button" class="chip" data-f="Idealização" aria-pressed="false">Idealização <i>${ideia}</i></button>` : '') +
-      presentes.map(([f]) => `<button type="button" class="chip" data-f="${esc(f)}" aria-pressed="false">${esc(f)} <i>${gente.filter((p) => (p.funcoes || []).includes(f)).length}</i></button>`).join('');
-    filtro.addEventListener('click', (e) => {
-      const bt = e.target.closest('.chip'); if (!bt) return; const f = bt.dataset.f;
-      filtro.querySelectorAll('.chip').forEach((x) => x.setAttribute('aria-pressed', x === bt ? 'true' : 'false'));
-      desc.textContent = f === 'Idealização' ? 'Idealizaram o seu voto decide.' : (FUNCOES.find(([nn]) => nn === f) || [])[1] || '';
+    const mini = (p) => `<span class="sv-av">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : esc(iniciais(p.nome))}</span>`;
+    serv.innerHTML = presentes.map(([f]) => {
+      const qu = gente.filter((p) => (p.funcoes || []).includes(f)); const vis = [...qu].sort((x, y) => (!!y.foto) - (!!x.foto)).slice(0, 3);
+      return `<button type="button" class="sv" data-f="${esc(f)}" aria-pressed="false"><span class="sv-nome">${esc(SERV[f] || f)}</span><span class="sv-gente">${vis.map(mini).join('')}<i>${qu.length}</i></span></button>`;
+    }).join('') + `<button type="button" class="sv sv-todos" data-f="" aria-pressed="true"><span class="sv-nome">todo mundo</span><span class="sv-gente"><i>${gente.length}</i></span></button>`;
+    const filtra = (f, rola) => {
+      serv.querySelectorAll('.sv').forEach((x) => x.setAttribute('aria-pressed', x.dataset.f === f ? 'true' : 'false'));
+      tit.textContent = f ? `quem faz ${SERV[f] || f}` : 'quem faz';
+      desc.textContent = f ? MSGF[f] || '' : DESC0;
       grade.querySelectorAll('.eq-card').forEach((c) => { c.hidden = !!f && !c.dataset.f.split('|').includes(f); });
       marcaCortes();
-    });
+      if (rola) document.getElementById('equipe-funcao').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    serv.addEventListener('click', (e) => { const bt = e.target.closest('.sv'); if (bt) filtra(bt.dataset.f, true); });
+    filtra('', false);
   }).catch(() => {});
 
   // ---------- apoiadores (editados em Ajustes, no controle) ----------
