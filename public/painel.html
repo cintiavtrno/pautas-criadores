@@ -8,7 +8,7 @@
   <meta property="og:site_name" content="seu voto decide" />
   <meta property="og:title" content="seu voto decide" />
   <meta property="og:description" content="Comunicação popular, criadores de conteúdo e sociedade civil para converter abstenções e votos brancos e nulos e conseguir uma virada no 2º turno." />
-  <meta property="og:image" content="https://seuvotodecide.com.br/og.png?v=2" />
+  <meta property="og:image" content="https://seuvotodecide.com.br/og.png?v=3" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Bandeira do seu voto decide" />
@@ -16,10 +16,10 @@
   <meta name="robots" content="noindex" />
   <meta name="referrer" content="no-referrer" />
   <title>Meu painel · seu voto decide</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4" />
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=4" />
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=4" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=4" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=5" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=5" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=5" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=5" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -73,7 +73,13 @@ async function carregar() {
 function topo() {
   const primeiro = esc(D.nome.split(' ')[0]);
   const n = (D.escolhidas || []).length;
-  return `<header class="barra sobre-vermelho"><div class="miolo"><a class="marca-site" href="/" aria-label="seu voto decide, início"></a><nav><a href="/guia">Guia</a><a href="/jogos">Jogos</a><a href="/videos">Vídeos</a><a href="/juridico">Jurídico</a><a href="/enviar-video">Mandar vídeo</a><a class="cta" href="/">Início</a></nav></div></header>
+  return `<header class="cab">
+  <div class="miolo">
+    <a class="cab-logo" href="/" aria-label="seu voto decide, início"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0"/><circle class="olho" r="36"/></svg><span>seu voto decide</span></a>
+    <button class="cab-menu" type="button" aria-expanded="false" aria-controls="cab-nav">menu</button>
+    <nav id="cab-nav" aria-label="principal"><a href="/guia">guia</a><a href="/jogos">jogos</a><a href="/videos">vídeos</a><a href="/juridico">jurídico</a><a href="/#como">como funciona</a><a class="cab-quem" href="/quem-faz"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0"/></svg>quem faz</a><a class="cab-part" href="/participar">participar</a></nav>
+  </div>
+</header>
   <section class="topo"><div class="topo-in cabeca">
     <div class="topo-l">
       <p class="kicker">seu painel</p>

@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>seu voto decide</title>
   <meta name="description" content="Comunicação popular, criadores de conteúdo e sociedade civil para converter abstenções e votos brancos e nulos e conseguir uma virada no 2º turno." />
-  <meta name="theme-color" content="#61bf99" />
+  <meta name="theme-color" content="#0f3a2b" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="seu voto decide" />
   <meta property="og:title" content="seu voto decide" />
   <meta property="og:description" content="Comunicação popular, criadores de conteúdo e sociedade civil para converter abstenções e votos brancos e nulos e conseguir uma virada no 2º turno." />
-  <meta property="og:image" content="https://seuvotodecide.com.br/og.png?v=2" />
+  <meta property="og:image" content="https://seuvotodecide.com.br/og.png?v=3" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Bandeira do seu voto decide" />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4" />
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=4" />
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=4" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=4" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=5" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=5" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=5" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=5" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -28,104 +28,114 @@
   <script src="/site.js"></script>
   <script src="/conta-uso.js" defer></script>
 </head>
-<body>
+<body class="home26">
 <!-- Os textos desta página podem ser trocados à vontade. -->
-<header class="barra sobre-vermelho">
+<header class="cab">
   <div class="miolo">
-    <a class="marca-site" href="/" aria-label="seu voto decide, início"></a>
-    <nav>
-      <a href="/guia">Guia</a>
-      <a href="/jogos">Jogos</a><a href="/videos">Vídeos</a>
-      <a href="/juridico">Jurídico</a>
-      <a href="#como">Como funciona</a>
-      <a href="#equipe">Quem faz</a>
-      <a href="/enviar-video">Mandar vídeo</a>
-      <a class="cta" href="/participar">Participar</a>
-    </nav>
+    <a class="cab-logo" href="/" aria-label="seu voto decide, início"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0"/><circle class="olho" r="36"/></svg><span>seu voto decide</span></a>
+    <button class="cab-menu" type="button" aria-expanded="false" aria-controls="cab-nav">menu</button>
+    <nav id="cab-nav" aria-label="principal"><a href="/guia">guia</a><a href="/jogos">jogos</a><a href="/videos">vídeos</a><a href="/juridico">jurídico</a><a href="/#como">como funciona</a><a class="cab-quem" href="/quem-faz"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0"/></svg>quem faz</a><a class="cab-part" href="/participar">participar</a></nav>
   </div>
 </header>
 
-<section class="capa">
-  <div class="miolo">
-    <div>
-      <p class="kicker">seu voto decide</p>
-      <h1>Fale com quem pensa em <em>não votar</em></h1>
-      <p class="lead">O Seu Voto Decide é uma articulação de comunicação popular, criadores de conteúdo e sociedade civil para converter abstenções e votos brancos e nulos e conseguir uma virada no 2º turno. A gente prepara pautas com informação checada e você grava do seu jeito, pra quem você conhece.</p>
-      <div class="numeros" id="numeros" hidden>
-        <div><b data-conta="participantes">0</b><span>pessoas participando</span></div>
-        <a href="/videos"><b data-conta="videos">0</b><span>vídeos no ar</span></a>
+<section class="h-capa" id="capa">
+  <div class="h-in">
+    <div class="h-texto">
+      <h1 aria-label="fale com quem pensa em não votar">fale com quem pensa em <span id="h-nao">não</span> v<svg class="h-o" viewBox="-50 -50 100 100" aria-hidden="true"><polygon id="o-ext" points="-40,-40 40,-40 40,40 -40,40"/><polygon id="o-int1" points="-20,-20 20,-20 20,20 -20,20"/><polygon id="o-int2" points="-20,-20 20,-20 20,20 -20,20"/><g id="o-x"><path d="M-22 -22 L22 22 M22 -22 L-22 22"/></g><circle id="o-c" r="22"/></svg>tar</h1>
+      <p class="h-lead">O Seu Voto Decide é uma articulação de comunicação popular, criadores de conteúdo e sociedade civil para converter abstenções e votos brancos e nulos e conseguir uma virada no 2º turno. A gente prepara pautas com informação checada e você grava do seu jeito, pra quem você conhece.</p>
+      <div class="h-bts">
+        <a class="btn" href="/participar?tipo=pessoa">Não sou criador de conteúdo</a>
+        <a class="btn contorno" href="/participar?tipo=criador">Sou criador de conteúdo</a>
       </div>
     </div>
-    <div class="capa-acoes">
-      <div class="bandeira" data-marca="losango" id="bandeira"></div>
-      <a class="link-videos" href="/videos"><b data-conta-videos>0</b><span><strong>vídeos no ar</strong><small>Assista, baixe e mande pra quem não decidiu</small></span></a>
-      <a class="caminho" href="/participar?tipo=pessoa"><strong>Não sou criador de conteúdo</strong><span>Quero gravar para minha família, meus amigos, meu status.</span></a>
-      <a class="caminho" href="/participar?tipo=criador"><strong>Sou criador de conteúdo</strong><span>Tenho perfil com público e quero usar meu alcance.</span></a>
-      <a class="link-guia" href="#no-meu-tempo"><span class="kicker">novo · campanha</span><strong>No meu tempo…</strong><span>Grave 20 segundos com alguém mais velho contando o que mudou</span></a>
-      <a class="link-guia" href="/guia"><span class="kicker">guia</span><strong>Guia de comunicação popular para a virada no 2º turno</strong><span>Roteiros por público e ganchos por nicho</span></a>
-      <a class="link-video" href="/enviar-video" data-ico="link">Já gravou? Mande o link</a>
+    <div class="h-band">
+      <svg id="bandeira26" viewBox="-270 -180 540 360" role="img" aria-label="Bandeira feita de losangos. Cada losango cheio é uma pessoa que entrou. O círculo branco acompanha o cursor e converte os losangos ao redor."><g id="celulas"></g><circle id="circulo" r="62"/></svg>
+      <div class="h-leg-txt" aria-live="polite"><div id="rotulo">abstenção</div><div id="frase">Não foi votar. É com essa pessoa que a gente quer conversar.</div></div>
+      <div class="h-leg" role="group" aria-label="Ver a bandeira como"><button type="button" class="leg" data-e="0" aria-pressed="false"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="-62,-62 62,-62 62,62 -62,62" style="fill:none;stroke:currentColor;stroke-width:20px;stroke-linejoin:round"/></svg>abstenção</button><button type="button" class="leg" data-e="1" aria-pressed="false"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0" style="fill:none;stroke:currentColor;stroke-width:20px;stroke-linejoin:round"/></svg>branco</button><button type="button" class="leg" data-e="2" aria-pressed="false"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0" style="fill:none;stroke:currentColor;stroke-width:20px;stroke-linejoin:round"/><path d="M-26 -26 L26 26 M26 -26 L-26 26" style="fill:none;stroke:currentColor;stroke-width:18px;stroke-linecap:round"/></svg>nulo</button><button type="button" class="leg" data-e="3" aria-pressed="false"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0" style="fill:currentColor;stroke:currentColor;stroke-width:20px;stroke-linejoin:round"/><circle r="36" style="fill:#f8faf6"/></svg>voto</button></div>
+      <p class="h-pessoas"><span id="pessoas-txt"></span> Passe o cursor pela bandeira: o círculo converte os losangos ao redor. No celular, toque e arraste.</p>
+    </div>
+  </div>
+  <nav class="h-faixa" aria-label="atalhos">
+    <a href="/videos"><b data-conta-videos>0</b> vídeos no ar: assista, baixe e mande pra quem não decidiu</a>
+    <a href="/guia">Guia de comunicação popular para a virada</a>
+    <a href="/enviar-video">Já gravou? Mande o link</a>
+  </nav>
+</section>
+
+<div class="regua"></div>
+
+<section class="h-quem sobre-menta" id="equipe">
+  <div class="h-in">
+    <div class="h-quem-txt">
+      <h2 class="tit">tudo aqui é voluntário. quem faz é gente de peso.</h2>
+      <p id="msg-tipo" aria-live="polite">Ninguém recebe para estar no seu voto decide. Quem escreve, edita, desenha, programa e divulga faz porque sabe fazer e acredita nisso. Precisou de um serviço? Escolha o tipo e veja quem pode ajudar: é uma rede de divulgação e de solidariedade.</p>
+      <div class="h-chips" role="group" aria-label="Tipo de serviço"><span>Precisa de um serviço?</span></div>
+      <div class="h-bts"><a class="btn escuro" id="ver-quem" href="/quem-faz">Conheça quem faz</a><a class="btn vazio-escuro" href="/quem-faz#rede">Entre na rede</a></div>
+    </div>
+    <div class="h-rostos-box"><div class="h-rostos" id="rostos" role="group" aria-label="Pessoas da equipe, sorteadas"></div></div>
+  </div>
+</section>
+
+<div class="regua escura"></div>
+
+<section class="h-entradas">
+  <div class="h-in col">
+    <h2 class="tit">escolha por onde entrar</h2>
+    <div class="h-cams">
+      <a class="cam" href="/participar?tipo=pessoa"><svg viewBox="-60 -60 120 120" aria-hidden="true"><rect x="-46" y="-46" width="92" height="92" style="fill:none;stroke:#61bf99;stroke-width:9px;stroke-linejoin:round"/><circle r="20" style="fill:#f8faf6"/></svg><span><strong>Não sou criador de conteúdo</strong><span>Quero gravar para minha família, meus amigos, meu status.</span></span></a>
+      <a class="cam" href="/participar?tipo=criador"><svg class="alcance" viewBox="-60 -60 120 120" aria-hidden="true"><circle class="anel a3" r="48" style="fill:none;stroke:#3f9a77;stroke-width:9px"/><circle class="anel a2" r="32" style="fill:none;stroke:#61bf99;stroke-width:9px"/><circle class="anel" r="14" style="fill:#f8faf6"/></svg><span><strong>Sou criador de conteúdo</strong><span>Tenho perfil com público e quero usar meu alcance.</span></span></a>
     </div>
   </div>
 </section>
 
-<section class="faixa nmt" id="no-meu-tempo">
-  <div class="miolo nmt-in">
-    <div class="revela">
-      <span class="nmt-selo">novo · campanha</span>
-      <p class="titulo-secao" style="margin-top:18px">No meu tempo…</p>
-      <p class="j-intro">Sabe quando alguém mais velho solta: "no meu tempo não era assim, não"? Ou "na minha época a gente…", "vocês não sabem o que é passar…", "antigamente era muito pior", "no meu tempo a gente não tinha nada disso"?</p>
-      <p class="j-intro">A gente costuma achar um saco ouvir isso. Às vezes soa até meio pedante. A campanha vira esse jogo: usar o "no meu tempo" pra lembrar o que era difícil antes e o que mudou nos governos Lula, contado por quem viveu. Depois a gente junta vários depoimentos num vídeo só.</p>
-      <p class="j-intro"><strong>Sugestões de assunto.</strong> Escolhemos programas criados nos governos Lula que mudaram a vida de muita gente. O nome ajuda a puxar a memória:</p>
-      <ul class="nmt-temas">
-        <li><b>Luz para Todos</b> luz em casa</li>
-        <li><b>Bolsa Família</b> comida na mesa</li>
-        <li><b>Farmácia Popular</b> remédio de graça</li>
-        <li><b>ProUni e novas universidades</b> faculdade</li>
-        <li><b>Minha Casa, Minha Vida</b> casa própria</li>
-        <li><b>Brasil Sorridente</b> dentista no posto</li>
-        <li><b>Cisternas</b> água no semiárido</li>
-        <li><b>Salário mínimo valorizado</b> o salário rendendo mais</li>
-      </ul>
-      <p class="j-intro">São só sugestões. Pode falar de qualquer outra coisa que mudou na sua vida ou na da sua família.</p>
+<div class="regua escura"></div>
+
+<section class="h-nmt" id="no-meu-tempo">
+  <div class="h-in">
+    <div class="h-nmt-txt">
+      <h2 class="tit">no meu tempo…</h2>
+      <p>Grave 20 segundos com alguém mais velho contando o que mudou. Escolhemos programas criados nos governos Lula que mudaram a vida de muita gente. O nome ajuda a puxar a memória, e cada um ganhou a sua forma.</p>
+      <div><a class="btn" href="/enviar-video?campanha=no-meu-tempo">Mandar meu vídeo</a></div>
+      <details class="h-como">
+        <summary>Como gravar, passo a passo</summary>
+        <ol>
+          <li><strong>Com quem gravar.</strong> De preferência com pessoas idosas: avó, avô, mãe, pai, tia. Também vale alguém mais velho que viveu os primeiros governos Lula, ou você mesmo, se viveu essa época.</li>
+          <li><strong>Como gravar.</strong> Celular em pé, lugar silencioso. Comece com “No meu tempo…” e deixe a pessoa falar do jeito dela, sem decorar texto.</li>
+          <li><strong>Tamanho.</strong> O ideal é 20 segundos. No máximo 1 minuto. A gente corta e junta vários num vídeo só.</li>
+          <li><strong>Autorização.</strong> Pergunte antes: “posso mandar pra campanha?”. Só mande com o sim da pessoa.</li>
+          <li><strong>Mandar.</strong> Suba o vídeo no Google Drive, deixe o link aberto pra qualquer pessoa ver e cole no formulário.</li>
+        </ol>
+        <p>São só sugestões de assunto. Pode falar de qualquer outra coisa que mudou na sua vida ou na da sua família.</p>
+      </details>
     </div>
-    <div class="revela">
-      <ol class="nmt-passos">
-        <li><b>1</b><div><strong>Com quem gravar</strong>De preferência com pessoas idosas: avó, avô, mãe, pai, tia. Também vale alguém mais velho que viveu os primeiros governos Lula: um colega de trabalho, um amigo da roda, um vizinho. Ou você mesmo, se viveu essa época.</div></li>
-        <li><b>2</b><div><strong>Como gravar</strong>Celular em pé, lugar silencioso. Comece com "No meu tempo…" (ou "na minha época…") e deixe a pessoa falar do jeito dela, sem decorar texto.</div></li>
-        <li><b>3</b><div><strong>Tamanho</strong>O ideal é 20 segundos. No máximo 1 minuto. Não precisa editar nada: a gente corta e junta vários num vídeo só.</div></li>
-        <li><b>4</b><div><strong>Autorização</strong>Pergunte antes: "posso mandar pra campanha?". Só mande com o sim da pessoa.</div></li>
-        <li><b>5</b><div><strong>Mandar</strong>Suba o vídeo no Google Drive, deixe o link aberto pra qualquer pessoa ver e cole no formulário. Precisa ser link do Drive: é de lá que a gente baixa pra editar.</div></li>
-      </ol>
-      <a class="caminho" href="/enviar-video?campanha=no-meu-tempo"><strong>Mandar meu vídeo</strong><span>Leva menos de um minuto</span></a>
-    </div>
+    <ul class="h-temas"><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="20" style="fill:#f8faf6"/><g class="mv rot" style="stroke:#3f9a77;stroke-width:7px;stroke-linecap:round"><line x1="50" y1="6" x2="50" y2="18"/><line x1="50" y1="82" x2="50" y2="94"/><line x1="6" y1="50" x2="18" y2="50"/><line x1="82" y1="50" x2="94" y2="50"/><line x1="19" y1="19" x2="27" y2="27"/><line x1="73" y1="73" x2="81" y2="81"/><line x1="81" y1="19" x2="73" y2="27"/><line x1="27" y1="73" x2="19" y2="81"/></g></svg><b>Luz para Todos</b><span>luz em casa</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="mv sobe" cx="50" cy="38" r="13" style="fill:#61bf99"/><path d="M14 56 H86 A36 36 0 0 1 14 56 Z" style="fill:#f8faf6"/></svg><b>Bolsa Família</b><span>comida na mesa</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(-45 50 50)"><path class="mv abre1" d="M50 36 H36 A14 14 0 0 0 36 64 H50 Z" style="fill:#f8faf6"/><path class="mv abre2" d="M50 36 H64 A14 14 0 0 1 64 64 H50 Z" style="fill:#61bf99"/></g></svg><b>Farmácia Popular</b><span>remédio de graça</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M28 52 V68 C28 80 72 80 72 68 V52" style="fill:#3f9a77"/><polygon class="mv sobe" points="50,18 94,38 50,58 6,38" style="fill:#f8faf6"/><circle cx="90" cy="68" r="6" style="fill:#61bf99"/></svg><b>ProUni e novas universidades</b><span>faculdade</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="22" y="46" width="56" height="40" style="fill:#f8faf6"/><polygon class="mv sobe" points="12,48 50,14 88,48" style="fill:#61bf99"/><rect x="43" y="62" width="14" height="24" style="fill:#0f3a2b"/></svg><b>Minha Casa, Minha Vida</b><span>casa própria</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><path class="mv sorri" d="M10 34 H90 A40 40 0 0 1 10 34 Z" style="fill:#f8faf6"/><rect x="26" y="34" width="48" height="9" style="fill:#0f3a2b"/></svg><b>Brasil Sorridente</b><span>dentista no posto</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><clipPath id="cis"><circle cx="50" cy="50" r="38"/></clipPath><g clip-path="url(#cis)"><rect class="mv agua" x="8" y="52" width="84" height="60" style="fill:#61bf99"/></g><circle cx="50" cy="50" r="38" style="fill:none;stroke:#f8faf6;stroke-width:8px"/></svg><b>Cisternas</b><span>água no semiárido</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><rect class="mv cresce" x="10" y="58" width="22" height="28" style="fill:#3f9a77"/><rect class="mv cresce" x="39" y="40" width="22" height="46" style="fill:#f8faf6"/><rect class="mv cresce" x="68" y="18" width="22" height="68" style="fill:#61bf99"/></svg><b>Salário mínimo valorizado</b><span>o salário rendendo mais</span></li></ul>
   </div>
 </section>
 
-<section class="faixa">
-  <div class="miolo jogos-faixa">
-    <div class="revela">
-      <p class="kicker">novo · jogos</p>
-      <p class="titulo-secao">Joga junto</p>
-      <p class="j-intro">Jogos de menos de 3 minutos pra jogar com quem ainda não decidiu: quem não votou, votou branco ou nulo, ou votou em Renan, Caiado ou Zema.</p>
-    </div>
-    <a class="caminho revela" href="/jogos"><strong>Jogar agora</strong><span>Passa o celular e vê quem acerta mais</span></a>
+<div class="regua"></div>
+
+<section class="h-bloco" id="como">
+  <div class="h-in col">
+    <h2 class="tit">quatro passos, do cadastro ao vídeo no ar</h2>
+    <ol class="h-passos">
+      <li><b>1</b><strong>Cadastro</strong><span>Preencha o formulário e escolha a pauta que quer gravar. Pode ser mais de uma.</span></li>
+      <li><b>2</b><strong>Grupo</strong><span>Entre no grupo do WhatsApp. Lá chega o material com as sugestões de roteiro de cada pauta.</span></li>
+      <li><b>3</b><strong>Vídeo</strong><span>Grave, edite e poste do seu jeito: no feed, nos stories, no status, no grupo da família. A gente divulga templates prontos.</span></li>
+      <li><b>4</b><strong>Link</strong><span>Mande o link do vídeo pra gente acompanhar até onde a conversa chegou.</span></li>
+    </ol>
   </div>
 </section>
 
-
-<section class="faixa">
-  <div class="miolo dois">
-    <div class="texto revela">
-      <p class="kicker">por que</p>
-      <p class="titulo-secao">Quem está perto escuta mais</p>
+<section class="h-bloco escuro">
+  <div class="h-in">
+    <div class="h-bloco-txt">
+      <h2 class="tit">quem está perto escuta mais</h2>
       <p>Tem muita gente querendo fazer alguma coisa e sem saber o que falar. A equipe de escrita e pesquisa prepara pautas e sugestões de roteiro com informação checada, para ninguém começar do zero.</p>
       <p>E a conversa não pode ficar só entre influenciadores. A prima que não foi votar escuta mais quem senta com ela no almoço de domingo do que um perfil com um milhão de seguidores.</p>
     </div>
-
-    <div class="conversa revela" id="conversa">
-      <span class="selo">monte a sua</span>
+    <div class="conversa" id="conversa">
       <h3>Com quem você vai falar?</h3>
-      <p class="passo">1 · a pessoa</p>
+      <p class="passo">a pessoa</p>
       <div class="chips" data-grupo="quem">
         <button type="button" data-v="sua prima" data-p="ela">Prima</button>
         <button type="button" data-v="seu tio" data-p="ele">Tio</button>
@@ -134,7 +144,7 @@
         <button type="button" data-v="sua avó" data-p="ela">Avó</button>
         <button type="button" data-v="seu amigo de infância" data-p="ele">Amigo de infância</button>
       </div>
-      <p class="passo">2 · onde</p>
+      <p class="passo">onde</p>
       <div class="chips" data-grupo="onde">
         <button type="button" data-v="no almoço de domingo">Almoço de domingo</button>
         <button type="button" data-v="num áudio no WhatsApp">Áudio no WhatsApp</button>
@@ -147,120 +157,30 @@
   </div>
 </section>
 
-<section class="faixa vermelha" id="como">
-  <div class="miolo">
-    <p class="kicker revela">como funciona</p>
-    <p class="titulo-secao revela">Quatro passos, do cadastro ao vídeo no ar</p>
-    <ol class="passos">
-      <li class="revela"><span class="n" data-ico="lista"></span><div><span class="num">01</span><strong>Cadastro</strong>Preencha o formulário e escolha a pauta que quer gravar. Pode ser mais de uma.</div></li>
-      <li class="revela"><span class="n" data-ico="conversa"></span><div><span class="num">02</span><strong>Grupo</strong>Entre no grupo do WhatsApp. Lá chega o material com as sugestões de roteiro de cada pauta.</div></li>
-      <li class="revela"><span class="n" data-ico="camera"></span><div><span class="num">03</span><strong>Vídeo</strong>Grave, edite e poste do seu jeito: no feed, nos stories, no status, no grupo da família. Para facilitar a edição, a gente divulga templates prontos.</div></li>
-      <li class="revela"><span class="n" data-ico="link"></span><div><span class="num">04</span><strong>Link</strong>Mande o link do vídeo pra gente acompanhar até onde a conversa chegou.</div></li>
-    </ol>
+<div class="regua escura"></div>
+
+<section class="h-bloco escuro">
+  <div class="h-in h-duas">
+    <a class="cam" href="/jogos"><svg viewBox="-60 -60 120 120" aria-hidden="true"><polygon points="0,-50 50,0 0,50 -50,0" style="fill:none;stroke:#61bf99;stroke-width:9px;stroke-linejoin:round"/><path d="M-18 -18 L18 18 M18 -18 L-18 18" style="fill:none;stroke:#61bf99;stroke-width:8px;stroke-linecap:round"/></svg><span><strong>Joga junto</strong><span>Jogos de menos de 3 minutos pra jogar com quem ainda não decidiu. Passa o celular e vê quem acerta mais.</span></span></a>
+    <a class="cam" href="/juridico"><svg viewBox="-60 -60 120 120" aria-hidden="true"><polygon points="0,-50 50,0 0,50 -50,0" style="fill:none;stroke:#61bf99;stroke-width:9px;stroke-linejoin:round"/><polygon points="0,-24 24,0 0,24 -24,0" style="fill:none;stroke:#61bf99;stroke-width:5px;stroke-linejoin:round"/></svg><span><strong>Medo do contrato com marca?</strong><span>Explicamos o que as cláusulas de imagem dizem e temos advogadas voluntárias para orientar.</span></span></a>
   </div>
 </section>
 
-<section class="faixa" id="equipe">
-  <div class="miolo">
-    <div class="ideia" id="ideia" hidden>
-      <div class="ideia-cab revela">
-        <p class="kicker">quem idealizou</p>
-        <p class="titulo-secao">De onde veio a ideia</p>
-      </div>
-      <div class="ideia-gente" id="lista-ideia"></div>
-    </div>
-    <p class="kicker revela">quem está fazendo</p>
-    <p class="titulo-secao revela">A equipe, por função</p>
-    <div class="filtro-eq revela" id="filtro-eq" role="group" aria-label="Filtrar por função"></div>
-    <p class="desc-funcao" id="desc-funcao" aria-live="polite"></p>
-    <div class="gente-eq" id="lista-equipe"><p class="muted">carregando…</p></div>
+<section class="h-bloco" id="apoiadores" hidden>
+  <div class="h-in col">
+    <h2 class="tit">quem apoia o seu voto decide</h2>
+    <p class="apoio-txt">Doações e apoio que ajudam a articulação a chegar mais longe.</p>
+    <ul class="apoio-lista" id="lista-apoio"></ul>
   </div>
 </section>
 
-<section class="faixa escura">
-  <div class="miolo dois" style="align-items:end">
-    <div class="revela">
-      <div class="logo-grande" data-marca="logo"></div>
-      <p class="chamada">Entre pelo caminho que é seu.</p>
-    </div>
-    <div class="capa-acoes revela">
-      <a class="caminho" href="/participar?tipo=pessoa"><strong>Não sou criador de conteúdo</strong></a>
-      <a class="caminho" href="/participar?tipo=criador"><strong>Sou criador de conteúdo</strong></a>
-    </div>
+<footer class="h-rodape">
+  <div class="h-in">
+    <div class="h-rod-logo"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0"/><circle r="36"/></svg>seu voto decide</div>
+    <p>Uma articulação de comunicação popular, criadores de conteúdo e sociedade civil. Toda a equipe é voluntária.</p>
+    <p class="h-rod-links">Já se cadastrou? Use o link pessoal que você recebeu. · <a href="/admin">acesso da equipe</a></p>
   </div>
-</section>
-
-<section class="faixa papel" id="juridico">
-  <div class="miolo j-chamada">
-    <div class="revela">
-      <p class="kicker">apoio jurídico</p>
-      <p class="titulo-secao">Medo do contrato com marca?</p>
-      <p class="j-intro">Se posicionar não é escândalo. Explicamos o que as cláusulas de imagem dizem, o que a lei garante, e temos advogadas voluntárias para orientar quem precisar.</p>
-    </div>
-    <a class="caminho revela" href="/juridico"><strong>Apoio jurídico</strong><span>Entender a cláusula ou pedir orientação</span></a>
-  </div>
-</section>
-
-<section class="faixa apoio" id="apoiadores" hidden>
-  <div class="miolo apoio-in">
-    <div class="revela">
-      <p class="kicker">apoiadores</p>
-      <p class="titulo-secao">Quem apoia o seu voto decide</p>
-      <p class="apoio-txt">Doações e apoio que ajudam a articulação a chegar mais longe.</p>
-    </div>
-    <ul class="apoio-lista revela" id="lista-apoio"></ul>
-  </div>
-</section>
-
-<footer class="rodape-site">
-  <div class="miolo"><span class="assina"><i data-marca="losango"></i>Já se cadastrou? Use o link pessoal que você recebeu.</span><a href="/admin">acesso da equipe</a></div>
 </footer>
-
-<script>
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-// apoiadores (editados em Ajustes, no controle)
-fetch('/public/config').then((r) => r.json()).then((c) => {
-  const lista = c.apoiadores || [];
-  if (!lista.length) return;
-  const handle = (u) => { try { const p = new URL(u).pathname.split('/').filter(Boolean)[0]; return /instagram\.com/.test(u) && p ? '@' + p : u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''); } catch { return ''; } };
-  document.getElementById('lista-apoio').innerHTML = lista.map((a) => a.logo ? `<li class="com-logo"><a href="${esc(a.link || '#')}" target="_blank" rel="noopener noreferrer"><img src="${esc(a.logo)}" alt="${esc(a.nome)}" loading="lazy" /></a></li>` : `<li>${ICONE.losango || ''}<div><strong>${esc(a.nome)}</strong>${a.link ? `<a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(handle(a.link))}</a>` : ''}</div></li>`).join('');
-  document.getElementById('apoiadores').hidden = false;
-  observaRevela(document.getElementById('apoiadores'));
-}).catch(() => {});
-
-// números da capa
-fetch('/public/numeros').then((r) => r.json()).then((n) => {
-  document.querySelectorAll('[data-conta-videos]').forEach((el) => conta(el, n.videos || 0));
-  if (!n.participantes) return;
-  document.getElementById('numeros').hidden = false;
-  document.querySelectorAll('[data-conta]').forEach((el) => conta(el, n[el.dataset.conta] || 0));
-}).catch(() => {});
-
-// monte a sua conversa
-const escolha = { quem: null, onde: null };
-document.querySelectorAll('#conversa [data-grupo]').forEach((g) => {
-  g.addEventListener('click', (e) => {
-    const b = e.target.closest('button'); if (!b) return;
-    g.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
-    escolha[g.dataset.grupo] = { v: b.dataset.v, p: b.dataset.p };
-    montaFala();
-  });
-});
-function montaFala() {
-  const el = document.getElementById('fala');
-  if (!escolha.quem || !escolha.onde) {
-    el.className = 'fala vazia';
-    el.textContent = escolha.quem ? 'Agora escolha onde.' : 'Escolha a pessoa e o lugar.';
-    return;
-  }
-  const p = escolha.quem.p;
-  el.className = 'fala';
-  el.innerHTML = `<small>sua conversa</small>Puxe o assunto com ${esc(escolha.quem.v)} ${esc(escolha.onde.v)}. Pergunte se ${p} vai votar e por quê. Escute antes de responder. Depois conte o que te faz ir, com as suas palavras.`;
-  document.getElementById('fala-cta').hidden = false;
-}
-
-</script>
-<script src="/equipe.js"></script>
+<script src="/home.js"></script>
 </body>
 </html>

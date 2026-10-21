@@ -73,6 +73,7 @@ app.get('/guia', (_req, res) => res.sendFile(path.join(PUB, 'guia.html')));
 app.get('/juridico', (_req, res) => res.sendFile(path.join(PUB, 'juridico.html')));
 app.get('/jogos', (_req, res) => res.sendFile(path.join(PUB, 'jogos.html')));
 app.get('/videos', (_req, res) => res.sendFile(path.join(PUB, 'videos.html')));
+app.get('/quem-faz', (_req, res) => res.sendFile(path.join(PUB, 'quem-faz.html')));
 // foto da equipe (fica no banco, porque o disco do Render é apagado a cada deploy)
 app.get('/foto/:id.jpg', wrap(async (req, res) => {
   const f = await db.get('fotos', `foto-${req.params.id}`);
