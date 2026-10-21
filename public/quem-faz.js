@@ -5,7 +5,7 @@
   const DESC = {
     'Escrita e pesquisa': 'Monta o material com as pautas e as sugestões de roteiro.',
     'Audiovisual': 'Criam os templates de edição que qualquer pessoa pode usar para editar o seu vídeo.',
-    'Design': 'Cria a identidade visual e o PDF com as pautas.',
+    'Design': 'Cria a identidade visual, os cards, os templates e o PDF com as pautas.',
     'Marketing': 'Pensa as estratégias para o seu voto decide chegar mais longe.',
     'Site': 'Cuida deste site e da base de dados.',
   };

@@ -148,7 +148,7 @@
   const FUNCOES = [
     ['Escrita e pesquisa', 'Monta o material com as pautas e as sugestões de roteiro.'],
     ['Audiovisual', 'Criam os templates de edição que qualquer pessoa pode usar para editar o seu vídeo.'],
-    ['Design', 'Cria a identidade visual e o PDF com as pautas.'],
+    ['Design', 'Cria a identidade visual, os cards, os templates e o PDF com as pautas.'],
     ['Marketing', 'Pensa as estratégias para o seu voto decide chegar mais longe.'],
     ['Site', 'Cuida deste site e da base de dados.'],
   ];
@@ -177,10 +177,23 @@
         <a class="eq-foto" href="/quem-faz?p=${encodeURIComponent(p.id)}" aria-label="${esc(p.nome)}">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : `<span>${esc(iniciais(p.nome))}</span>`}<i aria-hidden="true"></i></a>
         <h3>${esc(p.nome)}</h3>
         <p class="eq-fun">${esc(fun.join(' · '))}</p>
-        ${p.bio ? `<p class="eq-bio">${esc(p.bio)}</p>` : ''}
+        ${p.bio ? `<p class="eq-bio">${esc(p.bio)}</p><button type="button" class="eq-mais" aria-expanded="false" hidden>ver mais</button>` : ''}
         ${p.link ? `<a class="eq-rede" href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">${esc(rotuloRede(p.link))}</a>` : ''}
       </article>`;
     }).join('');
+    // "ver mais" só aparece quando o texto realmente foi cortado
+    const marcaCortes = () => grade.querySelectorAll('.eq-card').forEach((c) => {
+      const b = c.querySelector('.eq-bio'), bt = c.querySelector('.eq-mais'); if (!b || !bt) return;
+      if (c.classList.contains('aberto')) { bt.hidden = false; return; }
+      bt.hidden = b.scrollHeight <= b.clientHeight + 2;
+    });
+    grade.addEventListener('click', (e) => {
+      const bt = e.target.closest('.eq-mais'); if (!bt) return;
+      const c = bt.closest('.eq-card'); const ab = c.classList.toggle('aberto');
+      bt.textContent = ab ? 'ver menos' : 'ver mais'; bt.setAttribute('aria-expanded', ab ? 'true' : 'false');
+    });
+    requestAnimationFrame(marcaCortes); addEventListener('resize', marcaCortes);
+    grade.querySelectorAll('img').forEach((im) => im.addEventListener('load', marcaCortes));
     const ideia = gente.filter((p) => p.idealizadora).length;
     const presentes = FUNCOES.filter(([f]) => gente.some((p) => (p.funcoes || []).includes(f)));
     filtro.innerHTML = `<button type="button" class="chip" data-f="" aria-pressed="true">Todo mundo <i>${gente.length}</i></button>` +
@@ -191,6 +204,7 @@
       filtro.querySelectorAll('.chip').forEach((x) => x.setAttribute('aria-pressed', x === bt ? 'true' : 'false'));
       desc.textContent = f === 'Idealização' ? 'Idealizaram o seu voto decide.' : (FUNCOES.find(([nn]) => nn === f) || [])[1] || '';
       grade.querySelectorAll('.eq-card').forEach((c) => { c.hidden = !!f && !c.dataset.f.split('|').includes(f); });
+      marcaCortes();
     });
   }).catch(() => {});
 

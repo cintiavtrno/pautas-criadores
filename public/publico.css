@@ -1623,3 +1623,9 @@ h1, .titulo-secao, .texto p.titulo-secao, .tit, .capa h1, .lateral h1, .folha > 
 @media (max-width: 640px) { .qf-pessoa { width: calc(50% - 12px); } .circ-g { width: 140px; height: 140px; font-size: 38px; } .qf-ideia-gente { gap: 32px 24px; } }
 @media (max-width: 1180px) and (min-width: 961px) { .cab nav { gap: 14px; font-size: 15px; } }
 .qf-gal { padding-top: clamp(48px, 6vw, 80px); } .qf-gal-tit { font-size: clamp(44px, 5.4vw, 80px); }
+
+/* bio da equipe: ver mais / ver menos */
+.eq-card.aberto .eq-bio { -webkit-line-clamp: unset; display: block; overflow: visible; }
+.eq-mais { align-self: flex-start; margin: 2px 0 4px; padding: 0; background: none; border: 0; color: var(--menta); font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.eq-mais:hover, .eq-mais:focus-visible { color: var(--branco); }
+.eq-mais[hidden] { display: none; }
