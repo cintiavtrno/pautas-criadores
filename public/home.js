@@ -163,8 +163,8 @@
     if (box && gente.length) {
       const emb = [...gente].sort(() => Math.random() - 0.5).sort((x, y) => (!!y.foto) - (!!x.foto));
       const qu = emb.slice(0, 4);
-      const rosto = (p, k) => `<a class="rosto" href="/quem-faz?p=${encodeURIComponent(p.id)}" aria-label="${esc(p.nome)}"><div class="foto${k % 2 ? ' alt' : ''}">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : esc(iniciais(p.nome))}</div><span class="rosto-nome">${esc(primeiro(p.nome))}</span></a>`;
-      box.innerHTML = `<div class="r-l">${qu.slice(0, 3).map(rosto).join('')}</div><div class="r-l">${qu.slice(3).map((p) => rosto(p, 1)).join('')}<a class="rosto" href="/quem-faz" aria-label="Ver toda a equipe"><div class="foto mais">e mais<br>gente</div><span class="rosto-nome">${gente.length} pessoas</span></a></div>`;
+      const rosto = (p, k) => `<a class="rosto" href="/quem-faz?p=${encodeURIComponent(p.id)}" aria-label="${esc(p.nome)}"><div class="foto${k % 2 ? ' alt' : ''}">${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" />` : esc(iniciais(p.nome))}</div><span class="rosto-nome">${esc(primeiro(p.nome))}</span><span class="rosto-fun">${esc(((p.funcoes || [])[0] || (p.idealizadora ? 'Idealização' : '')).toLowerCase())}</span></a>`;
+      box.innerHTML = `<div class="r-l">${qu.slice(0, 3).map(rosto).join('')}</div><div class="r-l">${qu.slice(3).map((p) => rosto(p, 1)).join('')}<a class="rosto" href="/quem-faz" aria-label="Ver toda a equipe"><div class="foto mais">e mais<br>gente</div><span class="rosto-nome">${gente.length} pessoas</span><span class="rosto-fun">ver todo mundo</span></a></div>`;
     }
     // a equipe, por função
     const grade = document.getElementById('eq-grade'), filtro = document.getElementById('eq-filtros'), desc = document.getElementById('eq-desc');
