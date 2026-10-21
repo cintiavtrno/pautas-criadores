@@ -4,8 +4,8 @@
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // equipe: retrato, nome, função, mini bio e rede social. Filtro por função.
 const FUNCOES = [
-  ['Escrita e pesquisa', 'Monta o material com as pautas e as sugestões de roteiro.'],
-  ['Audiovisual', 'Criam os templates de edição que qualquer pessoa pode usar para editar o seu vídeo.'],
+  ['Escrita e pesquisa', 'Monta o material com as pautas, as sugestões de roteiro e a checagem dos fatos.'],
+  ['Audiovisual', 'Faz a produção audiovisual do seu voto decide: os vídeos e os templates da própria campanha.'],
   ['Design', 'Cria a identidade visual e o PDF com as pautas.'],
   ['Marketing', 'Pensa as estratégias para o seu voto decide chegar mais longe.'],
   ['Site', 'Cuida deste site e da base de dados.'],
