@@ -1,0 +1,47 @@
+[
+ {
+  "id": "camilla-apresentacao",
+  "nome": "Camilla Apresentação",
+  "funcoes": [
+   "Escrita e pesquisa"
+  ],
+  "idealizadora": true,
+  "link": "https://www.instagram.com/pretaletrada/",
+  "foto": "/fotos/camilla-apresentacao.jpg",
+  "bio": "Conhecida como Preta Letrada, é advogada, pesquisadora, escritora e comunicadora popular. Faz da informação e da cultura ferramentas de mobilização, disputando narrativas e dando voz ao povo preto na construção da autonomia e autoafirmação."
+ },
+ {
+  "id": "cintia-vitorino",
+  "nome": "Cíntia Vitorino",
+  "funcoes": [
+   "Site",
+   "Escrita e pesquisa"
+  ],
+  "idealizadora": true,
+  "link": "https://www.instagram.com/cintiasvitorino/",
+  "foto": "/fotos/cintia-vitorino.jpg",
+  "bio": "Pesquisadora vinculada ao Instituto Nacional de Ciência e Tecnologia em Democracia Digital (INCT.DD), ao Lab404, Laboratório de Pesquisa em Mídia Digital, Redes e Espaço da UFBA, e à Rede de Pesquisa Comunidades Virtuais, voltada à investigação de jogos digitais e analógicos, plataformas digitais, narrativas seriadas, museus interativos, processos de aprendizagem e temas atuais como o uso de inteligências artificiais generativas no cotidiano acadêmico. Se interessa por cidades, território, tecnologia e raça."
+ },
+ {
+  "id": "maria-maia",
+  "nome": "Maria Maia",
+  "funcoes": [
+   "Marketing"
+  ],
+  "idealizadora": true,
+  "link": "https://www.instagram.com/maariamaia/",
+  "foto": "/fotos/maria-maia.jpg",
+  "bio": "Baiana, cientista social, pesquisadora e estrategista de marketing e comunicação. Com experiência em campanhas de mobilização, comunicação política e produção audiovisual, une o olhar das ciências sociais ao planejamento de estratégias digitais. Seu trabalho se concentra na construção de narrativas, na articulação de projetos coletivos e na comunicação como ferramenta de participação social."
+ },
+ {
+  "id": "yara-damasceno",
+  "nome": "Yara Damasceno",
+  "funcoes": [
+   "Escrita e pesquisa"
+  ],
+  "idealizadora": true,
+  "link": "https://www.instagram.com/yaradamascenno/",
+  "foto": "/fotos/yara-damasceno.jpg",
+  "bio": "Yara Damascenno é historiadora, pesquisadora e criadora de conteúdo de Salvador. Idealizadora da campanha “10 páginas por dia”, que incentiva o hábito da leitura, produz conteúdos que aproximam educação, literatura, beleza e história, com destaque para fatos e referências culturais de Salvador. Também compartilha aspectos de sua rotina e maternidade nas redes sociais."
+ }
+]
