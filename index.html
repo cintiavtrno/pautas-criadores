@@ -34,16 +34,16 @@
 </header>
 
 <section class="hero">
-  <div class="h-tit">
-    <h1 aria-label="o que fizemos no 2º turno">
-      <span class="a">o que</span>
-      <span class="b">fizemos</span>
-      <span class="c"><small>no</small><big>2º</big><em>turno</em></span>
-    </h1>
-    <p class="h-fim">A campanha terminou depois do 2º turno, em 25 de outubro de 2026. Agora estamos traçando novos caminhos.</p>
+  <div class="palco" id="palco">
+    <div class="ban" aria-hidden="true"></div>
+    <h1 class="tit t1"><i>seu voto</i><i>decide</i></h1>
+    <p class="tit t2" aria-hidden="true"><i>seu voto</i><i>decide</i></p>
+    <p class="tit t3" aria-hidden="true"><i>seu voto</i><i>decide</i></p>
+  </div>
+  <div class="h-base">
+    <p class="h-fim">A campanha terminou depois do 2º turno, em <b>25 de outubro de 2026</b>. Agora estamos traçando novos caminhos.</p>
     <div class="h-meta"><span><b>658</b> pessoas participaram</span><span><b>71</b> vídeos publicados</span><span>salvador · 21 dias</span></div>
   </div>
-  <div class="geo" id="geo" aria-hidden="true"></div>
 </section>
 
 <section class="pastas" id="pastas">
@@ -109,52 +109,43 @@
 </section>
 <footer class="rodape"><span class="marca"><i></i>seu voto decide</span><span>Comunicação popular, criadores de conteúdo e sociedade civil. Toda a equipe foi voluntária.</span></footer>
 <script>
-// a bandeira do seu voto decide recortada em ladrilhos: as fileiras do meio formam a bandeira,
-// as de cima e de baixo são formas soltas da marca. Os ladrilhos chegam girados e se encaixam.
-const C = { f: '#0f3a2b', m: '#61bf99', b: '#f8faf6', x: '#071d15', s: '#17503c' };
-let seed = 11; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-// bandeira inteira (300 x 200): losango grande feito de losangos pequenos e o círculo do voto
-let cel = '';
-const W2 = 150, H2 = 100, cw = 15, ch = 10;
-for (let j = -10; j <= 10; j++) for (let i = -10; i <= 10; i++) {
-  const x = W2 + i * cw, y = H2 + j * ch; if ((i + j) % 2) continue;
-  if (Math.abs(i * cw) / 146 + Math.abs(j * ch) / 96 > 1) continue;
-  const tom = r() < .2 ? C.f : (r() < .12 ? C.b : C.m);
-  cel += `<polygon points="${x},${y - ch + .8} ${x + cw - 1.2},${y} ${x},${y + ch - .8} ${x - cw + 1.2},${y}" fill="${tom}"/>`;
-}
-const BANDEIRA = `<rect width="300" height="200" fill="${C.x}"/>${cel}<circle cx="150" cy="100" r="40" fill="${C.b}"/>`;
-const formas = [
-  (a, b) => `<rect width="100" height="100" fill="${a}"/><polygon points="50,6 94,50 50,94 6,50" fill="${b}"/>`,
-  (a, b) => `<rect width="100" height="100" fill="${a}"/><path d="M0 100 A100 100 0 0 1 100 0 V100 Z" fill="${b}"/>`,
-  (a, b) => `<rect width="100" height="100" fill="${a}"/><path d="M0 0 H100 A50 50 0 0 1 0 0 Z" fill="${b}"/><path d="M0 100 A50 50 0 0 1 100 100 Z" fill="${b}"/>`,
-  (a, b) => `<rect width="100" height="100" fill="${a}"/><circle cx="50" cy="50" r="50" fill="${b}"/><circle cx="50" cy="50" r="20" fill="${C.b}"/>`,
-  (a, b) => `<rect width="100" height="100" fill="${a}"/><polygon points="0,0 100,100 0,100" fill="${b}"/>`,
-  (a, b) => `<rect width="100" height="100" fill="${a}"/><path d="M50 0 A50 50 0 0 1 50 100 Z" fill="${b}"/>`,
-];
-const paletas = [[C.f, C.s], [C.x, C.s], [C.s, C.m], [C.f, C.m], [C.x, C.f], [C.m, C.x]];
-const geo = document.getElementById('geo');
-const pecas = [];
-for (let row = 0; row < 4; row++) for (let col = 0; col < 3; col++) {
-  const t = document.createElement('div'); t.className = 't';
-  if (row === 1 || row === 2) {
-    t.innerHTML = `<svg viewBox="${col * 100} ${(row - 1) * 100} 100 100">${BANDEIRA}</svg>`;
-    t.dataset.b = '1'; pecas.push(t);
-  } else {
-    const f = formas[Math.floor(r() * formas.length)], p = paletas[Math.floor(r() * paletas.length)];
-    t.innerHTML = `<svg viewBox="0 0 100 100" style="transform:rotate(${Math.floor(r() * 4) * 90}deg)">${f(p[0], p[1])}</svg>`;
+// hero: a bandeira nasce do círculo do voto e abre em 6 passos por trás do título.
+// cada passo acrescenta a mesma área; as letras mudam de cor onde cruzam a borda e o losango.
+(() => {
+  const C = { m: '#61bf99', b: '#f8faf6', x: '#071d15', v: '#3f9a77' };
+  let seed = 11; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  let cel = ''; const cw = 15, ch = 10;
+  for (let j = -10; j <= 10; j++) for (let i = -10; i <= 10; i++) {
+    const x = 150 + i * cw, y = 100 + j * ch; if ((i + j) % 2) continue;
+    if (Math.abs(i * cw) / 146 + Math.abs(j * ch) / 96 > 1) continue;
+    const tom = r() < .2 ? C.v : (r() < .12 ? C.b : C.m);
+    cel += `<polygon points="${x},${y - ch + .8} ${x + cw - 1.2},${y} ${x},${y + ch - .8} ${x - cw + 1.2},${y}" fill="${tom}"/>`;
   }
-  geo.appendChild(t);
-}
-// chegam embaralhados e encaixam um a um
-const gira = (t, g) => { t.firstChild.style.transform = `rotate(${g}deg)`; };
-pecas.forEach((t) => gira(t, (1 + Math.floor(r() * 3)) * 90));
-pecas.forEach((t, k) => setTimeout(() => gira(t, 0), 500 + k * 260));
-// passar o mouse desmonta um pedaço; ao sair, ele volta pro lugar
-pecas.forEach((t) => { t.onmouseenter = () => gira(t, 90); t.onmouseleave = () => gira(t, 0); });
-// de tempos em tempos um pedaço sai do lugar e volta
-setInterval(() => { const t = pecas[Math.floor(Math.random() * pecas.length)]; gira(t, 180); setTimeout(() => gira(t, 0), 1500); }, 4200);
-// linhas finas de construção
-geo.insertAdjacentHTML('beforeend', `<svg class="linha" viewBox="0 0 300 400" preserveAspectRatio="none"><circle cx="150" cy="200" r="148" fill="none" stroke="#f8faf6" stroke-opacity=".2" stroke-width=".6"/><line x1="0" y1="100" x2="300" y2="100" stroke="#f8faf6" stroke-opacity=".14" stroke-width=".6"/><line x1="0" y1="300" x2="300" y2="300" stroke="#f8faf6" stroke-opacity=".14" stroke-width=".6"/><line x1="100" y1="0" x2="100" y2="400" stroke="#f8faf6" stroke-opacity=".1" stroke-width=".6"/><line x1="200" y1="0" x2="200" y2="400" stroke="#f8faf6" stroke-opacity=".1" stroke-width=".6"/></svg>`);
+  const palco = document.getElementById('palco'), ban = palco.querySelector('.ban'),
+    t2 = palco.querySelector('.t2'), t3 = palco.querySelector('.t3');
+  ban.innerHTML = `<svg viewBox="0 0 300 200" preserveAspectRatio="none"><rect width="300" height="200" fill="${C.x}"/>${cel}<circle cx="150" cy="100" r="40" fill="${C.b}"/></svg>`;
+  let k = 1;
+  function pinta() {
+    const W = palco.clientWidth, H = palco.clientHeight, w = W * (W < 700 ? .7 : .46) * k, h = w * 2 / 3,
+      cx = W / 2, cy = H / 2, l = cx - w / 2, t = cy - h / 2;
+    Object.assign(ban.style, { left: l + 'px', top: t + 'px', width: w + 'px', height: h + 'px' });
+    t2.style.clipPath = `inset(${t}px ${W - l - w}px ${H - t - h}px ${l}px)`;
+    const hw = w * .487, hh = h * .48;
+    t3.style.clipPath = `polygon(${cx}px ${cy - hh}px,${cx + hw}px ${cy}px,${cx}px ${cy + hh}px,${cx - hw}px ${cy}px)`;
+  }
+  addEventListener('resize', pinta); pinta();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let rodando = false;
+  function abre() {
+    if (rodando) return; rodando = true;
+    const k0 = .27, n = 6, passos = []; for (let i = 1; i <= n; i++) passos.push(Math.sqrt(k0 * k0 + (1 - k0 * k0) * i / n));
+    k = 0; pinta(); let i = 0;
+    setTimeout(() => { k = k0; pinta(); setTimeout(function tick() { k = passos[i++]; pinta(); if (i < n) setTimeout(tick, 120); else rodando = false; }, 420); }, 260);
+  }
+  new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && abre()), { threshold: .5 }).observe(palco);
+  palco.addEventListener('pointerenter', abre);
+})();
+
 // pastas
 document.querySelectorAll('.aba').forEach((a) => a.addEventListener('click', () => {
   document.querySelectorAll('.aba').forEach((x) => x.setAttribute('aria-selected', x === a));
