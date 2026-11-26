@@ -22,69 +22,74 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Piazzolla:opsz,wght@8..30,400;8..30,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/publico.css" />
-  <link rel="stylesheet" href="/editorial.css" />
-  <script src="/icones.js"></script>
-  <script src="/marca.js"></script>
-  <script src="/site.js"></script>
+  <link rel="stylesheet" href="/home.css" />
   
 </head>
-<body class="home26 ed">
-<header class="cab">
-  <div class="miolo">
-    <a class="cab-logo" href="/" aria-label="seu voto decide, início"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0"/><circle class="olho" r="36"/></svg><span>seu voto decide</span></a>
-    <button class="cab-menu" type="button" aria-expanded="false" aria-controls="cab-nav">menu</button>
-    <nav id="cab-nav" aria-label="principal"><a href="/guia">guia</a><a href="/jogos">jogos</a><a href="/juridico">jurídico</a><a href="/#como">como funciona</a><a href="/quem-faz#idealizacao">idealização</a><a class="cab-quem" href="/quem-faz"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0"/></svg>quem faz</a></nav>
-  </div>
+<body class="h27">
+
+
+<header class="topo">
+  <a class="marca" href="/"><i></i>seu voto decide</a>
+  <nav><a href="/guia">guia</a><a href="/jogos">jogos</a><a href="/juridico">jurídico</a><a href="/quem-faz">quem fez</a></nav>
 </header>
 
-<section class="ed-capa" id="capa">
-  <div class="ed-capa-txt">
-    <h1 aria-label="o que fizemos no 2º turno"><svg class="h-o" viewBox="-50 -50 100 100" aria-hidden="true"><polygon id="o-ext" points="-40,-40 40,-40 40,40 -40,40"/><polygon id="o-int1" points="-20,-20 20,-20 20,20 -20,20"/><polygon id="o-int2" points="-20,-20 20,-20 20,20 -20,20"/><g id="o-x"><path d="M-22 -22 L22 22 M22 -22 L-22 22"/></g><circle id="o-c" r="22"/></svg> que fizemos no 2º turno</h1>
-    <p class="ed-fim">A campanha terminou depois do 2º turno, em 25 de outubro de 2026. Agora estamos traçando novos caminhos.</p>
-    <p class="ed-nums"><span><b data-conta="participantes">0</b> pessoas participaram</span><span><b data-conta-videos>0</b> vídeos publicados</span></p>
+<section class="hero">
+  <div class="h-tit">
+    <h1 aria-label="o que fizemos no 2º turno">
+      <span class="a">o que</span>
+      <span class="b">fizemos</span>
+      <span class="c"><small>no</small><big>2º</big><em>turno</em></span>
+    </h1>
+    <p class="h-fim">A campanha terminou depois do 2º turno, em 25 de outubro de 2026. Agora estamos traçando novos caminhos.</p>
+    <div class="h-meta"><span><b>658</b> pessoas participaram</span><span><b>71</b> vídeos publicados</span><span>salvador · 21 dias</span></div>
   </div>
-  <div class="h-band">
-      <svg id="bandeira26" viewBox="-270 -180 540 360" role="img" aria-label="Bandeira feita de losangos. Cada losango cheio é uma pessoa que entrou. O círculo branco acompanha o cursor e converte os losangos ao redor."><g id="celulas"></g><circle id="circulo" r="62"/></svg>
-      <div class="h-leg-txt" aria-live="polite"><div id="rotulo">abstenção</div><div id="frase">Não foi votar. É com essa pessoa que a gente quer conversar.</div></div>
+  <div class="geo" id="geo" aria-hidden="true"></div>
 </section>
 
-<section class="ed-sec" id="o-que-foi">
-  <header class="ed-rot"><span class="ed-n">01</span><span>o que foi</span></header>
-  <div class="ed-corpo">
-    <h2 class="ed-tit">uma articulação para quem pensava em não votar</h2>
-    <p class="ed-lead">O Seu Voto Decide juntou comunicação popular, criadores de conteúdo e sociedade civil para conversar com quem pensava em se abster, votar em branco ou anular no 2º turno.</p>
-    <p>A equipe de escrita e pesquisa preparava pautas e sugestões de roteiro com informação checada. Cada pessoa gravava do seu jeito, para a família, os amigos, o grupo do bairro. A aposta era simples de dizer e difícil de fazer: a prima que não foi votar escuta mais quem senta com ela no almoço de domingo do que um perfil com um milhão de seguidores.</p>
+<section class="pastas" id="pastas">
+  <div class="pastas-cab"><p>arquivo da campanha</p><p>abra uma pasta</p></div>
+  <div class="abas" role="tablist">
+    <button class="aba a1" role="tab" aria-selected="true" data-p="p1"><span class="orelha">01</span><span class="corpo">o que foi</span></button>
+    <button class="aba a2" role="tab" aria-selected="false" data-p="p2"><span class="orelha">02</span><span class="corpo">quem fez</span></button>
+    <button class="aba a3" role="tab" aria-selected="false" data-p="p3"><span class="orelha">03</span><span class="corpo">continua no ar</span></button>
   </div>
+  <div class="trilho"></div>
 </section>
+<div class="painel">
+  <section id="p1" class="on">
+    <div class="larga"><p>O seu voto decide juntou comunicação popular, criadores de conteúdo e sociedade civil para conversar com quem pensava em se abster, votar em branco ou anular no 2º turno.</p></div>
+    <div><p>A equipe de escrita e pesquisa preparava pautas com informação checada. Cada pessoa gravava do seu jeito, para a família, os amigos, o grupo do bairro.</p></div>
+    <div><span class="n">01</span><h3>cadastro</h3><p>Cada pessoa escolhia a pauta que queria gravar.</p></div>
+    <div><span class="n">02</span><h3>grupo e roteiro</h3><p>O material chegava no grupo, com sugestões de roteiro para cada pauta.</p></div>
+    <div><span class="n">03</span><h3>vídeo e link</h3><p>Gravação do jeito de cada um, e o link voltava para a gente acompanhar.</p></div>
+  </section>
+  <section id="p2">
+    <div class="gente">
+      <div class="pessoa"><img src="/fotos/camilla-apresentacao.jpg" alt=""><b>Camilla Apresentação</b><span>escrita e pesquisa</span></div>
+      <div class="pessoa"><img src="/fotos/cintia-vitorino.jpg" alt=""><b>Cíntia Vitorino</b><span>site · escrita e pesquisa</span></div>
+      <div class="pessoa"><img src="/fotos/maria-maia.jpg" alt=""><b>Maria Maia</b><span>marketing</span></div>
+      <div class="pessoa"><img src="/fotos/yara-damasceno.jpg" alt=""><b>Yara Damasceno</b><span>escrita e pesquisa</span></div>
+    </div>
+  </section>
+  <section id="p3" class="indice">
+    <a href="/guia"><b>guia</b><p>Pautas, roteiros e argumentos para conversar com quem não decidiu.</p></a>
+    <a href="/jogos"><b>jogos</b><p>Partidas de menos de 3 minutos para jogar com quem está perto.</p></a>
+    <a href="/juridico"><b>jurídico</b><p>O que as cláusulas de imagem dizem em contratos com marcas.</p></a>
+  </section>
+</div>
 
-<section class="ed-sec ed-escuro" id="como">
-  <header class="ed-rot"><span class="ed-n">02</span><span>como funcionou</span></header>
-  <div class="ed-corpo">
-    <ol class="ed-passos">
-      <li><b>cadastro</b><p>Cada pessoa escolhia a pauta que queria gravar, uma ou várias.</p></li>
-      <li><b>grupo</b><p>No grupo de WhatsApp chegava o material com as sugestões de roteiro de cada pauta.</p></li>
-      <li><b>vídeo</b><p>Gravação, edição e postagem do jeito de cada um: feed, stories, status, grupo da família.</p></li>
-      <li><b>link</b><p>O link voltava para a gente acompanhar até onde a conversa tinha chegado.</p></li>
-    </ol>
-  </div>
-</section>
 
 <section class="ed-sec" id="no-meu-tempo">
-  <header class="ed-rot"><span class="ed-n">03</span><span>no meu tempo…</span></header>
+  <header class="ed-rot"><span class="ed-n">04</span><span>no meu tempo…</span></header>
   <div class="ed-corpo">
     <h2 class="ed-tit">20 segundos com alguém mais velho contando o que mudou</h2>
     <p class="ed-lead">Avós, mães, tios e vizinhos gravaram lembranças de programas criados nos governos Lula que mudaram a vida de muita gente.</p>
     <ul class="h-temas"><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="20" style="fill:#f8faf6"/><g class="mv rot" style="stroke:#3f9a77;stroke-width:7px;stroke-linecap:round"><line x1="50" y1="6" x2="50" y2="18"/><line x1="50" y1="82" x2="50" y2="94"/><line x1="6" y1="50" x2="18" y2="50"/><line x1="82" y1="50" x2="94" y2="50"/><line x1="19" y1="19" x2="27" y2="27"/><line x1="73" y1="73" x2="81" y2="81"/><line x1="81" y1="19" x2="73" y2="27"/><line x1="27" y1="73" x2="19" y2="81"/></g></svg><b>Luz para Todos</b><span>luz em casa</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="mv sobe" cx="50" cy="38" r="13" style="fill:#61bf99"/><path d="M14 56 H86 A36 36 0 0 1 14 56 Z" style="fill:#f8faf6"/></svg><b>Bolsa Família</b><span>comida na mesa</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(-45 50 50)"><path class="mv abre1" d="M50 36 H36 A14 14 0 0 0 36 64 H50 Z" style="fill:#f8faf6"/><path class="mv abre2" d="M50 36 H64 A14 14 0 0 1 64 64 H50 Z" style="fill:#61bf99"/></g></svg><b>Farmácia Popular</b><span>remédio de graça</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M28 52 V68 C28 80 72 80 72 68 V52" style="fill:#3f9a77"/><polygon class="mv sobe" points="50,18 94,38 50,58 6,38" style="fill:#f8faf6"/><circle cx="90" cy="68" r="6" style="fill:#61bf99"/></svg><b>ProUni e novas universidades</b><span>faculdade</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="22" y="46" width="56" height="40" style="fill:#f8faf6"/><polygon class="mv sobe" points="12,48 50,14 88,48" style="fill:#61bf99"/><rect x="43" y="62" width="14" height="24" style="fill:#0f3a2b"/></svg><b>Minha Casa, Minha Vida</b><span>casa própria</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><path class="mv sorri" d="M10 34 H90 A40 40 0 0 1 10 34 Z" style="fill:#f8faf6"/><rect x="26" y="34" width="48" height="9" style="fill:#0f3a2b"/></svg><b>Brasil Sorridente</b><span>dentista no posto</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><clipPath id="cis"><circle cx="50" cy="50" r="38"/></clipPath><g clip-path="url(#cis)"><rect class="mv agua" x="8" y="52" width="84" height="60" style="fill:#61bf99"/></g><circle cx="50" cy="50" r="38" style="fill:none;stroke:#f8faf6;stroke-width:8px"/></svg><b>Cisternas</b><span>água no semiárido</span></li><li class="tema"><svg viewBox="0 0 100 100" aria-hidden="true"><rect class="mv cresce" x="10" y="58" width="22" height="28" style="fill:#3f9a77"/><rect class="mv cresce" x="39" y="40" width="22" height="46" style="fill:#f8faf6"/><rect class="mv cresce" x="68" y="18" width="22" height="68" style="fill:#61bf99"/></svg><b>Salário mínimo valorizado</b><span>o salário rendendo mais</span></li></ul>
   </div>
 </section>
-
 <section class="ed-sec ed-escuro" id="conversa-sec">
-  <header class="ed-rot"><span class="ed-n">04</span><span>quem está perto escuta mais</span></header>
-  <div class="ed-corpo">
-    <div class="conversa" id="conversa">
-      <h2 class="ed-tit">com quem você falaria?</h2>
-      <p class="passo">a pessoa</p>
+  <header class="ed-rot"><span class="ed-n">05</span><span>quem está perto escuta mais</span></header>
+  <div class="ed-corpo"><div class="conversa" id="conversa"><h2 class="ed-tit">com quem você falaria?</h2><p class="passo">a pessoa</p>
       <div class="chips" data-grupo="quem">
         <button type="button" data-v="sua prima" data-p="ela">Prima</button>
         <button type="button" data-v="seu tio" data-p="ele">Tio</button>
@@ -100,38 +105,74 @@
         <button type="button" data-v="no grupo da família">Grupo da família</button>
         <button type="button" data-v="num vídeo no seu status">Vídeo no status</button>
       </div>
-      <div class="fala vazia" id="fala">Escolha a pessoa e o lugar.</div>
-    </div>
-  </div>
+      <div class="fala vazia" id="fala">Escolha a pessoa e o lugar.</div></div></div>
 </section>
+<footer class="rodape"><span class="marca"><i></i>seu voto decide</span><span>Comunicação popular, criadores de conteúdo e sociedade civil. Toda a equipe foi voluntária.</span></footer>
+<script>
+// a bandeira do seu voto decide recortada em ladrilhos: as fileiras do meio formam a bandeira,
+// as de cima e de baixo são formas soltas da marca. Os ladrilhos chegam girados e se encaixam.
+const C = { f: '#0f3a2b', m: '#61bf99', b: '#f8faf6', x: '#071d15', s: '#17503c' };
+let seed = 11; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+// bandeira inteira (300 x 200): losango grande feito de losangos pequenos e o círculo do voto
+let cel = '';
+const W2 = 150, H2 = 100, cw = 15, ch = 10;
+for (let j = -10; j <= 10; j++) for (let i = -10; i <= 10; i++) {
+  const x = W2 + i * cw, y = H2 + j * ch; if ((i + j) % 2) continue;
+  if (Math.abs(i * cw) / 146 + Math.abs(j * ch) / 96 > 1) continue;
+  const tom = r() < .2 ? C.f : (r() < .12 ? C.b : C.m);
+  cel += `<polygon points="${x},${y - ch + .8} ${x + cw - 1.2},${y} ${x},${y + ch - .8} ${x - cw + 1.2},${y}" fill="${tom}"/>`;
+}
+const BANDEIRA = `<rect width="300" height="200" fill="${C.x}"/>${cel}<circle cx="150" cy="100" r="40" fill="${C.b}"/>`;
+const formas = [
+  (a, b) => `<rect width="100" height="100" fill="${a}"/><polygon points="50,6 94,50 50,94 6,50" fill="${b}"/>`,
+  (a, b) => `<rect width="100" height="100" fill="${a}"/><path d="M0 100 A100 100 0 0 1 100 0 V100 Z" fill="${b}"/>`,
+  (a, b) => `<rect width="100" height="100" fill="${a}"/><path d="M0 0 H100 A50 50 0 0 1 0 0 Z" fill="${b}"/><path d="M0 100 A50 50 0 0 1 100 100 Z" fill="${b}"/>`,
+  (a, b) => `<rect width="100" height="100" fill="${a}"/><circle cx="50" cy="50" r="50" fill="${b}"/><circle cx="50" cy="50" r="20" fill="${C.b}"/>`,
+  (a, b) => `<rect width="100" height="100" fill="${a}"/><polygon points="0,0 100,100 0,100" fill="${b}"/>`,
+  (a, b) => `<rect width="100" height="100" fill="${a}"/><path d="M50 0 A50 50 0 0 1 50 100 Z" fill="${b}"/>`,
+];
+const paletas = [[C.f, C.s], [C.x, C.s], [C.s, C.m], [C.f, C.m], [C.x, C.f], [C.m, C.x]];
+const geo = document.getElementById('geo');
+const pecas = [];
+for (let row = 0; row < 4; row++) for (let col = 0; col < 3; col++) {
+  const t = document.createElement('div'); t.className = 't';
+  if (row === 1 || row === 2) {
+    t.innerHTML = `<svg viewBox="${col * 100} ${(row - 1) * 100} 100 100">${BANDEIRA}</svg>`;
+    t.dataset.b = '1'; pecas.push(t);
+  } else {
+    const f = formas[Math.floor(r() * formas.length)], p = paletas[Math.floor(r() * paletas.length)];
+    t.innerHTML = `<svg viewBox="0 0 100 100" style="transform:rotate(${Math.floor(r() * 4) * 90}deg)">${f(p[0], p[1])}</svg>`;
+  }
+  geo.appendChild(t);
+}
+// chegam embaralhados e encaixam um a um
+const gira = (t, g) => { t.firstChild.style.transform = `rotate(${g}deg)`; };
+pecas.forEach((t) => gira(t, (1 + Math.floor(r() * 3)) * 90));
+pecas.forEach((t, k) => setTimeout(() => gira(t, 0), 500 + k * 260));
+// passar o mouse desmonta um pedaço; ao sair, ele volta pro lugar
+pecas.forEach((t) => { t.onmouseenter = () => gira(t, 90); t.onmouseleave = () => gira(t, 0); });
+// de tempos em tempos um pedaço sai do lugar e volta
+setInterval(() => { const t = pecas[Math.floor(Math.random() * pecas.length)]; gira(t, 180); setTimeout(() => gira(t, 0), 1500); }, 4200);
+// linhas finas de construção
+geo.insertAdjacentHTML('beforeend', `<svg class="linha" viewBox="0 0 300 400" preserveAspectRatio="none"><circle cx="150" cy="200" r="148" fill="none" stroke="#f8faf6" stroke-opacity=".2" stroke-width=".6"/><line x1="0" y1="100" x2="300" y2="100" stroke="#f8faf6" stroke-opacity=".14" stroke-width=".6"/><line x1="0" y1="300" x2="300" y2="300" stroke="#f8faf6" stroke-opacity=".14" stroke-width=".6"/><line x1="100" y1="0" x2="100" y2="400" stroke="#f8faf6" stroke-opacity=".1" stroke-width=".6"/><line x1="200" y1="0" x2="200" y2="400" stroke="#f8faf6" stroke-opacity=".1" stroke-width=".6"/></svg>`);
+// pastas
+document.querySelectorAll('.aba').forEach((a) => a.addEventListener('click', () => {
+  document.querySelectorAll('.aba').forEach((x) => x.setAttribute('aria-selected', x === a));
+  document.querySelectorAll('.painel > section').forEach((s) => s.classList.toggle('on', s.id === a.dataset.p));
+}));
 
-<section class="ed-sec" id="quem-fez">
-  <header class="ed-rot"><span class="ed-n">05</span><span>idealização</span><a href="/quem-faz">ver a página quem faz</a></header>
-  <div class="ed-corpo">
-    <ul class="ed-gente"><li><img src="/fotos/camilla-apresentacao.jpg" alt="" width="320" height="320"><div><b>Camilla Apresentação</b><span>escrita e pesquisa</span><a href="https://www.instagram.com/pretaletrada/" target="_blank" rel="noopener noreferrer">@pretaletrada</a></div></li><li><img src="/fotos/cintia-vitorino.jpg" alt="" width="320" height="320"><div><b>Cíntia Vitorino</b><span>site · escrita e pesquisa</span><a href="https://www.instagram.com/cintiasvitorino/" target="_blank" rel="noopener noreferrer">@cintiasvitorino</a></div></li><li><img src="/fotos/maria-maia.jpg" alt="" width="320" height="320"><div><b>Maria Maia</b><span>marketing</span><a href="https://www.instagram.com/maariamaia/" target="_blank" rel="noopener noreferrer">@maariamaia</a></div></li><li><img src="/fotos/yara-damasceno.jpg" alt="" width="320" height="320"><div><b>Yara Damasceno</b><span>escrita e pesquisa</span><a href="https://www.instagram.com/yaradamascenno/" target="_blank" rel="noopener noreferrer">@yaradamascenno</a></div></li></ul>
-  </div>
-</section>
-
-<section class="ed-sec ed-escuro" id="continua">
-  <header class="ed-rot"><span class="ed-n">06</span><span>continua no ar</span></header>
-  <div class="ed-corpo">
-    <ul class="ed-indice">
-      <li><a href="/guia"><b>guia de comunicação popular</b><span>Pautas, roteiros e argumentos para conversar com quem não decidiu.</span></a></li>
-      <li><a href="/jogos"><b>jogos</b><span>Partidas de menos de 3 minutos para jogar com quem está perto.</span></a></li>
-      <li><a href="/juridico"><b>jurídico</b><span>O que as cláusulas de imagem dizem em contratos com marcas.</span></a></li>
-    </ul>
-  </div>
-</section>
-
-<section class="ed-sec" id="apoiadores" hidden>
-  <header class="ed-rot"><span class="ed-n">07</span><span>quem apoiou</span></header>
-  <div class="ed-corpo"><ul class="apoio-lista" id="lista-apoio"></ul></div>
-</section>
-
-<footer class="ed-rodape">
-  <div class="ed-rod-logo"><svg viewBox="-100 -70 200 140" aria-hidden="true"><polygon points="0,-65 98,0 0,65 -98,0"/><circle r="36"/></svg>seu voto decide</div>
-  <p>Comunicação popular, criadores de conteúdo e sociedade civil. Toda a equipe foi voluntária.</p>
-</footer>
-<script src="/home.js"></script>
+// monte a sua conversa
+const escolha = { quem: null, onde: null };
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+document.querySelectorAll('#conversa [data-grupo]').forEach((gr) => gr.addEventListener('click', (e) => {
+  const bt = e.target.closest('button'); if (!bt) return;
+  gr.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === bt));
+  escolha[gr.dataset.grupo] = { v: bt.dataset.v, p: bt.dataset.p };
+  const el = document.getElementById('fala');
+  if (!escolha.quem || !escolha.onde) { el.className = 'fala vazia'; el.textContent = escolha.quem ? 'Agora escolha onde.' : 'Escolha a pessoa e o lugar.'; return; }
+  el.className = 'fala';
+  el.innerHTML = `<small>sua conversa</small>Puxe o assunto com ${esc(escolha.quem.v)} ${esc(escolha.onde.v)}. Pergunte se ${escolha.quem.p} vai votar e por quê. Escute antes de responder. Depois conte o que te faz ir, com as suas palavras.`;
+}));
+</script>
 </body>
 </html>
