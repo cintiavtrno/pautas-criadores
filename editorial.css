@@ -107,3 +107,4 @@
 }
 .ed .fala small { display: block; margin-bottom: 10px; font: 600 14px/1 var(--display); font-style: normal; letter-spacing: .08em; text-transform: uppercase; color: var(--menta); }
 .qf-gal, .qf-rede { display: none !important; }
+.ed .h-leg-txt, .ed .h-leg, .ed .h-pessoas { display: none !important; }
