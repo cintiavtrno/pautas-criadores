@@ -232,7 +232,7 @@
       if (!escolha.quem || !escolha.onde) { el.className = 'fala vazia'; el.textContent = escolha.quem ? 'Agora escolha onde.' : 'Escolha a pessoa e o lugar.'; return; }
       el.className = 'fala';
       el.innerHTML = `<small>sua conversa</small>Puxe o assunto com ${esc(escolha.quem.v)} ${esc(escolha.onde.v)}. Pergunte se ${escolha.quem.p} vai votar e por quê. Escute antes de responder. Depois conte o que te faz ir, com as suas palavras.`;
-      document.getElementById('fala-cta').hidden = false;
+      const cta = document.getElementById('fala-cta'); if (cta) cta.hidden = false;
     });
   });
 })();
